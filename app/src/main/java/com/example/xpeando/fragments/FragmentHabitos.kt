@@ -15,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -73,9 +74,10 @@ class FragmentHabitos : Fragment() {
                 
                 db.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio)
                 
-                // Daño al jefe activo solo si es un hábito de Fuerza y se suma (acción positiva)
-                if (delta > 0 && habito.atributo == "Fuerza") {
-                    db.dañarJefe(10, correo)
+                // Balanceo: Daño al jefe si es positivo, Curación si es negativo (solo atributo Fuerza)
+                if (habito.atributo == "Fuerza") {
+                    val dañoBase = if (delta > 0) 10 else -15 // Los fallos curan más de lo que dañan
+                    db.dañarJefe(dañoBase, correo)
                 }
 
                 // MEJORA: Subida gradual de atributos (0.01)
@@ -137,10 +139,21 @@ class FragmentHabitos : Fragment() {
         dialog.show()
     }
 
+    private var isDeathDialogShowing = false
+
     private fun mostrarDialogoMuerte(correo: String) {
+        if (isDeathDialogShowing) return
+        isDeathDialogShowing = true
+
+        val usuario = db.obtenerUsuarioLogueado(correo) ?: return
+        val inventario = db.obtenerInventario(correo)
+        val pocion = inventario.find { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
+
         val vista = layoutInflater.inflate(R.layout.dialogo_muerte, null)
         val tvTitulo = vista.findViewById<TextView>(R.id.tv_titulo_muerte)
-        val btnResucitar = vista.findViewById<Button>(R.id.btn_resucitar)
+        val btnPocion = vista.findViewById<Button>(R.id.btn_resucitar_pocion)
+        val btnMonedas = vista.findViewById<Button>(R.id.btn_resucitar_monedas)
+        val btnGratis = vista.findViewById<Button>(R.id.btn_resucitar_gratis)
         
         val animVibracion = AnimationUtils.loadAnimation(requireContext(), R.anim.vibrate_text)
         tvTitulo.startAnimation(animVibracion)
@@ -149,15 +162,50 @@ class FragmentHabitos : Fragment() {
             .setView(vista)
             .setCancelable(false)
             .create()
-            
-        btnResucitar.setOnClickListener {
-            db.actualizarProgresoUsuario(correo, 0, -20, 50) 
-            (activity as? MainActivity)?.actualizarHeader()
-            dialog.dismiss()
-            actualizarLista()
+
+        // Opción 1: Usar Poción (si tiene)
+        if (pocion != null) {
+            btnPocion.isEnabled = true
+            btnPocion.text = "Usar ${pocion.nombre} (Cura 50 HP)"
+            btnPocion.setOnClickListener {
+                db.actualizarProgresoUsuario(correo, 0, 0, 50)
+                db.eliminarDelInventario(pocion.id)
+                finalizarMuerte(dialog)
+            }
+        } else {
+            btnPocion.isEnabled = false
+            btnPocion.alpha = 0.5f
+            btnPocion.text = "Sin pociones de vida"
+        }
+
+        // Opción 2: Pagar Monedas (si tiene 50)
+        if (usuario.monedas >= 50) {
+            btnMonedas.isEnabled = true
+            btnMonedas.setOnClickListener {
+                db.actualizarProgresoUsuario(correo, 0, -50, 25)
+                finalizarMuerte(dialog)
+            }
+        } else {
+            btnMonedas.isEnabled = false
+            btnMonedas.alpha = 0.5f
+            btnMonedas.text = "Falta Oro (Necesitas 50)"
+        }
+
+        // Opción 3: Gratis (Solo 10 HP)
+        btnGratis.setOnClickListener {
+            db.actualizarProgresoUsuario(correo, 0, 0, 10)
+            finalizarMuerte(dialog)
         }
         
         dialog.show()
+    }
+
+    private fun finalizarMuerte(dialog: AlertDialog) {
+        (activity as? MainActivity)?.actualizarHeader()
+        isDeathDialogShowing = false
+        dialog.dismiss()
+        actualizarLista()
+        Toast.makeText(requireContext(), "¡Has regresado a la vida!", Toast.LENGTH_SHORT).show()
     }
 
     private fun mostrarFeedbackProgreso(vista: View, xp: Int, monedas: Int, hp: Int, atributo: String? = null) {
@@ -247,7 +295,7 @@ class FragmentHabitos : Fragment() {
             .show()
     }
 
-    private fun actualizarLista() {
+    fun actualizarLista() {
         adaptador.actualizarLista(db.obtenerTodosHabitos())
     }
 }

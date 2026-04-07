@@ -21,6 +21,10 @@ import com.example.xpeando.model.Tarea
 import com.example.xpeando.utils.LogroManager
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import android.view.Gravity
+import android.widget.FrameLayout
+import android.widget.ImageView
 
 class FragmentTareas : Fragment() {
 
@@ -60,44 +64,48 @@ class FragmentTareas : Fragment() {
         adaptador = TareasAdapter(
             obtenerListaFiltrada(),
             onTareaCompletada = { tarea, completada ->
-                val tareasAntes = db.obtenerTotalTareasCompletadas()
-                val usuarioAntes = db.obtenerUsuarioLogueado(correo)
-                val nivelAntes = usuarioAntes?.nivel ?: 1
+                // Solo permitimos marcar como completada si no lo estaba ya.
+                // Una vez completada, no se puede desmarcar.
+                if (!tarea.completada && completada) {
+                    val tareasAntes = db.obtenerTotalTareasCompletadas()
+                    val usuarioAntes = db.obtenerUsuarioLogueado(correo)
+                    val nivelAntes = usuarioAntes?.nivel ?: 1
 
-                val tareaActualizada = tarea.copy(completada = completada)
-                db.actualizarTarea(tareaActualizada)
-                
-                val multiplicador = if (completada) 1 else -1
-                db.actualizarProgresoUsuario(
-                    correo,
-                    tarea.experiencia * multiplicador,
-                    tarea.monedas * multiplicador
-                )
-                
-                if (completada) {
-                    db.dañarJefe(50, correo)
-                }
+                    val tareaActualizada = tarea.copy(completada = true)
+                    db.actualizarTarea(tareaActualizada)
+                    
+                    db.actualizarProgresoUsuario(
+                        correo,
+                        tarea.experiencia,
+                        tarea.monedas
+                    )
+                    
+                    // Daño basado en dificultad (Trivial=1 -> 15, Difícil=4 -> 60)
+                    val dañoMision = tarea.dificultad * 15
+                    db.dañarJefe(dañoMision, correo)
 
-                val tareasDespues = db.obtenerTotalTareasCompletadas()
-                val usuarioDespues = db.obtenerUsuarioLogueado(correo)
-                val nivelDespues = usuarioDespues?.nivel ?: 1
+                    val tareasDespues = db.obtenerTotalTareasCompletadas()
+                    val usuarioDespues = db.obtenerUsuarioLogueado(correo)
+                    val nivelDespues = usuarioDespues?.nivel ?: 1
 
-                // Verificar logros
-                usuarioDespues?.let {
-                    if (completada) {
+                    // Verificar logros
+                    usuarioDespues?.let {
                         LogroManager.verificarNuevosLogros(requireContext(), db, it, tareasAntes, tareasDespues, "TAREA")
                         LogroManager.verificarNuevosLogros(requireContext(), db, it, usuarioAntes?.monedas ?: 0, it.monedas, "MONEDAS")
+                        
+                        if (nivelDespues > nivelAntes) {
+                            LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
+                            mostrarDialogoSubidaNivel(nivelDespues)
+                        }
                     }
-                    
-                    // Verificar logros de nivel si ha subido
-                    if (nivelDespues > nivelAntes) {
-                        LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
-                        mostrarDialogoSubidaNivel(nivelDespues)
-                    }
-                }
 
-                (activity as? MainActivity)?.actualizarHeader()
-                actualizarLista()
+                    (activity as? MainActivity)?.actualizarHeader()
+                    actualizarLista()
+                    mostrarToastPersonalizado("¡Misión Completada!")
+                } else {
+                    // Si se intenta desmarcar una completada, refrescamos para que el checkbox siga marcado visualmente
+                    actualizarLista()
+                }
             },
             onTareaLongClick = { tarea ->
                 mostrarDialogoEliminar(tarea)
@@ -134,7 +142,10 @@ class FragmentTareas : Fragment() {
     private fun obtenerListaFiltrada(): List<Tarea> {
         val todas = db.obtenerTodasLasTareas()
         return when (chipGroupFiltros.checkedChipId) {
-            R.id.chip_completadas -> todas.filter { it.completada }
+            R.id.chip_completadas -> {
+                // Solo mostramos las últimas 10 completadas para no saturar la vista
+                todas.filter { it.completada }.takeLast(10).reversed()
+            }
             else -> todas.filter { !it.completada }
         }
     }
@@ -195,5 +206,29 @@ class FragmentTareas : Fragment() {
 
     private fun actualizarLista() {
         adaptador.actualizarLista(obtenerListaFiltrada())
+    }
+
+    private fun mostrarToastPersonalizado(mensaje: String) {
+        val snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
+        val snackbarLayout = snackbar.view as ViewGroup
+        
+        snackbarLayout.removeAllViews()
+        snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        snackbarLayout.setPadding(0, 0, 0, 150)
+
+        val layoutInflater = LayoutInflater.from(requireContext())
+        val customView = layoutInflater.inflate(R.layout.layout_toast_mision_completada, snackbarLayout, false)
+        
+        customView.findViewById<TextView>(R.id.tv_mensaje_toast_mision).text = mensaje
+
+        val params = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.gravity = Gravity.CENTER_HORIZONTAL
+        customView.layoutParams = params
+        
+        snackbarLayout.addView(customView)
+        snackbar.show()
     }
 }

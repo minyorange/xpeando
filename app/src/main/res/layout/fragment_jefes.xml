@@ -1,91 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:padding="16dp"
+    android:fillViewport="true"
     android:background="#121212">
-
-    <TextView
-        android:id="@+id/tvTituloJefe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="¡ASALTO AL JEFE!"
-        android:textColor="#FF5252"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        app:cardCornerRadius="140dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="#1E1E1E">
-
-        <ImageView
-            android:id="@+id/ivJefe"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="40dp"
-            android:src="@drawable/ic_boss_dragon"
-            android:scaleType="centerInside"/>
-    </androidx.cardview.widget.CardView>
-
-    <TextView
-        android:id="@+id/tvNombreJefe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cargando Jefe..."
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:layout_marginTop="16dp"
-        android:textStyle="bold"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:layout_marginTop="24dp">
+        android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvHpJefe"
+            android:id="@+id/tvTituloJefe"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="HP: 500 / 500"
+            android:text="¡ASALTO AL JEFE!"
             android:textColor="#FF5252"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            app:cardCornerRadius="120dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="#1E1E1E">
+
+            <ImageView
+                android:id="@+id/ivJefe"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="30dp"
+                android:src="@drawable/ic_boss_dragon"
+                android:scaleType="centerInside"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvNombreJefe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cargando Jefe..."
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:layout_marginTop="12dp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvDescripcionJefe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Descripción del jefe..."
+            android:textColor="#BBBBBB"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:textAlignment="center"
+            android:paddingHorizontal="24dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:id="@+id/tvHpJefe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HP: 500 / 500"
+                android:textColor="#FF5252"
+                android:textSize="16sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"/>
+
+            <ProgressBar
+                android:id="@+id/pbHpJefe"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:progress="100"
+                android:progressDrawable="@android:drawable/progress_horizontal"
+                android:progressTint="#FF5252"/>
+        </LinearLayout>
+
+        <!-- Contador movido más arriba para mejor visibilidad -->
+        <TextView
+            android:id="@+id/tvContadorReaparicion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reaparece en: 21:00:00"
+            android:textColor="#FF5252"
+            android:layout_marginTop="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tvInstrucciones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="¡Completa tus tareas para derrotarlo!"
+            android:textColor="#BBBBBB"
+            android:layout_marginTop="24dp"
+            android:textStyle="italic"
+            android:textAlignment="center"/>
+
+        <TextView
+            android:id="@+id/tvRecompensasJefe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recompensas: 1000 Oro | 500 XP"
+            android:textColor="#FFD700"
+            android:layout_marginTop="8dp"
+            android:textSize="14sp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HISTORIAL DE VICTORIAS"
+            android:textColor="#FFFFFF"
             android:textSize="16sp"
-            android:layout_gravity="center_horizontal"
+            android:textStyle="bold"
+            android:layout_gravity="start"
             android:layout_marginBottom="8dp"/>
 
-        <ProgressBar
-            android:id="@+id/pbHpJefe"
-            style="?android:attr/progressBarStyleHorizontal"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHistorialJefes"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:progress="100"
-            android:progressDrawable="@android:drawable/progress_horizontal"
-            android:progressTint="#FF5252"/>
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="¡Completa tus tareas para derrotarlo!"
-        android:textColor="#BBBBBB"
-        android:layout_marginTop="32dp"
-        android:textStyle="italic"
-        android:textAlignment="center"/>
-
-    <TextView
-        android:id="@+id/tvRecompensasJefe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Recompensas: 1000 Oro | 500 XP"
-        android:textColor="#FFD700"
-        android:layout_marginTop="8dp"
-        android:textSize="14sp"/>
-
-</LinearLayout>
+</ScrollView>

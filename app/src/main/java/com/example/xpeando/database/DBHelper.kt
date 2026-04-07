@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 20) { // Incrementamos para añadir contador de hábitos
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 24) { // Subido a 24 para equilibrar atributos
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -61,12 +61,16 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             CREATE TABLE jefes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT,
+                descripcion TEXT,
                 hpMax INTEGER,
                 hpActual INTEGER,
                 recompensaMonedas INTEGER,
                 recompensaXP INTEGER,
                 icono TEXT,
-                derrotado INTEGER DEFAULT 0
+                derrotado INTEGER DEFAULT 0,
+                fechaMuerte LONG DEFAULT 0,
+                nivel INTEGER DEFAULT 1,
+                armadura INTEGER DEFAULT 0
             )
         """.trimIndent())
 
@@ -115,12 +119,16 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         // Insertar Jefe Inicial
         val vJefe = ContentValues().apply {
             put("nombre", "Dragón de la Procrastinación")
+            put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
             put("hpMax", 200)
             put("hpActual", 200)
             put("recompensaMonedas", 500)
             put("recompensaXP", 150)
             put("icono", "dragon")
             put("derrotado", 0)
+            put("fechaMuerte", 0L)
+            put("nivel", 1)
+            put("armadura", 0)
         }
         db.insert("jefes", null, vJefe)
     }
@@ -148,32 +156,112 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             jefe = Jefe(
                 cursor.getInt(cursor.getColumnIndexOrThrow("id")),
                 cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
+                cursor.getString(cursor.getColumnIndexOrThrow("descripcion")),
                 cursor.getInt(cursor.getColumnIndexOrThrow("hpMax")),
                 cursor.getInt(cursor.getColumnIndexOrThrow("hpActual")),
                 cursor.getInt(cursor.getColumnIndexOrThrow("recompensaMonedas")),
                 cursor.getInt(cursor.getColumnIndexOrThrow("recompensaXP")),
                 cursor.getString(cursor.getColumnIndexOrThrow("icono")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("derrotado")) == 1
+                cursor.getInt(cursor.getColumnIndexOrThrow("derrotado")) == 1,
+                cursor.getInt(cursor.getColumnIndexOrThrow("nivel")),
+                cursor.getInt(cursor.getColumnIndexOrThrow("armadura"))
             )
+        } else {
+            // No hay jefe activo, veamos si debe reaparecer (21h = 75600000 ms)
+            val cursorMuerto = db.rawQuery("SELECT * FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", null)
+            if (cursorMuerto.moveToFirst()) {
+                val fechaMuerte = cursorMuerto.getLong(cursorMuerto.getColumnIndexOrThrow("fechaMuerte"))
+                val ahora = System.currentTimeMillis()
+                if (ahora - fechaMuerte >= 21 * 60 * 60 * 1000) {
+                    // Resucitar jefe incrementando dificultad
+                    val idJefe = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("id"))
+                    val nivelAnterior = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("nivel"))
+                    val nuevoNivel = nivelAnterior + 1
+                    
+                    // Incremento: +50 HP por nivel y +5 Armadura por nivel
+                    val nuevoHpMax = 200 + (nuevoNivel - 1) * 50
+                    val nuevaArmadura = (nuevoNivel - 1) * 5
+                    
+                    // Escalar recompensas: +10% de oro y XP por cada nivel adicional
+                    val nuevaRecompensaMonedas = (500 * (1 + (nuevoNivel - 1) * 0.1)).toInt()
+                    val nuevaRecompensaXP = (150 * (1 + (nuevoNivel - 1) * 0.1)).toInt()
+                    
+                    // Cambiar nombre y descripción según el nivel
+                    val (nuevoNombre, nuevaDesc) = when {
+                        nuevoNivel == 1 -> Pair("Dragón de la Procrastinación", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
+                        nuevoNivel == 2 -> Pair("Soberano de la Pereza", "Un ente que ralentiza tus movimientos. Solo la constancia puede vencerlo.")
+                        nuevoNivel == 3 -> Pair("Titán del Desorden", "Su mera presencia desorganiza tu mente. Pon orden en tu vida para debilitarlo.")
+                        nuevoNivel == 4 -> Pair("Espectro de las Tareas Pendientes", "La acumulación de días sin acción le ha dado una forma física aterradora.")
+                        nuevoNivel >= 5 -> Pair("Señor del Caos Infinito (Nvl $nuevoNivel)", "La entidad definitiva. El reto final para un héroe de la productividad.")
+                        else -> Pair("Dragón de la Procrastinación", "Se alimenta de tus tareas pendientes.")
+                    }
+                    
+                    val dbWrite = this.writableDatabase
+                    val v = ContentValues().apply {
+                        put("nombre", nuevoNombre)
+                        put("descripcion", nuevaDesc)
+                        put("derrotado", 0)
+                        put("hpMax", nuevoHpMax)
+                        put("hpActual", nuevoHpMax)
+                        put("recompensaMonedas", nuevaRecompensaMonedas)
+                        put("recompensaXP", nuevaRecompensaXP)
+                        put("fechaMuerte", 0)
+                        put("nivel", nuevoNivel)
+                        put("armadura", nuevaArmadura)
+                    }
+                    dbWrite.update("jefes", v, "id = ?", arrayOf(idJefe.toString()))
+                    dbWrite.close()
+                    
+                    // Recursividad para obtener el jefe ahora que está activo
+                    cursorMuerto.close()
+                    db.close()
+                    return obtenerJefeActivo()
+                }
+            }
+            cursorMuerto.close()
         }
         cursor.close()
         db.close()
         return jefe
     }
 
+    fun obtenerUltimoJefeDerrotadoTime(): Long {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT fechaMuerte FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", null)
+        var time = 0L
+        if (cursor.moveToFirst()) {
+            time = cursor.getLong(0)
+        }
+        cursor.close()
+        db.close()
+        return time
+    }
+
     fun dañarJefe(dañoBase: Int, correo: String): Boolean {
         val jefe = obtenerJefeActivo() ?: return false
         val usuario = obtenerUsuarioLogueado(correo) ?: return false
-        
-        // El daño real depende de la Fuerza del usuario
-        val dañoReal = (dañoBase * usuario.fuerza).toInt()
-        val nuevoHp = (jefe.hpActual - dañoReal).coerceAtLeast(0)
+        val inventario = obtenerInventario(correo).filter { it.equipado }
+
+        // Sumar bonos del equipo a la fuerza (Ej: Arma +2 Fza)
+        val bonusFzaEquipo = inventario.sumOf { it.bonusFza }.toDouble()
+        val fuerzaTotal = usuario.fuerza + (bonusFzaEquipo / 10.0) // 1 punto equipo = +0.1 multiplicador
+
+        // El daño se reduce por la armadura del jefe (mínimo 1 de daño si el ataque es positivo)
+        val dañoTrasArmadura = if (dañoBase > 0) {
+            (dañoBase - jefe.armadura).coerceAtLeast(1)
+        } else {
+            dañoBase // Curación (daño negativo) no se ve afectada por armadura
+        }
+
+        val dañoReal = (dañoTrasArmadura * fuerzaTotal).toInt()
+        val nuevoHp = (jefe.hpActual - dañoReal).coerceIn(0, jefe.hpMax)
 
         val db = this.writableDatabase
         val valores = ContentValues().apply {
             put("hpActual", nuevoHp)
             if (nuevoHp == 0) {
                 put("derrotado", 1)
+                put("fechaMuerte", System.currentTimeMillis())
             }
         }
         db.update("jefes", valores, "id = ?", arrayOf(jefe.id.toString()))
@@ -181,7 +269,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
 
         if (nuevoHp == 0) {
             actualizarProgresoUsuario(correo, jefe.recompensaXP, jefe.recompensaMonedas)
-            return true // Jefe derrotado
+            return true
         }
         return false
     }
@@ -250,18 +338,22 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
 
     fun actualizarProgresoUsuario(correo: String, xpBase: Int, monedasBase: Int, hpCambioBase: Int = 0) {
         val usuario = obtenerUsuarioLogueado(correo) ?: return
-        
-        // --- APLICAR MODIFICADORES DE ATRIBUTOS ---
-        
+        val inventario = obtenerInventario(correo).filter { it.equipado }
+
+        // --- APLICAR MODIFICADORES DE ATRIBUTOS (BASE + EQUIPO) ---
+        val intTotal = usuario.inteligencia + (inventario.sumOf { it.bonusInt } / 10.0)
+        val perTotal = usuario.percepcion + (inventario.sumOf { it.bonusPer } / 10.0)
+        val conTotal = usuario.constitucion + (inventario.sumOf { it.bonusCon } / 10.0)
+
         // Inteligencia potencia la XP ganada (si es positiva)
-        val xpFinal = if (xpBase > 0) (xpBase * usuario.inteligencia).toInt() else xpBase
+        val xpFinal = if (xpBase > 0) (xpBase * intTotal).toInt() else xpBase
         
         // Percepción potencia las monedas ganadas (si es positiva)
-        val monedasFinal = if (monedasBase > 0) (monedasBase * usuario.percepcion).toInt() else monedasBase
+        val monedasFinal = if (monedasBase > 0) (monedasBase * perTotal).toInt() else monedasBase
         
         // Constitución reduce el daño recibido (si hpCambio es negativo)
         val hpFinalCambio = if (hpCambioBase < 0) {
-            (hpCambioBase / usuario.constitucion).toInt() 
+            (hpCambioBase / conTotal).toInt()
         } else {
             hpCambioBase
         }
@@ -704,5 +796,31 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         cursor.close()
         db.close()
         return total
+    }
+
+    fun obtenerJefesDerrotados(): List<Jefe> {
+        val lista = mutableListOf<Jefe>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(Jefe(
+                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("descripcion")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("hpMax")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("hpActual")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("recompensaMonedas")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("recompensaXP")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("icono")),
+                    true,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("nivel")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("armadura"))
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lista
     }
 }

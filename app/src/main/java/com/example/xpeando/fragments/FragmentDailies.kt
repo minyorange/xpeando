@@ -20,6 +20,11 @@ import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Daily
 import com.example.xpeando.utils.LogroManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import android.view.Gravity
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -93,44 +98,47 @@ class FragmentDailies : Fragment() {
 
     private fun configurarRecyclerView() {
         adaptador = DailiesAdapter(
-            lista = db.obtenerTodasDailies(),
+            lista = db.obtenerTodasDailies().filter { !it.completadaHoy },
             onCheckedChange = { daily, completada ->
-                val dailiesAntes = db.obtenerTotalDailiesCompletadas()
-                val usuarioAntes = db.obtenerUsuarioLogueado(correoUsuario)
-                val nivelAntes = usuarioAntes?.nivel ?: 1
+                if (completada) { // Solo actuamos si se marca, no se puede desmarcar
+                    val dailiesAntes = db.obtenerTotalDailiesCompletadas()
+                    val usuarioAntes = db.obtenerUsuarioLogueado(correoUsuario)
+                    val nivelAntes = usuarioAntes?.nivel ?: 1
 
-                db.actualizarEstadoDaily(daily, completada)
-                
-                val multiplicador = if (completada) 1 else -1
-                db.actualizarProgresoUsuario(
-                    correoUsuario,
-                    daily.experiencia * multiplicador,
-                    daily.monedas * multiplicador
-                )
-                
-                if (completada) {
+                    db.actualizarEstadoDaily(daily, true)
+                    
+                    // La lógica de Multiplicadores (INT, PER) ya está dentro de este método en DBHelper
+                    db.actualizarProgresoUsuario(
+                        correoUsuario,
+                        daily.experiencia,
+                        daily.monedas
+                    )
+                    
+                    // La lógica de Multiplicador de Fuerza (FZA) ya está dentro de este método en DBHelper
                     db.dañarJefe(25, correoUsuario)
-                }
 
-                val dailiesDespues = db.obtenerTotalDailiesCompletadas()
-                val usuarioDespues = db.obtenerUsuarioLogueado(correoUsuario)
-                val nivelDespues = usuarioDespues?.nivel ?: 1
+                    val dailiesDespues = db.obtenerTotalDailiesCompletadas()
+                    val usuarioDespues = db.obtenerUsuarioLogueado(correoUsuario)
+                    val nivelDespues = usuarioDespues?.nivel ?: 1
 
-                // Verificar logros
-                usuarioDespues?.let {
-                    if (completada) {
+                    // Verificar logros
+                    usuarioDespues?.let {
                         LogroManager.verificarNuevosLogros(requireContext(), db, it, dailiesAntes, dailiesDespues, "DAILY")
                         LogroManager.verificarNuevosLogros(requireContext(), db, it, usuarioAntes?.monedas ?: 0, it.monedas, "MONEDAS")
+
+                        if (nivelDespues > nivelAntes) {
+                            LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
+                        }
                     }
 
-                    if (nivelDespues > nivelAntes) {
-                        LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
-                        // Aquí podrías mostrar un diálogo de subida de nivel similar al de Tareas si lo deseas
+                    (activity as? MainActivity)?.actualizarHeader()
+                    actualizarLista()
+                    mostrarToastPersonalizado("¡Tarea Diaria Realizada!")
+                    
+                    if (db.obtenerTodasDailies().none { !it.completadaHoy }) {
+                        mostrarToastPersonalizado("¡No quedan tareas para hoy!")
                     }
                 }
-
-                (activity as? MainActivity)?.actualizarHeader()
-                actualizarLista()
             },
             onLongClick = { daily ->
                 mostrarDialogoEliminar(daily)
@@ -188,6 +196,31 @@ class FragmentDailies : Fragment() {
     }
 
     private fun actualizarLista() {
-        adaptador.actualizarLista(db.obtenerTodasDailies())
+        val listaFiltrada = db.obtenerTodasDailies().filter { !it.completadaHoy }
+        adaptador.actualizarLista(listaFiltrada)
+    }
+
+    private fun mostrarToastPersonalizado(mensaje: String) {
+        val snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
+        val snackbarLayout = snackbar.view as ViewGroup
+        
+        snackbarLayout.removeAllViews()
+        snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        snackbarLayout.setPadding(0, 0, 0, 150)
+
+        val layoutInflater = LayoutInflater.from(requireContext())
+        val customView = layoutInflater.inflate(R.layout.layout_toast_daily_completada, snackbarLayout, false)
+        
+        customView.findViewById<TextView>(R.id.tv_mensaje_toast).text = mensaje
+
+        val params = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.gravity = Gravity.CENTER_HORIZONTAL
+        customView.layoutParams = params
+        
+        snackbarLayout.addView(customView)
+        snackbar.show()
     }
 }

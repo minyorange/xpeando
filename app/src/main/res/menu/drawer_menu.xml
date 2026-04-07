@@ -14,7 +14,7 @@
             android:icon="@drawable/ic_recompensas"
             android:title="Sala de Trofeos" />
         <item
-            android:id="@+id/item_jefes"
+            android:id="@+id/fragmentoJefes"
             android:icon="@android:drawable/ic_menu_compass"
             android:title="Misiones de Jefe" />
     </group>

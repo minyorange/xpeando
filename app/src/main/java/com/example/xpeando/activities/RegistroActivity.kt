@@ -23,6 +23,7 @@ class RegistroActivity : AppCompatActivity() {
         val etNombre = findViewById<EditText>(R.id.et_nombre_registro)
         val etCorreo = findViewById<EditText>(R.id.et_correo_registro)
         val etContrasena = findViewById<EditText>(R.id.et_contrasena_registro)
+        val etConfirmarContrasena = findViewById<EditText>(R.id.et_confirmar_contrasena_registro)
         val btnRegistrar = findViewById<Button>(R.id.btn_registrar)
         val tvVolverAlLogin = findViewById<TextView>(R.id.tv_volver_al_login)
 
@@ -30,16 +31,21 @@ class RegistroActivity : AppCompatActivity() {
             val nombre = etNombre.text.toString()
             val correo = etCorreo.text.toString()
             val contrasena = etContrasena.text.toString()
+            val confirmarContrasena = etConfirmarContrasena.text.toString()
 
-            if (nombre.isNotEmpty() && correo.isNotEmpty() && contrasena.isNotEmpty()) {
-                val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
-                val id = db.registrarUsuario(nuevoUsuario)
+            if (nombre.isNotEmpty() && correo.isNotEmpty() && contrasena.isNotEmpty() && confirmarContrasena.isNotEmpty()) {
+                if (contrasena == confirmarContrasena) {
+                    val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
+                    val id = db.registrarUsuario(nuevoUsuario)
 
-                if (id != -1L) {
-                    Toast.makeText(this, "Registro con éxito", Toast.LENGTH_SHORT).show()
-                    finish() // Vuelve al Login
+                    if (id != -1L) {
+                        Toast.makeText(this, "Registro con éxito", Toast.LENGTH_SHORT).show()
+                        finish() // Vuelve al Login
+                    } else {
+                        Toast.makeText(this, "Error: El correo ya existe", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
-                    Toast.makeText(this, "Error: El correo ya existe", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()

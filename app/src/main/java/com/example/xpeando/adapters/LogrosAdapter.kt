@@ -29,9 +29,13 @@ class LogrosAdapter(private val logros: List<Logro>) :
     override fun onBindViewHolder(holder: LogroViewHolder, position: Int) {
         val logro = logros[position]
         holder.tvNombre.text = logro.nombre
-        holder.tvProgreso.text = "${logro.progresoActual}/${logro.requisito}"
+        
+        // Corregir para que el progreso no supere el requisito visualmente
+        val progresoVisual = if (logro.progresoActual > logro.requisito) logro.requisito else logro.progresoActual
+        holder.tvProgreso.text = "$progresoVisual/${logro.requisito}"
+        
         holder.pbLogro.max = logro.requisito
-        holder.pbLogro.progress = logro.progresoActual
+        holder.pbLogro.progress = progresoVisual
         
         holder.ivIcono.setImageResource(logro.iconoResId)
 

@@ -92,6 +92,47 @@ class FragmentPersonaje : Fragment() {
         tvConstitucion.text = "${usuario.constitucion.toInt()} ${if (bonusCon > 0) "(+$bonusCon)" else ""}"
         tvPercepcion.text = "${usuario.percepcion.toInt()} ${if (bonusPer > 0) "(+$bonusPer)" else ""}"
 
+        // Configurar Tooltips al hacer clic en los valores
+        val clickListener = View.OnClickListener { v ->
+            val (titulo, desc) = when (v.id) {
+                R.id.tv_fuerza_valor, R.id.tv_fuerza_label -> {
+                    val mult = usuario.fuerza + (bonusFza / 10.0)
+                    "Fuerza" to "Multiplica el daño que haces al jefe por ${String.format("%.1f", mult)}.\n(Base: ${String.format("%.1f", usuario.fuerza)} + Equipo: ${String.format("%.1f", bonusFza/10.0)})"
+                }
+                R.id.tv_inteligencia_valor, R.id.tv_inteligencia_label -> {
+                    val mult = usuario.inteligencia + (bonusInt / 10.0)
+                    "Inteligencia" to "Multiplica la XP ganada por ${String.format("%.1f", mult)}.\n(Base: ${String.format("%.1f", usuario.inteligencia)} + Equipo: ${String.format("%.1f", bonusInt/10.0)})"
+                }
+                R.id.tv_constitucion_valor, R.id.tv_constitucion_label -> {
+                    val mult = usuario.constitucion + (bonusCon / 10.0)
+                    "Constitución" to "Divide el daño que recibes por ${String.format("%.1f", mult)}.\n(Base: ${String.format("%.1f", usuario.constitucion)} + Equipo: ${String.format("%.1f", bonusCon/10.0)})"
+                }
+                R.id.tv_percepcion_valor, R.id.tv_percepcion_label -> {
+                    val mult = usuario.percepcion + (bonusPer / 10.0)
+                    "Percepción" to "Multiplica las monedas obtenidas por ${String.format("%.1f", mult)}.\n(Base: ${String.format("%.1f", usuario.percepcion)} + Equipo: ${String.format("%.1f", bonusPer/10.0)})"
+                }
+                else -> "" to ""
+            }
+            if (titulo.isNotEmpty()) {
+                AlertDialog.Builder(requireContext())
+                    .setTitle(titulo)
+                    .setMessage(desc)
+                    .setPositiveButton("Entendido", null)
+                    .show()
+            }
+        }
+
+        tvFuerza.setOnClickListener(clickListener)
+        tvInteligencia.setOnClickListener(clickListener)
+        tvConstitucion.setOnClickListener(clickListener)
+        tvPercepcion.setOnClickListener(clickListener)
+        
+        // También habilitar clic en las etiquetas si existen en el layout
+        view.findViewById<TextView>(R.id.tv_fuerza_label)?.setOnClickListener(clickListener)
+        view.findViewById<TextView>(R.id.tv_inteligencia_label)?.setOnClickListener(clickListener)
+        view.findViewById<TextView>(R.id.tv_constitucion_label)?.setOnClickListener(clickListener)
+        view.findViewById<TextView>(R.id.tv_percepcion_label)?.setOnClickListener(clickListener)
+
         if (usuario.puntosDisponibles > 0) {
             tvPuntos.visibility = View.VISIBLE
             tvPuntos.text = "${usuario.puntosDisponibles} Puntos Libres"
@@ -117,18 +158,39 @@ class FragmentPersonaje : Fragment() {
         val vista = layoutInflater.inflate(R.layout.dialogo_mochila, null)
         val rv = vista.findViewById<RecyclerView>(R.id.rv_inventario)
         val btnCerrar = vista.findViewById<Button>(R.id.btn_cerrar_mochila)
+        val tabLayout = vista.findViewById<com.google.android.material.tabs.TabLayout>(R.id.tab_layout_inventario)
         
-        val inventario = db.obtenerInventario(correoUsuario)
-        val adapter = InventarioAdapter(inventario) { articulo ->
+        var inventarioCompleto = db.obtenerInventario(correoUsuario)
+        
+        // Función para filtrar por pestaña
+        fun obtenerListaFiltrada(tabPosition: Int): List<com.example.xpeando.model.Articulo> {
+            return if (tabPosition == 0) {
+                inventarioCompleto.filter { it.tipo == "EQUIPO" }
+            } else {
+                inventarioCompleto.filter { it.tipo == "CONSUMIBLE" }
+            }
+        }
+
+        val adapter = InventarioAdapter(obtenerListaFiltrada(0)) { articulo ->
             if (articulo.tipo == "CONSUMIBLE" && articulo.subtipo == "POCION") {
                 usarPocion(articulo.id, articulo.bonusHp)
             } else {
                 db.equiparDesequipar(correoUsuario, articulo.id)
             }
+            // Recargar datos y refrescar la pestaña actual
+            inventarioCompleto = db.obtenerInventario(correoUsuario)
+            (rv.adapter as? InventarioAdapter)?.actualizarLista(obtenerListaFiltrada(tabLayout.selectedTabPosition))
             actualizarUI()
-            (rv.adapter as? InventarioAdapter)?.actualizarLista(db.obtenerInventario(correoUsuario))
         }
         rv.adapter = adapter
+
+        tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
+                adapter.actualizarLista(obtenerListaFiltrada(tab.position))
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
         
         val dialog = AlertDialog.Builder(requireContext())
             .setView(vista)

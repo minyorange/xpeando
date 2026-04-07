@@ -6,12 +6,12 @@
     android:background="@color/habitica_purple_dark"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="32dp">
+    android:padding="24dp">
 
     <ImageView
         android:id="@+id/iv_calavera"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:src="@android:drawable/ic_delete"
         app:tint="@color/habitica_red_negative" />
 
@@ -19,30 +19,56 @@
         android:id="@+id/tv_titulo_muerte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="¡HAS CAÍDO!"
         android:textColor="@color/habitica_red_negative"
-        android:textSize="28sp"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/tv_mensaje_muerte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:gravity="center"
-        android:text="Tus heridas son graves.\nHas perdido parte de tu equipo."
+        android:text="Elige cómo quieres volver al mundo de los vivos:"
         android:textColor="@color/white"
-        android:textSize="16sp" />
+        android:textSize="14sp" />
 
+    <!-- OPCION 1: POCION -->
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_resucitar"
+        android:id="@+id/btn_resucitar_pocion"
+        style="@style/Widget.MaterialComponents.Button.Icon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="Resurgir de las cenizas"
-        android:textColor="@color/habitica_purple_dark"
-        app:backgroundTint="@color/white"
-        app:cornerRadius="8dp" />
+        android:layout_marginTop="24dp"
+        android:text="Usar Poción (Cura 50 HP)"
+        android:textAllCaps="false"
+        app:backgroundTint="@color/habitica_purple_primary"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_recompensas" />
+
+    <!-- OPCION 2: MONEDAS -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_resucitar_monedas"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Pagar 50 Oro (Cura 25 HP)"
+        android:textAllCaps="false"
+        app:backgroundTint="@color/habitica_yellow_gold"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_recompensas" />
+
+    <!-- OPCION 3: GRATIS -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_resucitar_gratis"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Resurgir gratis (Solo 10 HP)"
+        android:textColor="@color/white"
+        android:textSize="12sp" />
 
 </LinearLayout>

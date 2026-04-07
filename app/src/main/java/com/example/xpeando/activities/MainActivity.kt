@@ -3,6 +3,7 @@ package com.example.xpeando.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -82,6 +83,76 @@ class MainActivity : AppCompatActivity() {
         actualizarHeader()
     }
 
+    private var isDeathDialogShowing = false
+
+    fun mostrarDialogoMuerte() {
+        if (isDeathDialogShowing) return
+        isDeathDialogShowing = true
+
+        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        val usuario = db.obtenerUsuarioLogueado(correo) ?: return
+        val inventario = db.obtenerInventario(correo)
+        val pocion = inventario.find { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
+
+        val vista = layoutInflater.inflate(R.layout.dialogo_muerte, null)
+        val tvTitulo = vista.findViewById<TextView>(R.id.tv_titulo_muerte)
+        val btnPocion = vista.findViewById<Button>(R.id.btn_resucitar_pocion)
+        val btnMonedas = vista.findViewById<Button>(R.id.btn_resucitar_monedas)
+        val btnGratis = vista.findViewById<Button>(R.id.btn_resucitar_gratis)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(false)
+            .create()
+
+        // Opción 1: Poción
+        if (pocion != null) {
+            btnPocion.isEnabled = true
+            btnPocion.text = "Usar ${pocion.nombre} (Cura 50 HP)"
+            btnPocion.setOnClickListener {
+                db.actualizarProgresoUsuario(correo, 0, 0, 50)
+                db.eliminarDelInventario(pocion.id)
+                finalizarMuerte(dialog)
+            }
+        } else {
+            btnPocion.isEnabled = false
+            btnPocion.alpha = 0.5f
+            btnPocion.text = "Sin pociones de vida"
+        }
+
+        // Opción 2: Monedas
+        if (usuario.monedas >= 50) {
+            btnMonedas.isEnabled = true
+            btnMonedas.setOnClickListener {
+                db.actualizarProgresoUsuario(correo, 0, -50, 25)
+                finalizarMuerte(dialog)
+            }
+        } else {
+            btnMonedas.isEnabled = false
+            btnMonedas.alpha = 0.5f
+            btnMonedas.text = "Falta Oro (Necesitas 50)"
+        }
+
+        // Opción 3: Gratis
+        btnGratis.setOnClickListener {
+            db.actualizarProgresoUsuario(correo, 0, 0, 10)
+            finalizarMuerte(dialog)
+        }
+
+        dialog.show()
+    }
+
+    private fun finalizarMuerte(dialog: AlertDialog) {
+        actualizarHeader()
+        isDeathDialogShowing = false
+        dialog.dismiss()
+        // Notificar al fragmento actual que refresque si es necesario
+        supportFragmentManager.fragments.forEach { fragment ->
+            (fragment as? com.example.xpeando.fragments.FragmentHabitos)?.actualizarLista()
+        }
+    }
+
     private fun mostrarDialogoCerrarSesion() {
         AlertDialog.Builder(this)
             .setTitle("Cerrar Sesión")
@@ -114,6 +185,11 @@ class MainActivity : AppCompatActivity() {
             
             pbHP.progress = it.hp
             pbXP.progress = it.experiencia.toInt()
+
+            // Si el HP llega a 0, activamos el sistema de resurrección
+            if (it.hp <= 0 && !isDeathDialogShowing) {
+                mostrarDialogoMuerte()
+            }
 
             val navView = findViewById<NavigationView>(R.id.nav_view)
             if (navView.headerCount > 0) {

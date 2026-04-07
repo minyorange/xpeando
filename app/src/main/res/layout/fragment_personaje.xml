@@ -221,6 +221,7 @@
                         android:padding="12dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_fuerza_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="FUERZA"
@@ -261,6 +262,7 @@
                         android:padding="12dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_inteligencia_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="INTELIGENCIA"
@@ -301,6 +303,7 @@
                         android:padding="12dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_constitucion_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="CONSTITUCIÓN"
@@ -341,6 +344,7 @@
                         android:padding="12dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_percepcion_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="PERCEPCIÓN"

@@ -32,21 +32,44 @@ class InventarioAdapter(
         val art = lista[position]
         holder.tvNombre.text = art.nombre
         
-        val bonusText = when {
-            art.bonusFza > 0 -> "+${art.bonusFza} FZA"
-            art.bonusInt > 0 -> "+${art.bonusInt} INT"
-            art.bonusCon > 0 -> "+${art.bonusCon} CON"
-            art.bonusPer > 0 -> "+${art.bonusPer} PER"
-            art.bonusHp > 0 -> "+${art.bonusHp} HP"
-            else -> ""
-        }
-        holder.tvBonus.text = bonusText
-
-        // Volvemos a usar el icono por defecto local
-        holder.ivIcono.setImageResource(R.drawable.ic_recompensas)
+        // Lógica para mostrar múltiples bonus
+        val bonuses = mutableListOf<String>()
+        if (art.bonusFza > 0) bonuses.add("+${art.bonusFza} FZA")
+        if (art.bonusInt > 0) bonuses.add("+${art.bonusInt} INT")
+        if (art.bonusCon > 0) bonuses.add("+${art.bonusCon} CON")
+        if (art.bonusPer > 0) bonuses.add("+${art.bonusPer} PER")
+        if (art.bonusHp > 0) bonuses.add("+${art.bonusHp} HP")
         
-        holder.indicator.visibility = if (art.equipado) View.VISIBLE else View.GONE
-        holder.btnEquipar.text = if (art.equipado) "Quitar" else "Equipar"
+        holder.tvBonus.text = if (bonuses.isEmpty()) "Sin atributos" else bonuses.joinToString(" ")
+        
+        // MOSTRAR PRECIO
+        val tvPrecio = holder.itemView.findViewById<TextView>(R.id.tv_articulo_precio)
+        tvPrecio.text = "${art.precio} Monedas"
+
+        // Carga dinámica de iconos
+        val context = holder.itemView.context
+        val resId = context.resources.getIdentifier(art.icono, "drawable", context.packageName)
+        if (resId != 0) {
+            holder.ivIcono.setImageResource(resId)
+        } else {
+            holder.ivIcono.setImageResource(R.drawable.ic_recompensas) // Fallback
+        }
+        
+        // Lógica de compra vs equipar/usar
+        if (art.esPropio) {
+            tvPrecio.visibility = View.GONE
+            if (art.tipo == "CONSUMIBLE") {
+                holder.btnEquipar.text = "Usar"
+                holder.indicator.visibility = View.GONE
+            } else {
+                holder.btnEquipar.text = if (art.equipado) "Quitar" else "Equipar"
+                holder.indicator.visibility = if (art.equipado) View.VISIBLE else View.GONE
+            }
+        } else {
+            tvPrecio.visibility = View.VISIBLE
+            holder.btnEquipar.text = "Comprar"
+            holder.indicator.visibility = View.GONE
+        }
         
         holder.btnEquipar.setOnClickListener { onEquiparClick(art) }
     }

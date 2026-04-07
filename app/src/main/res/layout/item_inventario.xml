@@ -42,6 +42,15 @@
             android:textColor="@color/habitica_text_secondary"
             android:textSize="10sp" />
 
+        <TextView
+            android:id="@+id/tv_articulo_precio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50 Monedas"
+            android:textColor="@color/habitica_yellow_gold"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_equipar"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
