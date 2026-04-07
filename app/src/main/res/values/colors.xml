@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Habitica Inspired Palette -->
+    <color name="habitica_purple_primary">#4E4198</color>
+    <color name="habitica_purple_dark">#342B5E</color>
+    <color name="habitica_purple_light">#7A6EB5</color>
+
+    <color name="habitica_green_positive">#47A04B</color>
+    <color name="habitica_red_negative">#D34E4E</color>
+    <color name="habitica_yellow_gold">#FFB445</color>
+    <color name="habitica_blue_xp">#2490CD</color>
+
+    <color name="habitica_bg_light">#EDE9F0</color>
+    <color name="habitica_card_bg">#FFFFFF</color>
+    <color name="habitica_text_main">#4E4198</color>
+    <color name="habitica_text_secondary">#878190</color>
+
+    <!-- Pergamino Colors -->
+    <color name="pergamino_fondo">#F4E4BC</color>
+    <color name="pergamino_borde">#D2B48C</color>
+    <color name="pergamino_texto">#5D4037</color>
+
+    <!-- Bottom Nav States -->
+    <color name="bnv_selected">#FFFFFF</color>
+    <color name="bnv_unselected">#B0A8D3</color>
+</resources>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/habitica_purple_primary"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <ImageView
+        android:id="@+id/iv_level_up"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@android:drawable/btn_star_big_on"
+        app:tint="@color/habitica_yellow_gold" />
+
+    <TextView
+        android:id="@+id/tv_titulo_level_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="¡NIVEL SUPERIOR!"
+        android:textColor="@color/habitica_yellow_gold"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_mensaje_level_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="¡Tu leyenda crece!\nHas alcanzado un nuevo nivel de poder."
+        android:textColor="@color/white"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tv_nivel_nuevo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Nivel 2"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_continuar_aventura"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Continuar Gesta"
+        android:textColor="@color/habitica_purple_primary"
+        app:backgroundTint="@color/habitica_yellow_gold"
+        app:cornerRadius="8dp" />
+
+</LinearLayout>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/pergamino_fondo"
+    app:strokeColor="@color/pergamino_borde"
+    app:strokeWidth="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iv_recompensa"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_recompensas"
+            app:tint="@color/pergamino_texto" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_nombre_recompensa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cena Especial"
+                android:textColor="@color/pergamino_texto"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recompensa de Aventurero"
+                android:textColor="@color/pergamino_texto"
+                android:alpha="0.7"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_comprar_recompensa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50"
+            app:icon="@android:drawable/btn_star_big_on"
+            app:iconTint="@color/habitica_yellow_gold"
+            android:backgroundTint="@color/habitica_purple_dark"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

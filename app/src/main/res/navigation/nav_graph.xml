@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/grafo_navegacion"
+    app:startDestination="@id/fragmentoHabitos">
+
+    <fragment
+        android:id="@+id/fragmentoHabitos"
+        android:name="com.example.xpeando.fragments.FragmentHabitos"
+        android:label="Hábitos"
+        tools:layout="@layout/fragment_habitos" />
+
+    <fragment
+        android:id="@+id/fragmentoDailies"
+        android:name="com.example.xpeando.fragments.FragmentDailies"
+        android:label="Dailies"
+        tools:layout="@layout/fragment_dailies" />
+
+    <fragment
+        android:id="@+id/fragmentoTareas"
+        android:name="com.example.xpeando.fragments.FragmentTareas"
+        android:label="Misiones"
+        tools:layout="@layout/fragment_tareas" />
+
+    <fragment
+        android:id="@+id/fragmentoPersonaje"
+        android:name="com.example.xpeando.fragments.FragmentPersonaje"
+        android:label="Héroe"
+        tools:layout="@layout/fragment_personaje" />
+
+    <fragment
+        android:id="@+id/fragmentoRecompensas"
+        android:name="com.example.xpeando.fragments.FragmentRecompensas"
+        android:label="Tienda"
+        tools:layout="@layout/fragment_recompensas" />
+
+    <fragment
+        android:id="@+id/fragmentoEstadisticas"
+        android:name="com.example.xpeando.fragments.FragmentEstadisticas"
+        android:label="Estadísticas"
+        tools:layout="@layout/fragment_estadisticas" />
+
+    <fragment
+        android:id="@+id/fragmentoLogros"
+        android:name="com.example.xpeando.fragments.FragmentLogros"
+        android:label="Logros"
+        tools:layout="@layout/fragment_logros" />
+
+    <fragment
+        android:id="@+id/fragmentoJefes"
+        android:name="com.example.xpeando.fragments.FragmentJefes"
+        android:label="Jefes"
+        tools:layout="@layout/fragment_jefes" />
+
+</navigation>

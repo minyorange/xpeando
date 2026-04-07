@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/habitica_card_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iv_articulo_icono"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_recompensas"
+            app:tint="@color/habitica_purple_primary" />
+
+        <TextView
+            android:id="@+id/tv_articulo_nombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Item Name"
+            android:textColor="@color/habitica_text_main"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_articulo_bonus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+5 FZA"
+            android:textColor="@color/habitica_text_secondary"
+            android:textSize="10sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_equipar"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_marginTop="4dp"
+            android:padding="0dp"
+            android:text="Equipar"
+            android:textSize="10sp"
+            app:cornerRadius="4dp" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/view_equipado_indicator"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="4dp"
+        android:background="@android:color/holo_green_light"
+        android:visibility="gone" />
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/fragmentoHabitos"
+        android:icon="@drawable/ic_habitos"
+        android:title="Hábitos" />
+    <item
+        android:id="@+id/fragmentoDailies"
+        android:icon="@drawable/ic_tareas"
+        android:title="Dailies" />
+    <item
+        android:id="@+id/fragmentoTareas"
+        android:icon="@drawable/ic_tareas"
+        android:title="Tareas" />
+    <item
+        android:id="@+id/fragmentoJefes"
+        android:icon="@drawable/ic_brain_freeze"
+        android:title="Jefes" />
+    <item
+        android:id="@+id/fragmentoRecompensas"
+        android:icon="@drawable/ic_recompensas"
+        android:title="Tienda" />
+</menu>

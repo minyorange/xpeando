@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="140dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/habitica_card_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/iv_logro_icono"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_recompensas"
+            android:alpha="0.3" />
+
+        <TextView
+            android:id="@+id/tv_logro_nombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Nombre"
+            android:textColor="@color/habitica_text_main"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tv_logro_progreso"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/10"
+            android:textColor="@color/habitica_text_secondary"
+            android:textSize="12sp" />
+
+        <ProgressBar
+            android:id="@+id/pb_logro"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="8dp"
+            android:progressTint="@color/habitica_yellow_gold" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

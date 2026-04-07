@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/habitica_bg_light"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Nuevo Tesoro"
+        android:textColor="@color/habitica_purple_primary"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="¿Cuál es el premio?"
+        app:boxStrokeColor="@color/habitica_purple_primary"
+        app:hintTextColor="@color/habitica_purple_primary">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_nombre_recompensa_dialogo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Precio en monedas"
+        app:boxStrokeColor="@color/habitica_purple_primary"
+        app:hintTextColor="@color/habitica_purple_primary"
+        app:startIconDrawable="@android:drawable/btn_star_big_on"
+        app:startIconTint="@color/habitica_yellow_gold">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_precio_recompensa_dialogo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="50" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancelar_recompensa"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cerrar Cofre"
+            android:textColor="@color/habitica_text_secondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_aceptar_recompensa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Añadir al Tesoro"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+
+</LinearLayout>

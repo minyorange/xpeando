@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/habitica_bg_light">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            tools:context=".fragments.FragmentPersonaje">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_avatar"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="60dp"
+                app:cardElevation="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/iv_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_personaje"
+                    android:padding="20dp"
+                    app:tint="@color/habitica_purple_primary" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tv_nombre_personaje"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Nombre del Héroe"
+                android:textColor="@color/habitica_text_main"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_avatar" />
+
+            <TextView
+                android:id="@+id/tv_nivel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Nivel 1"
+                android:textColor="@color/habitica_purple_light"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_nombre_personaje" />
+
+            <!-- CARD DE ESTADÍSTICAS PRINCIPALES -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_stats_principales"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/habitica_card_bg"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_nivel">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Salud (HP)"
+                            android:textColor="@color/habitica_red_negative"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tv_hp_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="50 / 50"
+                            android:textColor="@color/habitica_red_negative"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                    <ProgressBar
+                        android:id="@+id/pb_hp"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="4dp"
+                        android:max="50"
+                        android:progress="50"
+                        android:progressTint="@color/habitica_red_negative" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Experiencia (XP)"
+                            android:textColor="@color/habitica_blue_xp"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tv_xp_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="0 / 100"
+                            android:textColor="@color/habitica_blue_xp"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                    <ProgressBar
+                        android:id="@+id/pb_experiencia"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="4dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressTint="@color/habitica_blue_xp" />
+
+                    <TextView
+                        android:id="@+id/tv_monedas_personaje"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:text="0 Monedas"
+                        android:textColor="@color/habitica_yellow_gold"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:drawableStartCompat="@android:drawable/btn_star_big_on"
+                        app:drawableTint="@color/habitica_yellow_gold" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- CARD DE ATRIBUTOS RPG -->
+            <LinearLayout
+                android:id="@+id/layout_atributos_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintTop_toBottomOf="@id/card_stats_principales">
+
+                <TextView
+                    android:id="@+id/tv_label_atributos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Atributos de Héroe"
+                    android:textColor="@color/habitica_text_main"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_puntos_disponibles"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_puntos_badge"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="3 Puntos"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <GridLayout
+                android:id="@+id/grid_atributos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:columnCount="2"
+                android:rowCount="2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layout_atributos_header">
+
+                <!-- FUERZA -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="@color/habitica_card_bg">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="FUERZA"
+                            android:textSize="12sp"
+                            android:textColor="@color/habitica_text_secondary" />
+                        <TextView
+                            android:id="@+id/tv_fuerza_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/habitica_red_negative" />
+                        <Button
+                            android:id="@+id/btn_subir_fza"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="18sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- INTELIGENCIA -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="@color/habitica_card_bg">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="INTELIGENCIA"
+                            android:textSize="12sp"
+                            android:textColor="@color/habitica_text_secondary" />
+                        <TextView
+                            android:id="@+id/tv_inteligencia_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/habitica_blue_xp" />
+                        <Button
+                            android:id="@+id/btn_subir_int"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="18sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- CONSTITUCION -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="@color/habitica_card_bg">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="CONSTITUCIÓN"
+                            android:textSize="12sp"
+                            android:textColor="@color/habitica_text_secondary" />
+                        <TextView
+                            android:id="@+id/tv_constitucion_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#4CAF50" />
+                        <Button
+                            android:id="@+id/btn_subir_con"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="18sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- PERCEPCION -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="@color/habitica_card_bg">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PERCEPCIÓN"
+                            android:textSize="12sp"
+                            android:textColor="@color/habitica_text_secondary" />
+                        <TextView
+                            android:id="@+id/tv_percepcion_valor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/habitica_yellow_gold" />
+                        <Button
+                            android:id="@+id/btn_subir_per"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="+"
+                            android:textSize="18sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </GridLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                app:layout_constraintTop_toBottomOf="@id/grid_atributos" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_mochila"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/habitica_purple_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/white" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
