@@ -1,4 +1,4 @@
-# 🛡️ Xpeando: Guía de Sistema y Mecánicas (v1.2)
+# 🛡️ Xpeando: Guía de Sistema y Mecánicas (v0.1.1)
 
 **Xpeando** ha evolucionado de una simple lista de tareas a un **RPG de productividad completo**. Este documento detalla la lógica matemática, el sistema de progresión y la arquitectura técnica actualizada.
 
