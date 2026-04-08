@@ -1,5 +1,6 @@
 package com.example.xpeando.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -60,7 +61,9 @@ class FragmentJefes : Fragment() {
     }
 
     private fun cargarHistorial() {
-        val jefesDerrotados = dbHelper.obtenerJefesDerrotados()
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        val jefesDerrotados = dbHelper.obtenerJefesDerrotados(correo)
         rvHistorial.adapter = HistorialJefesAdapter(jefesDerrotados)
     }
 
@@ -71,7 +74,9 @@ class FragmentJefes : Fragment() {
 
     private fun cargarJefe() {
         countDownTimer?.cancel()
-        jefeActual = dbHelper.obtenerJefeActivo()
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        jefeActual = dbHelper.obtenerJefeActivo(correo)
         jefeActual?.let {
             tvNombreJefe.text = it.nombre
             tvDescripcionJefe.text = it.descripcion
@@ -104,7 +109,9 @@ class FragmentJefes : Fragment() {
     }
 
     private fun iniciarContadorReaparicion() {
-        val ultimaMuerte = dbHelper.obtenerUltimoJefeDerrotadoTime()
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        val ultimaMuerte = dbHelper.obtenerUltimoJefeDerrotadoTime(correo)
         if (ultimaMuerte == 0L) {
             tvContadorReaparicion.visibility = View.GONE
             return

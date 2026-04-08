@@ -65,10 +65,39 @@
                             android:id="@+id/tv_header_nivel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nivel 1"
+                            android:text="Nvl 1"
                             android:textColor="@color/habitica_yellow_gold"
                             android:textStyle="bold"
                             android:textSize="12sp" />
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cv_racha"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardBackgroundColor="#4DFF9800"
+                            app:cardElevation="0dp"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="6dp"
+                                android:paddingVertical="2dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_header_racha"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🔥 0"
+                                    android:textColor="#FFCC80"
+                                    android:textStyle="bold"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
 
                     <ProgressBar

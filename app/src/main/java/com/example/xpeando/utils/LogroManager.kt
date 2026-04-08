@@ -14,9 +14,9 @@ import com.example.xpeando.model.Usuario
 object LogroManager {
 
     fun obtenerLogrosDefinidos(db: DBHelper, usuario: Usuario): List<Logro> {
-        val totalTareas = db.obtenerTotalTareasCompletadas()
-        val totalDailies = db.obtenerTotalDailiesCompletadas()
-        val totalHabitos = db.obtenerTotalHabitosCompletados()
+        val totalTareas = db.obtenerTotalTareasCompletadas(usuario.correo)
+        val totalDailies = db.obtenerTotalDailiesCompletadas(usuario.correo)
+        val totalHabitos = db.obtenerTotalHabitosCompletados(usuario.correo)
         val totalItems = db.obtenerInventario(usuario.correo).size
         val monedas = usuario.monedas
 

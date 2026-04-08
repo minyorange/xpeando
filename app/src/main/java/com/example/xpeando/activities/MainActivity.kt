@@ -3,6 +3,7 @@ package com.example.xpeando.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: DBHelper
     private lateinit var tvNombre: TextView
     private lateinit var tvNivel: TextView
+    private lateinit var cvRacha: View
+    private lateinit var tvRacha: TextView
     private lateinit var pbHP: ProgressBar
     private lateinit var pbXP: ProgressBar
     private lateinit var drawerLayout: DrawerLayout
@@ -34,49 +37,37 @@ class MainActivity : AppCompatActivity() {
 
         db = DBHelper(this)
 
-        drawerLayout = findViewById(R.id.drawer_layout)
-        val btnMenu = findViewById<ImageButton>(R.id.btn_menu)
-        val navView = findViewById<NavigationView>(R.id.nav_view)
-        val bottomNav = findViewById<BottomNavigationView>(R.id.navegacion_inferior)
-
-        // Inicializar vistas del header superior
         tvNombre = findViewById(R.id.tv_header_nombre)
         tvNivel = findViewById(R.id.tv_header_nivel)
+        cvRacha = findViewById(R.id.cv_racha)
+        tvRacha = findViewById(R.id.tv_header_racha)
         pbHP = findViewById(R.id.pb_header_hp)
         pbXP = findViewById(R.id.pb_header_xp)
+        drawerLayout = findViewById(R.id.drawer_layout)
 
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.contenedor_fragmentos) as NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.contenedor_fragmentos) as NavHostFragment
         val navController = navHostFragment.navController
-        
-        // Configuración automática para BottomNav
+        val bottomNav = findViewById<BottomNavigationView>(R.id.navegacion_inferior)
         bottomNav.setupWithNavController(navController)
 
-        // Configuración manual para el Drawer
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.setupWithNavController(navController)
+
+        findViewById<ImageButton>(R.id.btn_menu).setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+
         navView.setNavigationItemSelectedListener { menuItem ->
-            val handled = when (menuItem.itemId) {
+            when (menuItem.itemId) {
                 R.id.item_salir -> {
                     mostrarDialogoCerrarSesion()
                     true
                 }
                 else -> {
-                    NavigationUI.onNavDestinationSelected(menuItem, navController)
+                    val handled = NavigationUI.onNavDestinationSelected(menuItem, navController)
+                    if (handled) drawerLayout.closeDrawer(GravityCompat.START)
+                    handled
                 }
-            }
-            
-            if (handled) {
-                drawerLayout.closeDrawer(GravityCompat.START)
-            }
-            handled
-        }
-
-        btnMenu.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        navController.addOnDestinationChangedListener { _, _, _ ->
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START)
             }
         }
 
@@ -92,50 +83,42 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         val usuario = db.obtenerUsuarioLogueado(correo) ?: return
-        val inventario = db.obtenerInventario(correo)
-        val pocion = inventario.find { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
 
-        val vista = layoutInflater.inflate(R.layout.dialogo_muerte, null)
-        val tvTitulo = vista.findViewById<TextView>(R.id.tv_titulo_muerte)
-        val btnPocion = vista.findViewById<Button>(R.id.btn_resucitar_pocion)
-        val btnMonedas = vista.findViewById<Button>(R.id.btn_resucitar_monedas)
-        val btnGratis = vista.findViewById<Button>(R.id.btn_resucitar_gratis)
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialogo_muerte, null)
+        builder.setView(dialogView)
+        builder.setCancelable(false)
 
-        val dialog = AlertDialog.Builder(this)
-            .setView(vista)
-            .setCancelable(false)
-            .create()
+        val dialog = builder.create()
 
-        // Opción 1: Poción
-        if (pocion != null) {
-            btnPocion.isEnabled = true
-            btnPocion.text = "Usar ${pocion.nombre} (Cura 50 HP)"
-            btnPocion.setOnClickListener {
-                db.actualizarProgresoUsuario(correo, 0, 0, 50)
-                db.eliminarDelInventario(pocion.id)
-                finalizarMuerte(dialog)
+        dialogView.findViewById<Button>(R.id.btn_resucitar_pocion).apply {
+            val pociones = db.obtenerInventario(correo).filter { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
+            isEnabled = pociones.isNotEmpty()
+            val pocion = pociones.firstOrNull()
+            if (pocion != null) {
+                text = "Usar ${pocion.nombre} (+${pocion.bonusHp} HP)"
+                setOnClickListener {
+                    db.actualizarProgresoUsuario(correo, 0, 0, pocion.bonusHp)
+                    db.eliminarDelInventario(pocion.id)
+                    finalizarMuerte(dialog)
+                }
+            } else {
+                text = "Sin Pociones"
             }
-        } else {
-            btnPocion.isEnabled = false
-            btnPocion.alpha = 0.5f
-            btnPocion.text = "Sin pociones de vida"
         }
 
-        // Opción 2: Monedas
-        if (usuario.monedas >= 50) {
-            btnMonedas.isEnabled = true
-            btnMonedas.setOnClickListener {
-                db.actualizarProgresoUsuario(correo, 0, -50, 25)
+        dialogView.findViewById<Button>(R.id.btn_resucitar_monedas).apply {
+            val costo = 50
+            text = "Pagar $costo Oro (+25 HP)"
+            isEnabled = usuario.monedas >= costo
+            setOnClickListener {
+                db.actualizarProgresoUsuario(correo, 0, -costo, 25)
                 finalizarMuerte(dialog)
             }
-        } else {
-            btnMonedas.isEnabled = false
-            btnMonedas.alpha = 0.5f
-            btnMonedas.text = "Falta Oro (Necesitas 50)"
         }
 
-        // Opción 3: Gratis
-        btnGratis.setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btn_resucitar_gratis).setOnClickListener {
             db.actualizarProgresoUsuario(correo, 0, 0, 10)
             finalizarMuerte(dialog)
         }
@@ -144,23 +127,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun finalizarMuerte(dialog: AlertDialog) {
-        actualizarHeader()
-        isDeathDialogShowing = false
         dialog.dismiss()
-        // Notificar al fragmento actual que refresque si es necesario
-        supportFragmentManager.fragments.forEach { fragment ->
-            (fragment as? com.example.xpeando.fragments.FragmentHabitos)?.actualizarLista()
+        isDeathDialogShowing = false
+        actualizarHeader()
+        
+        // Forzar refresco del fragmento actual para actualizar listas
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.contenedor_fragmentos) as NavHostFragment
+        val currentFragment = navHostFragment.childFragmentManager.fragments.firstOrNull()
+        if (currentFragment is com.example.xpeando.fragments.FragmentHabitos) {
+            currentFragment.actualizarLista()
         }
     }
 
     private fun mostrarDialogoCerrarSesion() {
         AlertDialog.Builder(this)
             .setTitle("Cerrar Sesión")
-            .setMessage("¿Estás seguro de que quieres abandonar la aventura?")
-            .setPositiveButton("Salir") { _, _ ->
-                cerrarSesion()
-            }
-            .setNegativeButton("Cancelar", null)
+            .setMessage("¿Estás seguro de que quieres salir?")
+            .setPositiveButton("Sí") { _, _ -> cerrarSesion() }
+            .setNegativeButton("No", null)
             .show()
     }
 
@@ -181,8 +165,16 @@ class MainActivity : AppCompatActivity() {
         val usuario = db.obtenerUsuarioLogueado(correo)
         usuario?.let {
             tvNombre.text = it.nombre
-            tvNivel.text = "Nivel ${it.nivel}"
+            tvNivel.text = "Nvl ${it.nivel}"
             
+            // --- ACTUALIZAR RACHA 🔥 ---
+            if (it.rachaActual > 0) {
+                tvRacha.text = "🔥 ${it.rachaActual}"
+                cvRacha.visibility = View.VISIBLE
+            } else {
+                cvRacha.visibility = View.GONE
+            }
+
             pbHP.progress = it.hp
             pbXP.progress = it.experiencia.toInt()
 
@@ -194,7 +186,6 @@ class MainActivity : AppCompatActivity() {
             val navView = findViewById<NavigationView>(R.id.nav_view)
             if (navView.headerCount > 0) {
                 val headerView = navView.getHeaderView(0)
-                // Uso de safe call para evitar errores si los IDs no coinciden exactamente
                 headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)?.text = it.nombre
                 headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)?.text = "Nivel ${it.nivel}"
             }

@@ -62,9 +62,9 @@ class FragmentHabitos : Fragment() {
         val correo = prefs.getString("correo_usuario", "") ?: ""
 
         adaptador = HabitosAdapter(
-            listaHabitos = db.obtenerTodosHabitos(),
+            listaHabitos = db.obtenerTodosHabitos(correo),
             onAccionHabito = { habito, delta ->
-                val habitosAntes = db.obtenerTotalHabitosCompletados()
+                val habitosAntes = db.obtenerTotalHabitosCompletados(correo)
                 val usuarioAntes = db.obtenerUsuarioLogueado(correo)
                 val nivelAntes = usuarioAntes?.nivel ?: 1
 
@@ -72,12 +72,17 @@ class FragmentHabitos : Fragment() {
                 val monedasCambio = if (delta > 0) habito.monedas else 0
                 val hpCambio = if (delta < 0) -5 else 0
                 
+                // --- ACTIVAR RACHA SI LA ACCIÓN ES POSITIVA ---
+                if (delta > 0) {
+                    db.actualizarRacha(correo)
+                }
+
                 db.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio)
                 
                 // Balanceo: Daño al jefe si es positivo, Curación si es negativo (solo atributo Fuerza)
                 if (habito.atributo == "Fuerza") {
-                    val dañoBase = if (delta > 0) 10 else -15 // Los fallos curan más de lo que dañan
-                    db.dañarJefe(dañoBase, correo)
+                    val danioBase = if (delta > 0) 10 else -15 // Los fallos curan más de lo que dañan
+                    db.atacarJefe(danioBase, correo)
                 }
 
                 // MEJORA: Subida gradual de atributos (0.01)
@@ -90,7 +95,7 @@ class FragmentHabitos : Fragment() {
                     }
                 }
                 
-                val habitosDespues = db.obtenerTotalHabitosCompletados()
+                val habitosDespues = db.obtenerTotalHabitosCompletados(correo)
                 val usuarioDespues = db.obtenerUsuarioLogueado(correo)
                 val nivelDespues = usuarioDespues?.nivel ?: 1
 
@@ -104,8 +109,6 @@ class FragmentHabitos : Fragment() {
                     if (nivelDespues > nivelAntes) {
                         LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
                         mostrarDialogoSubidaNivel(nivelDespues)
-                    } else if (it.hp <= 0) {
-                        mostrarDialogoMuerte(correo)
                     } else {
                         mostrarFeedbackProgreso(requireView(), xpCambio, monedasCambio, hpCambio, if (delta > 0) habito.atributo else null)
                     }
@@ -137,75 +140,6 @@ class FragmentHabitos : Fragment() {
         }
         
         dialog.show()
-    }
-
-    private var isDeathDialogShowing = false
-
-    private fun mostrarDialogoMuerte(correo: String) {
-        if (isDeathDialogShowing) return
-        isDeathDialogShowing = true
-
-        val usuario = db.obtenerUsuarioLogueado(correo) ?: return
-        val inventario = db.obtenerInventario(correo)
-        val pocion = inventario.find { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
-
-        val vista = layoutInflater.inflate(R.layout.dialogo_muerte, null)
-        val tvTitulo = vista.findViewById<TextView>(R.id.tv_titulo_muerte)
-        val btnPocion = vista.findViewById<Button>(R.id.btn_resucitar_pocion)
-        val btnMonedas = vista.findViewById<Button>(R.id.btn_resucitar_monedas)
-        val btnGratis = vista.findViewById<Button>(R.id.btn_resucitar_gratis)
-        
-        val animVibracion = AnimationUtils.loadAnimation(requireContext(), R.anim.vibrate_text)
-        tvTitulo.startAnimation(animVibracion)
-        
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(vista)
-            .setCancelable(false)
-            .create()
-
-        // Opción 1: Usar Poción (si tiene)
-        if (pocion != null) {
-            btnPocion.isEnabled = true
-            btnPocion.text = "Usar ${pocion.nombre} (Cura 50 HP)"
-            btnPocion.setOnClickListener {
-                db.actualizarProgresoUsuario(correo, 0, 0, 50)
-                db.eliminarDelInventario(pocion.id)
-                finalizarMuerte(dialog)
-            }
-        } else {
-            btnPocion.isEnabled = false
-            btnPocion.alpha = 0.5f
-            btnPocion.text = "Sin pociones de vida"
-        }
-
-        // Opción 2: Pagar Monedas (si tiene 50)
-        if (usuario.monedas >= 50) {
-            btnMonedas.isEnabled = true
-            btnMonedas.setOnClickListener {
-                db.actualizarProgresoUsuario(correo, 0, -50, 25)
-                finalizarMuerte(dialog)
-            }
-        } else {
-            btnMonedas.isEnabled = false
-            btnMonedas.alpha = 0.5f
-            btnMonedas.text = "Falta Oro (Necesitas 50)"
-        }
-
-        // Opción 3: Gratis (Solo 10 HP)
-        btnGratis.setOnClickListener {
-            db.actualizarProgresoUsuario(correo, 0, 0, 10)
-            finalizarMuerte(dialog)
-        }
-        
-        dialog.show()
-    }
-
-    private fun finalizarMuerte(dialog: AlertDialog) {
-        (activity as? MainActivity)?.actualizarHeader()
-        isDeathDialogShowing = false
-        dialog.dismiss()
-        actualizarLista()
-        Toast.makeText(requireContext(), "¡Has regresado a la vida!", Toast.LENGTH_SHORT).show()
     }
 
     private fun mostrarFeedbackProgreso(vista: View, xp: Int, monedas: Int, hp: Int, atributo: String? = null) {
@@ -250,6 +184,9 @@ class FragmentHabitos : Fragment() {
     }
 
     private fun mostrarDialogoAnadirHabito() {
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+
         val vista = layoutInflater.inflate(R.layout.dialogo_nuevo_habito, null)
         val etNombre = vista.findViewById<EditText>(R.id.et_nombre_habito_dialogo)
         val spinnerAtributo = vista.findViewById<Spinner>(R.id.spinner_atributo_habito)
@@ -267,7 +204,7 @@ class FragmentHabitos : Fragment() {
             val nombre = etNombre.text.toString()
             if (nombre.isNotEmpty()) {
                 val atributoSeleccionado = spinnerAtributo.selectedItem.toString()
-                val nuevoHabito = Habito(nombre = nombre, atributo = atributoSeleccionado)
+                val nuevoHabito = Habito(correo_usuario = correo, nombre = nombre, atributo = atributoSeleccionado)
                 db.insertarHabito(nuevoHabito)
                 actualizarLista()
                 dialog.dismiss()
@@ -296,6 +233,8 @@ class FragmentHabitos : Fragment() {
     }
 
     fun actualizarLista() {
-        adaptador.actualizarLista(db.obtenerTodosHabitos())
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        adaptador.actualizarLista(db.obtenerTodosHabitos(correo))
     }
 }

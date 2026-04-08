@@ -15,14 +15,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 24) { // Subido a 24 para equilibrar atributos
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 27) { // Subido a 27 para separar datos por usuario
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
-        db.execSQL("CREATE TABLE tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, dificultad INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 20, monedas INTEGER DEFAULT 10, completada INTEGER DEFAULT 0)")
-        db.execSQL("CREATE TABLE usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, correo TEXT UNIQUE, contrasena TEXT, nivel INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 0, monedas INTEGER DEFAULT 0, hp INTEGER DEFAULT 50, fuerza REAL DEFAULT 1.0, inteligencia REAL DEFAULT 1.0, constitucion REAL DEFAULT 1.0, percepcion REAL DEFAULT 1.0, puntosDisponibles INTEGER DEFAULT 0, totalHabitos INTEGER DEFAULT 0)")
-        db.execSQL("CREATE TABLE recompensas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, precio INTEGER, icono TEXT)")
-        db.execSQL("CREATE TABLE dailies (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, experiencia INTEGER DEFAULT 15, monedas INTEGER DEFAULT 10, completadaHoy INTEGER DEFAULT 0, ultimaVezCompletada TEXT)")
+        db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
+        db.execSQL("CREATE TABLE tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, dificultad INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 20, monedas INTEGER DEFAULT 10, completada INTEGER DEFAULT 0)")
+        db.execSQL("CREATE TABLE usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, correo TEXT UNIQUE, contrasena TEXT, nivel INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 0, monedas INTEGER DEFAULT 0, hp INTEGER DEFAULT 50, fuerza REAL DEFAULT 1.0, inteligencia REAL DEFAULT 1.0, constitucion REAL DEFAULT 1.0, percepcion REAL DEFAULT 1.0, puntosDisponibles INTEGER DEFAULT 0, totalHabitos INTEGER DEFAULT 0, rachaActual INTEGER DEFAULT 0, rachaMaxima INTEGER DEFAULT 0, ultimaFechaActividad TEXT)")
+        db.execSQL("CREATE TABLE recompensas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, precio INTEGER, icono TEXT)")
+        db.execSQL("CREATE TABLE dailies (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 15, monedas INTEGER DEFAULT 10, completadaHoy INTEGER DEFAULT 0, ultimaVezCompletada TEXT)")
         
         db.execSQL("""
             CREATE TABLE inventario (
@@ -37,7 +37,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                 bonusPer INTEGER,
                 bonusHp INTEGER,
                 icono TEXT,
-                equipado INTEGER DEFAULT 0
+                equipado INTEGER DEFAULT 0,
+                cantidad INTEGER DEFAULT 1
             )
         """.trimIndent())
 
@@ -60,6 +61,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         db.execSQL("""
             CREATE TABLE jefes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                correo_usuario TEXT,
                 nombre TEXT,
                 descripcion TEXT,
                 hpMax INTEGER,
@@ -80,6 +82,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
     }
 
     private fun insertarObjetosIniciales(db: SQLiteDatabase) {
+        // Los objetos de la tienda son globales, así que no necesitan correo_usuario
         val items = listOf(
             arrayOf("Espada de Madera", "EQUIPO", "ARMA", "100", "2", "0", "0", "0", "0", "wooden-sword"),
             arrayOf("Escudo de Cartón", "EQUIPO", "ARMADURA", "120", "0", "0", "3", "0", "0", "round-shield"),
@@ -109,28 +112,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         )
         for (r in recompensasDefault) {
             val v = ContentValues().apply {
+                put("correo_usuario", null as String?) // Recompensas base
                 put("nombre", r[0])
                 put("precio", r[1].toInt())
                 put("icono", r[2])
             }
             db.insert("recompensas", null, v)
         }
-
-        // Insertar Jefe Inicial
-        val vJefe = ContentValues().apply {
-            put("nombre", "Dragón de la Procrastinación")
-            put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
-            put("hpMax", 200)
-            put("hpActual", 200)
-            put("recompensaMonedas", 500)
-            put("recompensaXP", 150)
-            put("icono", "dragon")
-            put("derrotado", 0)
-            put("fechaMuerte", 0L)
-            put("nivel", 1)
-            put("armadura", 0)
-        }
-        db.insert("jefes", null, vJefe)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -148,9 +136,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
 
     // --- MÉTODOS PARA JEFES ---
 
-    fun obtenerJefeActivo(): Jefe? {
+    fun obtenerJefeActivo(correo: String): Jefe? {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM jefes WHERE derrotado = 0 LIMIT 1", null)
+        val cursor = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 0 LIMIT 1", arrayOf(correo))
         var jefe: Jefe? = null
         if (cursor.moveToFirst()) {
             jefe = Jefe(
@@ -168,7 +156,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             )
         } else {
             // No hay jefe activo, veamos si debe reaparecer (21h = 75600000 ms)
-            val cursorMuerto = db.rawQuery("SELECT * FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", null)
+            val cursorMuerto = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", arrayOf(correo))
             if (cursorMuerto.moveToFirst()) {
                 val fechaMuerte = cursorMuerto.getLong(cursorMuerto.getColumnIndexOrThrow("fechaMuerte"))
                 val ahora = System.currentTimeMillis()
@@ -215,8 +203,30 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                     // Recursividad para obtener el jefe ahora que está activo
                     cursorMuerto.close()
                     db.close()
-                    return obtenerJefeActivo()
+                    return obtenerJefeActivo(correo)
                 }
+            } else {
+                // Si es un usuario nuevo y no tiene ningún jefe (ni vivo ni muerto), crear el inicial
+                val dbWrite = this.writableDatabase
+                val vJefe = ContentValues().apply {
+                    put("correo_usuario", correo)
+                    put("nombre", "Dragón de la Procrastinación")
+                    put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
+                    put("hpMax", 200)
+                    put("hpActual", 200)
+                    put("recompensaMonedas", 500)
+                    put("recompensaXP", 150)
+                    put("icono", "dragon")
+                    put("derrotado", 0)
+                    put("fechaMuerte", 0L)
+                    put("nivel", 1)
+                    put("armadura", 0)
+                }
+                dbWrite.insert("jefes", null, vJefe)
+                dbWrite.close()
+                cursorMuerto.close()
+                db.close()
+                return obtenerJefeActivo(correo)
             }
             cursorMuerto.close()
         }
@@ -225,9 +235,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return jefe
     }
 
-    fun obtenerUltimoJefeDerrotadoTime(): Long {
+    fun obtenerUltimoJefeDerrotadoTime(correo: String): Long {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT fechaMuerte FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", null)
+        val cursor = db.rawQuery("SELECT fechaMuerte FROM jefes WHERE correo_usuario = ? AND derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", arrayOf(correo))
         var time = 0L
         if (cursor.moveToFirst()) {
             time = cursor.getLong(0)
@@ -237,8 +247,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return time
     }
 
-    fun dañarJefe(dañoBase: Int, correo: String): Boolean {
-        val jefe = obtenerJefeActivo() ?: return false
+    fun atacarJefe(danioBase: Int, correo: String): Boolean {
+        val jefe = obtenerJefeActivo(correo) ?: return false
         val usuario = obtenerUsuarioLogueado(correo) ?: return false
         val inventario = obtenerInventario(correo).filter { it.equipado }
 
@@ -247,14 +257,14 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         val fuerzaTotal = usuario.fuerza + (bonusFzaEquipo / 10.0) // 1 punto equipo = +0.1 multiplicador
 
         // El daño se reduce por la armadura del jefe (mínimo 1 de daño si el ataque es positivo)
-        val dañoTrasArmadura = if (dañoBase > 0) {
-            (dañoBase - jefe.armadura).coerceAtLeast(1)
+        val danioTrasArmadura = if (danioBase > 0) {
+            (danioBase - jefe.armadura).coerceAtLeast(1)
         } else {
-            dañoBase // Curación (daño negativo) no se ve afectada por armadura
+            danioBase // Curación (daño negativo) no se ve afectada por armadura
         }
 
-        val dañoReal = (dañoTrasArmadura * fuerzaTotal).toInt()
-        val nuevoHp = (jefe.hpActual - dañoReal).coerceIn(0, jefe.hpMax)
+        val danioReal = (danioTrasArmadura * fuerzaTotal).toInt()
+        val nuevoHp = (jefe.hpActual - danioReal).coerceIn(0, jefe.hpMax)
 
         val db = this.writableDatabase
         val valores = ContentValues().apply {
@@ -291,8 +301,29 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             put("constitucion", usuario.constitucion)
             put("percepcion", usuario.percepcion)
             put("puntosDisponibles", usuario.puntosDisponibles)
+            put("rachaActual", 0)
+            put("rachaMaxima", 0)
+            put("ultimaFechaActividad", "")
         }
         val id = db.insert("usuarios", null, valores)
+        
+        // --- INICIALIZAR JEFE PARA EL NUEVO USUARIO ---
+        val vJefe = ContentValues().apply {
+            put("correo_usuario", usuario.correo)
+            put("nombre", "Dragón de la Procrastinación")
+            put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
+            put("hpMax", 200)
+            put("hpActual", 200)
+            put("recompensaMonedas", 500)
+            put("recompensaXP", 150)
+            put("icono", "dragon")
+            put("derrotado", 0)
+            put("fechaMuerte", 0L)
+            put("nivel", 1)
+            put("armadura", 0)
+        }
+        db.insert("jefes", null, vJefe)
+
         db.close()
         return id
     }
@@ -328,7 +359,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                 cursor.getDouble(cursor.getColumnIndexOrThrow("constitucion")),
                 cursor.getDouble(cursor.getColumnIndexOrThrow("percepcion")),
                 cursor.getInt(cursor.getColumnIndexOrThrow("puntosDisponibles")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("totalHabitos"))
+                cursor.getInt(cursor.getColumnIndexOrThrow("totalHabitos")),
+                cursor.getInt(cursor.getColumnIndexOrThrow("rachaActual")),
+                cursor.getInt(cursor.getColumnIndexOrThrow("rachaMaxima")),
+                cursor.getString(cursor.getColumnIndexOrThrow("ultimaFechaActividad"))
             )
         }
         cursor.close()
@@ -345,11 +379,18 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         val perTotal = usuario.percepcion + (inventario.sumOf { it.bonusPer } / 10.0)
         val conTotal = usuario.constitucion + (inventario.sumOf { it.bonusCon } / 10.0)
 
+        // --- APLICAR BONUS POR RACHA ---
+        val bonusRacha = when {
+            usuario.rachaActual >= 7 -> 1.25 // +25%
+            usuario.rachaActual >= 3 -> 1.10 // +10%
+            else -> 1.0
+        }
+
         // Inteligencia potencia la XP ganada (si es positiva)
-        val xpFinal = if (xpBase > 0) (xpBase * intTotal).toInt() else xpBase
+        val xpFinal = if (xpBase > 0) (xpBase * intTotal * bonusRacha).toInt() else xpBase
         
         // Percepción potencia las monedas ganadas (si es positiva)
-        val monedasFinal = if (monedasBase > 0) (monedasBase * perTotal).toInt() else monedasBase
+        val monedasFinal = if (monedasBase > 0) (monedasBase * perTotal * bonusRacha).toInt() else monedasBase
         
         // Constitución reduce el daño recibido (si hpCambio es negativo)
         val hpFinalCambio = if (hpCambioBase < 0) {
@@ -407,11 +448,41 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         db.close()
     }
 
+    fun actualizarRacha(correo: String) {
+        val usuario = obtenerUsuarioLogueado(correo) ?: return
+        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        
+        if (usuario.ultimaFechaActividad == hoy) return // Ya se actualizó hoy
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val cal = java.util.Calendar.getInstance()
+        cal.add(java.util.Calendar.DATE, -1)
+        val ayer = sdf.format(cal.time)
+
+        val nuevaRacha = if (usuario.ultimaFechaActividad == ayer) {
+            usuario.rachaActual + 1
+        } else {
+            1 // Se rompió la racha o es la primera vez
+        }
+
+        val nuevaRachaMaxima = if (nuevaRacha > usuario.rachaMaxima) nuevaRacha else usuario.rachaMaxima
+
+        val db = this.writableDatabase
+        val valores = ContentValues().apply {
+            put("rachaActual", nuevaRacha)
+            put("rachaMaxima", nuevaRachaMaxima)
+            put("ultimaFechaActividad", hoy)
+        }
+        db.update("usuarios", valores, "correo = ?", arrayOf(correo))
+        db.close()
+    }
+
     // --- MÉTODOS PARA HÁBITOS ---
 
     fun insertarHabito(habito: Habito): Long {
         val db = this.writableDatabase
         val valores = ContentValues().apply {
+            put("correo_usuario", habito.correo_usuario)
             put("nombre", habito.nombre)
             put("experiencia", habito.experiencia)
             put("monedas", habito.monedas)
@@ -423,14 +494,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return id
     }
 
-    fun obtenerTodosHabitos(): List<Habito> {
+    fun obtenerTodosHabitos(correo: String): List<Habito> {
         val lista = mutableListOf<Habito>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM habitos", null)
+        val cursor = db.rawQuery("SELECT * FROM habitos WHERE correo_usuario = ?", arrayOf(correo))
         if (cursor.moveToFirst()) {
             do {
                 lista.add(Habito(
                     cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
                     cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("experiencia")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
@@ -464,6 +536,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
     fun insertarTarea(tarea: Tarea): Long {
         val db = this.writableDatabase
         val valores = ContentValues().apply {
+            put("correo_usuario", tarea.correo_usuario)
             put("nombre", tarea.nombre)
             put("dificultad", tarea.dificultad)
             put("experiencia", tarea.experiencia)
@@ -475,14 +548,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return id
     }
 
-    fun obtenerTodasLasTareas(): List<Tarea> {
+    fun obtenerTodasLasTareas(correo: String): List<Tarea> {
         val lista = mutableListOf<Tarea>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM tareas", null)
+        val cursor = db.rawQuery("SELECT * FROM tareas WHERE correo_usuario = ?", arrayOf(correo))
         if (cursor.moveToFirst()) {
             do {
                 lista.add(Tarea(
                     cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
                     cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("dificultad")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("experiencia")),
@@ -520,6 +594,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
     fun insertarRecompensa(recompensa: Recompensa): Long {
         val db = this.writableDatabase
         val valores = ContentValues().apply {
+            put("correo_usuario", recompensa.correo_usuario)
             put("nombre", recompensa.nombre)
             put("precio", recompensa.precio)
             put("icono", recompensa.icono)
@@ -529,14 +604,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return id
     }
 
-    fun obtenerTodasRecompensas(): List<Recompensa> {
+    fun obtenerTodasRecompensas(correo: String): List<Recompensa> {
         val lista = mutableListOf<Recompensa>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM recompensas", null)
+        val cursor = db.rawQuery("SELECT * FROM recompensas WHERE correo_usuario = ? OR correo_usuario IS NULL", arrayOf(correo))
         if (cursor.moveToFirst()) {
             do {
                 lista.add(Recompensa(
                     cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")) ?: "",
                     cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("precio")),
                     cursor.getString(cursor.getColumnIndexOrThrow("icono"))
@@ -559,6 +635,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
     fun insertarDaily(daily: Daily): Long {
         val db = this.writableDatabase
         val valores = ContentValues().apply {
+            put("correo_usuario", daily.correo_usuario)
             put("nombre", daily.nombre)
             put("experiencia", daily.experiencia)
             put("monedas", daily.monedas)
@@ -570,10 +647,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return id
     }
 
-    fun obtenerTodasDailies(): List<Daily> {
+    fun obtenerTodasDailies(correo: String): List<Daily> {
         val lista = mutableListOf<Daily>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM dailies", null)
+        val cursor = db.rawQuery("SELECT * FROM dailies WHERE correo_usuario = ?", arrayOf(correo))
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         if (cursor.moveToFirst()) {
@@ -583,6 +660,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                 
                 lista.add(Daily(
                     cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
                     cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("experiencia")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
@@ -617,7 +695,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         val dbRead = this.readableDatabase
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         
-        val cursor = dbRead.rawQuery("SELECT COUNT(*) FROM dailies WHERE ultimaVezCompletada != ? OR ultimaVezCompletada IS NULL", arrayOf(hoy))
+        val cursor = dbRead.rawQuery("SELECT COUNT(*) FROM dailies WHERE correo_usuario = ? AND (ultimaVezCompletada != ? OR ultimaVezCompletada IS NULL)", arrayOf(correo, hoy))
         var fallidas = 0
         if (cursor.moveToFirst()) {
             fallidas = cursor.getInt(0)
@@ -626,9 +704,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         dbRead.close()
 
         if (fallidas > 0) {
-            val dañoTotal = fallidas * 5 * multiplicadorDias
-            actualizarProgresoUsuario(correo, 0, 0, -dañoTotal)
-            return dañoTotal
+            val danioTotal = fallidas * 5 * multiplicadorDias
+            actualizarProgresoUsuario(correo, 0, 0, -danioTotal)
+            return danioTotal
         }
         return 0
     }
@@ -670,6 +748,24 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         actualizarProgresoUsuario(correo, 0, -articulo.precio)
 
         val db = this.writableDatabase
+        
+        if (articulo.tipo == "CONSUMIBLE") {
+            // Verificar si ya existe para apilarlo
+            val cursor = db.rawQuery(
+                "SELECT id, cantidad FROM inventario WHERE correo_usuario = ? AND nombre = ? AND tipo = 'CONSUMIBLE'",
+                arrayOf(correo, articulo.nombre)
+            )
+            if (cursor.moveToFirst()) {
+                val idExistente = cursor.getInt(0)
+                val cantidadActual = cursor.getInt(1)
+                db.execSQL("UPDATE inventario SET cantidad = ? WHERE id = ?", arrayOf(cantidadActual + 1, idExistente))
+                cursor.close()
+                db.close()
+                return true
+            }
+            cursor.close()
+        }
+
         val valores = ContentValues().apply {
             put("correo_usuario", correo)
             put("nombre", articulo.nombre)
@@ -682,6 +778,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             put("bonusHp", articulo.bonusHp)
             put("icono", articulo.icono)
             put("equipado", 0)
+            put("cantidad", 1)
         }
         db.insert("inventario", null, valores)
         db.close()
@@ -707,7 +804,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                     cursor.getInt(cursor.getColumnIndexOrThrow("bonusHp")),
                     cursor.getString(cursor.getColumnIndexOrThrow("icono")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("equipado")) == 1,
-                    true
+                    true,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("cantidad"))
                 ))
             } while (cursor.moveToNext())
         }
@@ -736,7 +834,16 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
 
     fun eliminarDelInventario(id: Int) {
         val db = this.writableDatabase
-        db.delete("inventario", "id = ?", arrayOf(id.toString()))
+        val cursor = db.rawQuery("SELECT cantidad FROM inventario WHERE id = ?", arrayOf(id.toString()))
+        if (cursor.moveToFirst()) {
+            val cantidad = cursor.getInt(0)
+            if (cantidad > 1) {
+                db.execSQL("UPDATE inventario SET cantidad = ? WHERE id = ?", arrayOf(cantidad - 1, id))
+            } else {
+                db.delete("inventario", "id = ?", arrayOf(id.toString()))
+            }
+        }
+        cursor.close()
         db.close()
     }
 
@@ -768,9 +875,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
 
     // --- MÉTODOS PARA ESTADÍSTICAS ---
 
-    fun obtenerTotalTareasCompletadas(): Int {
+    fun obtenerTotalTareasCompletadas(correo: String): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM tareas WHERE completada = 1", null)
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM tareas WHERE correo_usuario = ? AND completada = 1", arrayOf(correo))
         var total = 0
         if (cursor.moveToFirst()) total = cursor.getInt(0)
         cursor.close()
@@ -778,9 +885,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return total
     }
 
-    fun obtenerTotalDailiesCompletadas(): Int {
+    fun obtenerTotalDailiesCompletadas(correo: String): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM dailies WHERE ultimaVezCompletada != ''", null)
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM dailies WHERE correo_usuario = ? AND ultimaVezCompletada != ''", arrayOf(correo))
         var total = 0
         if (cursor.moveToFirst()) total = cursor.getInt(0)
         cursor.close()
@@ -788,9 +895,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return total
     }
 
-    fun obtenerTotalHabitosCompletados(): Int {
+    fun obtenerTotalHabitosCompletados(correo: String): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM habitos WHERE completadoHoy = 1", null)
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM habitos WHERE correo_usuario = ? AND completadoHoy = 1", arrayOf(correo))
         var total = 0
         if (cursor.moveToFirst()) total = cursor.getInt(0)
         cursor.close()
@@ -798,10 +905,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         return total
     }
 
-    fun obtenerJefesDerrotados(): List<Jefe> {
+    fun obtenerJefesDerrotados(correo: String): List<Jefe> {
         val lista = mutableListOf<Jefe>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM jefes WHERE derrotado = 1 ORDER BY fechaMuerte DESC", null)
+        val cursor = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 1 ORDER BY fechaMuerte DESC", arrayOf(correo))
         if (cursor.moveToFirst()) {
             do {
                 lista.add(Jefe(

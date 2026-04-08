@@ -21,6 +21,7 @@ class InventarioAdapter(
         val tvBonus: TextView = view.findViewById(R.id.tv_articulo_bonus)
         val btnEquipar: Button = view.findViewById(R.id.btn_equipar)
         val indicator: View = view.findViewById(R.id.view_equipado_indicator)
+        val tvCantidad: TextView = view.findViewById(R.id.tv_articulo_cantidad)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -72,6 +73,14 @@ class InventarioAdapter(
         }
         
         holder.btnEquipar.setOnClickListener { onEquiparClick(art) }
+
+        // Mostrar cantidad si es mayor a 1
+        if (art.cantidad > 1) {
+            holder.tvCantidad.visibility = View.VISIBLE
+            holder.tvCantidad.text = "x${art.cantidad}"
+        } else {
+            holder.tvCantidad.visibility = View.GONE
+        }
     }
 
     override fun getItemCount() = lista.size

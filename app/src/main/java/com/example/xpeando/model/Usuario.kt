@@ -14,5 +14,8 @@ data class Usuario(
     val constitucion: Double = 1.0,
     val percepcion: Double = 1.0,
     val puntosDisponibles: Int = 0,
-    val totalHabitos: Int = 0
+    val totalHabitos: Int = 0,
+    val rachaActual: Int = 0,
+    val rachaMaxima: Int = 0,
+    val ultimaFechaActividad: String? = null
 )

@@ -67,7 +67,7 @@ class FragmentTareas : Fragment() {
                 // Solo permitimos marcar como completada si no lo estaba ya.
                 // Una vez completada, no se puede desmarcar.
                 if (!tarea.completada && completada) {
-                    val tareasAntes = db.obtenerTotalTareasCompletadas()
+                    val tareasAntes = db.obtenerTotalTareasCompletadas(correo)
                     val usuarioAntes = db.obtenerUsuarioLogueado(correo)
                     val nivelAntes = usuarioAntes?.nivel ?: 1
 
@@ -81,10 +81,10 @@ class FragmentTareas : Fragment() {
                     )
                     
                     // Daño basado en dificultad (Trivial=1 -> 15, Difícil=4 -> 60)
-                    val dañoMision = tarea.dificultad * 15
-                    db.dañarJefe(dañoMision, correo)
+                    val danioMision = tarea.dificultad * 15
+                    db.atacarJefe(danioMision, correo)
 
-                    val tareasDespues = db.obtenerTotalTareasCompletadas()
+                    val tareasDespues = db.obtenerTotalTareasCompletadas(correo)
                     val usuarioDespues = db.obtenerUsuarioLogueado(correo)
                     val nivelDespues = usuarioDespues?.nivel ?: 1
 
@@ -140,7 +140,9 @@ class FragmentTareas : Fragment() {
     }
 
     private fun obtenerListaFiltrada(): List<Tarea> {
-        val todas = db.obtenerTodasLasTareas()
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        val todas = db.obtenerTodasLasTareas(correo)
         return when (chipGroupFiltros.checkedChipId) {
             R.id.chip_completadas -> {
                 // Solo mostramos las últimas 10 completadas para no saturar la vista
@@ -151,6 +153,9 @@ class FragmentTareas : Fragment() {
     }
 
     private fun mostrarDialogoAnadirTarea() {
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+
         val vista = layoutInflater.inflate(R.layout.dialogo_nueva_tarea, null)
         val etNombre = vista.findViewById<EditText>(R.id.et_nombre_tarea_dialogo)
         val spinnerDificultad = vista.findViewById<Spinner>(R.id.spinner_dificultad)
@@ -172,6 +177,7 @@ class FragmentTareas : Fragment() {
                 val monedas = dificultad * 10
                 
                 val nuevaTarea = Tarea(
+                    correo_usuario = correo,
                     nombre = nombre,
                     dificultad = dificultad,
                     experiencia = xp,

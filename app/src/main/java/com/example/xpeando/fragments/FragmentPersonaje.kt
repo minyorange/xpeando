@@ -202,9 +202,12 @@ class FragmentPersonaje : Fragment() {
 
     private fun usarPocion(id: Int, curacion: Int) {
         val usuario = db.obtenerUsuarioLogueado(correoUsuario) ?: return
-        var nuevaHp = usuario.hp + curacion
-        if (nuevaHp > 50) nuevaHp = 50
         
+        if (usuario.hp >= 50) {
+            Toast.makeText(requireContext(), "Tu salud ya está al máximo", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         db.actualizarProgresoUsuario(correoUsuario, 0, 0, curacion)
         db.eliminarDelInventario(id)
         Toast.makeText(requireContext(), "¡Poción usada! +$curacion HP", Toast.LENGTH_SHORT).show()

@@ -82,9 +82,9 @@ class FragmentDailies : Fragment() {
                     val diasDiferencia = (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
 
                     if (diasDiferencia > 0) {
-                        val daño = db.procesarDailiesFallidas(correoUsuario, diasDiferencia)
-                        if (daño > 0) {
-                            Toast.makeText(requireContext(), "¡Has vuelto! Recibes $daño de daño por $diasDiferencia días de ausencia.", Toast.LENGTH_LONG).show()
+                        val danio = db.procesarDailiesFallidas(correoUsuario, diasDiferencia)
+                        if (danio > 0) {
+                            Toast.makeText(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.", Toast.LENGTH_LONG).show()
                             (activity as? MainActivity)?.actualizarHeader()
                         }
                         prefs.edit().putString("ultima_penalizacion_dailies", hoy).apply()
@@ -98,14 +98,17 @@ class FragmentDailies : Fragment() {
 
     private fun configurarRecyclerView() {
         adaptador = DailiesAdapter(
-            lista = db.obtenerTodasDailies().filter { !it.completadaHoy },
+            lista = db.obtenerTodasDailies(correoUsuario).filter { !it.completadaHoy },
             onCheckedChange = { daily, completada ->
                 if (completada) { // Solo actuamos si se marca, no se puede desmarcar
-                    val dailiesAntes = db.obtenerTotalDailiesCompletadas()
+                    val dailiesAntes = db.obtenerTotalDailiesCompletadas(correoUsuario)
                     val usuarioAntes = db.obtenerUsuarioLogueado(correoUsuario)
                     val nivelAntes = usuarioAntes?.nivel ?: 1
 
                     db.actualizarEstadoDaily(daily, true)
+                    
+                    // --- ACTUALIZAR RACHA ---
+                    db.actualizarRacha(correoUsuario)
                     
                     // La lógica de Multiplicadores (INT, PER) ya está dentro de este método en DBHelper
                     db.actualizarProgresoUsuario(
@@ -115,9 +118,9 @@ class FragmentDailies : Fragment() {
                     )
                     
                     // La lógica de Multiplicador de Fuerza (FZA) ya está dentro de este método en DBHelper
-                    db.dañarJefe(25, correoUsuario)
+                    db.atacarJefe(25, correoUsuario)
 
-                    val dailiesDespues = db.obtenerTotalDailiesCompletadas()
+                    val dailiesDespues = db.obtenerTotalDailiesCompletadas(correoUsuario)
                     val usuarioDespues = db.obtenerUsuarioLogueado(correoUsuario)
                     val nivelDespues = usuarioDespues?.nivel ?: 1
 
@@ -135,7 +138,7 @@ class FragmentDailies : Fragment() {
                     actualizarLista()
                     mostrarToastPersonalizado("¡Tarea Diaria Realizada!")
                     
-                    if (db.obtenerTodasDailies().none { !it.completadaHoy }) {
+                    if (db.obtenerTodasDailies(correoUsuario).none { !it.completadaHoy }) {
                         mostrarToastPersonalizado("¡No quedan tareas para hoy!")
                     }
                 }
@@ -169,6 +172,7 @@ class FragmentDailies : Fragment() {
                 val monedasBase = 5 * dificultad
                 
                 db.insertarDaily(Daily(
+                    correo_usuario = correoUsuario,
                     nombre = nombre,
                     experiencia = xpBase,
                     monedas = monedasBase
@@ -196,7 +200,7 @@ class FragmentDailies : Fragment() {
     }
 
     private fun actualizarLista() {
-        val listaFiltrada = db.obtenerTodasDailies().filter { !it.completadaHoy }
+        val listaFiltrada = db.obtenerTodasDailies(correoUsuario).filter { !it.completadaHoy }
         adaptador.actualizarLista(listaFiltrada)
     }
 

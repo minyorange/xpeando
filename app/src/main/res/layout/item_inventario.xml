@@ -73,4 +73,18 @@
         android:background="@android:color/holo_green_light"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/tv_articulo_cantidad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="4dp"
+        android:background="@drawable/bg_cantidad_badge"
+        android:paddingHorizontal="4dp"
+        android:text="x1"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
 </com.google.android.material.card.MaterialCardView>

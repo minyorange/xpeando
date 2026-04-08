@@ -81,7 +81,7 @@ class FragmentRecompensas : Fragment() {
 
     private fun configurarListaRecompensasPersonales() {
         val adaptador = RecompensasAdapter(
-            listaRecompensas = db.obtenerTodasRecompensas(),
+            listaRecompensas = db.obtenerTodasRecompensas(correoUsuario),
             onComprarClick = { recompensa ->
                 val usuario = db.obtenerUsuarioLogueado(correoUsuario)
                 if (usuario != null && usuario.monedas >= recompensa.precio) {
@@ -130,7 +130,11 @@ class FragmentRecompensas : Fragment() {
             val nombre = etNombre.text.toString()
             val precioStr = etPrecio.text.toString()
             if (nombre.isNotEmpty() && precioStr.isNotEmpty()) {
-                db.insertarRecompensa(Recompensa(nombre = nombre, precio = precioStr.toIntOrNull() ?: 0))
+                db.insertarRecompensa(Recompensa(
+                    correo_usuario = correoUsuario,
+                    nombre = nombre,
+                    precio = precioStr.toIntOrNull() ?: 0
+                ))
                 actualizarListaSegunTab()
                 Toast.makeText(requireContext(), "¡Tesoro '$nombre' añadido!", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()

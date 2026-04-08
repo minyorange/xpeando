@@ -75,8 +75,8 @@ class FragmentEstadisticas : Fragment() {
         }
 
         // Cargar totales
-        tvTareas.text = db.obtenerTotalTareasCompletadas().toString()
-        tvDailies.text = db.obtenerTotalDailiesCompletadas().toString()
+        tvTareas.text = db.obtenerTotalTareasCompletadas(correo).toString()
+        tvDailies.text = db.obtenerTotalDailiesCompletadas(correo).toString()
         tvHabitos.text = (usuario?.totalHabitos ?: 0).toString()
     }
 }
