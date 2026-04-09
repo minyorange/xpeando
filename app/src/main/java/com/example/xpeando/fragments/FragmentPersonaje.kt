@@ -84,7 +84,7 @@ class FragmentPersonaje : Fragment() {
         pbHP.progress = usuario.hp
         tvXPValor.text = "${usuario.experiencia} / 100"
         pbExperiencia.progress = usuario.experiencia
-        tvMonedas.text = "${usuario.monedas} Monedas"
+        tvMonedas.text = "${usuario.monedas}"
         
         // Mostrar solo el número entero. El progreso decimal está guardado en la DB.
         tvFuerza.text = "${usuario.fuerza.toInt()} ${if (bonusFza > 0) "(+$bonusFza)" else ""}"

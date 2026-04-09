@@ -33,7 +33,7 @@ class TareasAdapter(
                 4 -> "Difícil"
                 else -> "Normal"
             }
-            tvDetalles.text = "Dificultad: $dificultadTexto | XP: ${tarea.experiencia}"
+            tvDetalles.text = "Dificultad: $dificultadTexto | XP: ${tarea.experiencia} | +${tarea.monedas}"
             
             cbCompletada.setOnCheckedChangeListener(null)
             cbCompletada.isChecked = tarea.completada

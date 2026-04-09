@@ -45,7 +45,7 @@ class InventarioAdapter(
         
         // MOSTRAR PRECIO
         val tvPrecio = holder.itemView.findViewById<TextView>(R.id.tv_articulo_precio)
-        tvPrecio.text = "${art.precio} Monedas"
+        tvPrecio.text = "${art.precio}"
 
         // Carga dinámica de iconos
         val context = holder.itemView.context

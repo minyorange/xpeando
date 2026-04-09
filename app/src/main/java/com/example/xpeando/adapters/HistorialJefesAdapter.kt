@@ -29,7 +29,7 @@ class HistorialJefesAdapter(private val jefes: List<Jefe>) :
         val jefe = jefes[position]
         holder.tvNombre.text = jefe.nombre
         holder.tvNivel.text = "Nivel ${jefe.nivel}"
-        holder.tvRecompensas.text = "+${jefe.recompensaMonedas} Oro | +${jefe.recompensaXP} XP"
+        holder.tvRecompensas.text = "+${jefe.recompensaMonedas} | +${jefe.recompensaXP} XP"
         
         val context = holder.itemView.context
         val resId = context.resources.getIdentifier(jefe.icono, "drawable", context.packageName)

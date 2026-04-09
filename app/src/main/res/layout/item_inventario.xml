@@ -3,87 +3,113 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
+    android:layout_margin="2dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/habitica_card_bg">
+    app:cardBackgroundColor="@color/habitica_card_bg"
+    app:strokeColor="#26000000"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="0dp">
 
-        <ImageView
-            android:id="@+id/iv_articulo_icono"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_recompensas" />
-
-        <TextView
-            android:id="@+id/tv_articulo_nombre"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Item Name"
-            android:textColor="@color/habitica_text_main"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_articulo_bonus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="+5 FZA"
-            android:textColor="@color/habitica_text_secondary"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/tv_articulo_precio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="50 Monedas"
-            android:textColor="@color/habitica_yellow_gold"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_equipar"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:layout_marginTop="4dp"
-            android:padding="0dp"
-            android:text="Equipar"
-            android:textSize="10sp"
-            app:cornerRadius="4dp" />
+            android:layout_height="120dp"
+            android:background="@drawable/bg_item_slot">
+
+            <ImageView
+                android:id="@+id/iv_articulo_icono"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_recompensas" />
+
+            <!-- Badge de Cantidad -->
+            <TextView
+                android:id="@+id/tv_articulo_cantidad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="4dp"
+                android:background="@drawable/bg_cantidad_badge"
+                android:paddingHorizontal="6dp"
+                android:text="x1"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- Indicador Equipado -->
+            <View
+                android:id="@+id/view_equipado_indicator"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="@android:color/holo_green_light"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tv_articulo_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="Item Name"
+                android:textColor="@color/habitica_text_main"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_articulo_precio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50"
+                android:gravity="center_vertical"
+                app:drawableEndCompat="@drawable/ic_coins_small"
+                android:drawablePadding="2dp"
+                android:textColor="@color/habitica_yellow_gold"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_equipar"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:padding="0dp"
+                android:text="Usar"
+                android:textSize="10sp"
+                app:cornerRadius="8dp"
+                app:backgroundTint="@color/habitica_purple_primary" />
+
+            <!-- Bonus oculto o muy pequeño para no robar espacio -->
+            <TextView
+                android:id="@+id/tv_articulo_bonus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+5 FZA"
+                android:textColor="@color/habitica_text_secondary"
+                android:textSize="9sp" />
+        </LinearLayout>
 
     </LinearLayout>
-
-    <View
-        android:id="@+id/view_equipado_indicator"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="4dp"
-        android:background="@android:color/holo_green_light"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/tv_articulo_cantidad"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:layout_margin="4dp"
-        android:background="@drawable/bg_cantidad_badge"
-        android:paddingHorizontal="4dp"
-        android:text="x1"
-        android:textColor="@android:color/white"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
 </com.google.android.material.card.MaterialCardView>

@@ -44,7 +44,7 @@
         android:layout_marginTop="8dp"
         android:layout_weight="1"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2" />
+        app:spanCount="3" />
 
     <Button
         android:id="@+id/btn_cerrar_mochila"

@@ -144,18 +144,31 @@
                         android:progress="0"
                         android:progressTint="@color/habitica_blue_xp" />
 
-                    <TextView
-                        android:id="@+id/tv_monedas_personaje"
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:id="@+id/layout_monedas_personaje"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:layout_marginTop="12dp"
-                        android:gravity="center"
-                        android:text="0 Monedas"
-                        android:textColor="@color/habitica_yellow_gold"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        app:drawableStartCompat="@android:drawable/btn_star_big_on"
-                        app:drawableTint="@color/habitica_yellow_gold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_monedas_personaje"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/habitica_yellow_gold"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginStart="4dp"
+                            android:src="@drawable/ic_coins_small" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

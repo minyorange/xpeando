@@ -29,7 +29,7 @@ class DailiesAdapter(
     override fun onBindViewHolder(holder: DailyViewHolder, position: Int) {
         val daily = lista[position]
         holder.tvNombre.text = daily.nombre
-        holder.tvRecompensa.text = "+${daily.experiencia} XP | +${daily.monedas} Monedas"
+        holder.tvRecompensa.text = "+${daily.experiencia} XP | +${daily.monedas}"
         
         // Evitar disparar el listener al configurar el estado inicial
         holder.cbDaily.setOnCheckedChangeListener(null)

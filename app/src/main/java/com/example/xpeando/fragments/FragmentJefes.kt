@@ -27,6 +27,7 @@ class FragmentJefes : Fragment() {
     private lateinit var pbHpJefe: ProgressBar
     private lateinit var ivJefe: ImageView
     private lateinit var tvRecompensas: TextView
+    private lateinit var tvRecompensasXP: TextView
     private lateinit var tvContadorReaparicion: TextView
     private lateinit var rvHistorial: RecyclerView
 
@@ -45,6 +46,7 @@ class FragmentJefes : Fragment() {
         pbHpJefe = view.findViewById(R.id.pbHpJefe)
         ivJefe = view.findViewById(R.id.ivJefe)
         tvRecompensas = view.findViewById(R.id.tvRecompensasJefe)
+        tvRecompensasXP = view.findViewById(R.id.tvRecompensasXPJefe)
         tvContadorReaparicion = view.findViewById(R.id.tvContadorReaparicion)
         rvHistorial = view.findViewById(R.id.rvHistorialJefes)
 
@@ -85,9 +87,11 @@ class FragmentJefes : Fragment() {
             pbHpJefe.max = it.hpMax
             pbHpJefe.progress = it.hpActual
             
-            tvRecompensas.text = "Recompensas: ${it.recompensaMonedas} Oro | ${it.recompensaXP} XP"
+            tvRecompensas.text = "Recompensas: ${it.recompensaMonedas}"
+            tvRecompensasXP.text = "| ${it.recompensaXP} XP"
             ivJefe.visibility = View.VISIBLE
             tvRecompensas.visibility = View.VISIBLE
+            tvRecompensasXP.visibility = View.VISIBLE
             tvContadorReaparicion.visibility = View.GONE
 
             // Mapeo de iconos locales
@@ -103,6 +107,7 @@ class FragmentJefes : Fragment() {
             pbHpJefe.progress = 0
             ivJefe.visibility = View.GONE
             tvRecompensas.visibility = View.GONE
+            tvRecompensasXP.visibility = View.GONE
             
             iniciarContadorReaparicion()
         }

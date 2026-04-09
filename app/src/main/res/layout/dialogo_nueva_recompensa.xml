@@ -36,11 +36,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Precio en monedas"
+        android:hint="Precio"
         app:boxStrokeColor="@color/habitica_purple_primary"
         app:hintTextColor="@color/habitica_purple_primary"
-        app:startIconDrawable="@android:drawable/btn_star_big_on"
-        app:startIconTint="@color/habitica_yellow_gold">
+        app:startIconDrawable="@drawable/ic_coins_small"
+        app:startIconMinSize="28dp"
+        app:startIconScaleType="centerInside"
+        app:startIconTint="@null">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_precio_recompensa_dialogo"

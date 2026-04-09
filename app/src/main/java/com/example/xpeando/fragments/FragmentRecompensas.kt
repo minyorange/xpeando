@@ -69,12 +69,14 @@ class FragmentRecompensas : Fragment() {
 
     private fun actualizarListaSegunTab() {
         if (tabLayout.selectedTabPosition == 0) {
-            // "Mis Premios"
+            // "Mis Premios" - Mantener lista vertical
             fabAnadir.visibility = View.VISIBLE
+            rvRecompensas.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
             configurarListaRecompensasPersonales()
         } else {
-            // "Armería"
+            // "Armería" - Cambiar a Cuadrícula de 3 columnas
             fabAnadir.visibility = View.GONE
+            rvRecompensas.layoutManager = androidx.recyclerview.widget.GridLayoutManager(requireContext(), 3)
             configurarListaArmeria()
         }
     }
@@ -158,6 +160,6 @@ class FragmentRecompensas : Fragment() {
 
     private fun actualizarSaldo() {
         val usuario = db.obtenerUsuarioLogueado(correoUsuario)
-        tvSaldo.text = "${usuario?.monedas ?: 0} Monedas"
+        tvSaldo.text = "${usuario?.monedas ?: 0}"
     }
 }

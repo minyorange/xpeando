@@ -41,9 +41,12 @@
                 android:id="@+id/tv_recompensa_daily"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="+15 XP | +10 Monedas"
+                android:text="+15 XP | +10"
                 android:textColor="@color/habitica_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                app:drawableEndCompat="@drawable/ic_coins_small"
+                android:drawablePadding="4dp"
+                android:gravity="center_vertical" />
         </LinearLayout>
 
         <ImageView

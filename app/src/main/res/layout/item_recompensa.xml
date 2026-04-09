@@ -19,8 +19,9 @@
 
         <ImageView
             android:id="@+id/iv_recompensa"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_recompensas" />
 
         <LinearLayout
@@ -53,8 +54,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="50"
-            app:icon="@android:drawable/btn_star_big_on"
-            app:iconTint="@color/habitica_yellow_gold"
+            app:icon="@drawable/coins"
+            app:iconTint="@null"
             android:backgroundTint="@color/habitica_purple_dark"
             android:textColor="@color/white"
             app:cornerRadius="20dp" />

@@ -54,11 +54,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Pagar 50 Oro (Cura 25 HP)"
+        android:text="Pagar 50 (Cura 25 HP)"
         android:textAllCaps="false"
         app:backgroundTint="@color/habitica_yellow_gold"
         app:cornerRadius="8dp"
-        app:icon="@drawable/ic_recompensas" />
+        app:icon="@drawable/coins"
+        app:iconTint="@null" />
 
     <!-- OPCION 3: GRATIS -->
     <com.google.android.material.button.MaterialButton

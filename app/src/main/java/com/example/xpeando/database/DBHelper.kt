@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 28) { // Subido a 28 para actualizar icono de poción
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 31) { // Subida a 31 para limpieza total y asegurar Dragón Pere
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -174,14 +174,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                     val nuevaRecompensaMonedas = (500 * (1 + (nuevoNivel - 1) * 0.1)).toInt()
                     val nuevaRecompensaXP = (150 * (1 + (nuevoNivel - 1) * 0.1)).toInt()
                     
-                    // Cambiar nombre y descripción según el nivel
+                    // Cambiar nombre y descripción según el nivel (Siempre usando el icono de Pere)
                     val (nuevoNombre, nuevaDesc) = when {
-                        nuevoNivel == 1 -> Pair("Dragón de la Procrastinación", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
-                        nuevoNivel == 2 -> Pair("Soberano de la Pereza", "Un ente que ralentiza tus movimientos. Solo la constancia puede vencerlo.")
-                        nuevoNivel == 3 -> Pair("Titán del Desorden", "Su mera presencia desorganiza tu mente. Pon orden en tu vida para debilitarlo.")
-                        nuevoNivel == 4 -> Pair("Espectro de las Tareas Pendientes", "La acumulación de días sin acción le ha dado una forma física aterradora.")
-                        nuevoNivel >= 5 -> Pair("Señor del Caos Infinito (Nvl $nuevoNivel)", "La entidad definitiva. El reto final para un héroe de la productividad.")
-                        else -> Pair("Dragón de la Procrastinación", "Se alimenta de tus tareas pendientes.")
+                        nuevoNivel <= 1 -> Pair("Dragón Pere", "El legendario guardián de la pereza. Solo aquellos que completen todas sus tareas podrán derrotarlo.")
+                        nuevoNivel == 2 -> Pair("Dragón Pere (Evolucionado)", "Ha vuelto más fuerte. La pereza no se rinde fácilmente.")
+                        nuevoNivel == 3 -> Pair("Dragón Pere (Furia)", "El Dragón está furioso por tus avances. ¡No dejes que te detenga!")
+                        nuevoNivel >= 4 -> Pair("Dragón Pere (Nivel $nuevoNivel)", "El reto definitivo para un héroe de la productividad.")
+                        else -> Pair("Dragón Pere", "El guardián de la pereza.")
                     }
                     
                     val dbWrite = this.writableDatabase
@@ -193,6 +192,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                         put("hpActual", nuevoHpMax)
                         put("recompensaMonedas", nuevaRecompensaMonedas)
                         put("recompensaXP", nuevaRecompensaXP)
+                        put("icono", "dragon_pere") // Aseguramos que siempre use este icono al resucitar
                         put("fechaMuerte", 0)
                         put("nivel", nuevoNivel)
                         put("armadura", nuevaArmadura)
@@ -210,17 +210,17 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                 val dbWrite = this.writableDatabase
                 val vJefe = ContentValues().apply {
                     put("correo_usuario", correo)
-                    put("nombre", "Dragón de la Procrastinación")
-                    put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
-                    put("hpMax", 200)
-                    put("hpActual", 200)
-                    put("recompensaMonedas", 500)
-                    put("recompensaXP", 150)
-                    put("icono", "dragon")
+                    put("nombre", "Dragón Pere")
+                    put("descripcion", "El legendario guardián de la pereza. Solo aquellos que completen todas sus tareas podrán derrotarlo.")
+                    put("hpMax", 500) // Un poco más de vida por ser el jefe final/especial
+                    put("hpActual", 500)
+                    put("recompensaMonedas", 1000)
+                    put("recompensaXP", 500)
+                    put("icono", "dragon_pere")
                     put("derrotado", 0)
                     put("fechaMuerte", 0L)
-                    put("nivel", 1)
-                    put("armadura", 0)
+                    put("nivel", 10) // Nivel más alto por ser especial
+                    put("armadura", 5)
                 }
                 dbWrite.insert("jefes", null, vJefe)
                 dbWrite.close()
@@ -310,17 +310,17 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         // --- INICIALIZAR JEFE PARA EL NUEVO USUARIO ---
         val vJefe = ContentValues().apply {
             put("correo_usuario", usuario.correo)
-            put("nombre", "Dragón de la Procrastinación")
-            put("descripcion", "Se alimenta de tus tareas pendientes. ¡Derrótalo antes de que sea demasiado tarde!")
-            put("hpMax", 200)
-            put("hpActual", 200)
-            put("recompensaMonedas", 500)
-            put("recompensaXP", 150)
-            put("icono", "dragon")
+            put("nombre", "Dragón Pere")
+            put("descripcion", "El legendario guardián de la pereza. Solo aquellos que completen todas sus tareas podrán derrotarlo.")
+            put("hpMax", 500)
+            put("hpActual", 500)
+            put("recompensaMonedas", 1000)
+            put("recompensaXP", 500)
+            put("icono", "dragon_pere")
             put("derrotado", 0)
             put("fechaMuerte", 0L)
-            put("nivel", 1)
-            put("armadura", 0)
+            put("nivel", 10)
+            put("armadura", 5)
         }
         db.insert("jefes", null, vJefe)
 

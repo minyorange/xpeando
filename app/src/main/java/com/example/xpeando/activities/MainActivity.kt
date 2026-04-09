@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNivel: TextView
     private lateinit var cvRacha: View
     private lateinit var tvRacha: TextView
+    private lateinit var tvMonedas: TextView
     private lateinit var pbHP: ProgressBar
     private lateinit var pbXP: ProgressBar
     private lateinit var drawerLayout: DrawerLayout
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         tvNivel = findViewById(R.id.tv_header_nivel)
         cvRacha = findViewById(R.id.cv_racha)
         tvRacha = findViewById(R.id.tv_header_racha)
+        tvMonedas = findViewById(R.id.tv_header_monedas)
         pbHP = findViewById(R.id.pb_header_hp)
         pbXP = findViewById(R.id.pb_header_xp)
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity() {
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_monedas).apply {
             val costo = 50
-            text = "Pagar $costo Oro (+25 HP)"
+            text = "Pagar $costo (+25 HP)"
             isEnabled = usuario.monedas >= costo
             setOnClickListener {
                 db.actualizarProgresoUsuario(correo, 0, -costo, 25)
@@ -174,6 +176,9 @@ class MainActivity : AppCompatActivity() {
             } else {
                 cvRacha.visibility = View.GONE
             }
+
+            // --- ACTUALIZAR MONEDAS 💰 ---
+            tvMonedas.text = "${it.monedas}"
 
             pbHP.progress = it.hp
             pbXP.progress = it.experiencia.toInt()

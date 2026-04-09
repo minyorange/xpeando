@@ -26,7 +26,7 @@ class HabitosAdapter(
 
         fun bind(habito: Habito) {
             tvNombre.text = habito.nombre
-            tvXP.text = "XP: ${habito.experiencia}"
+            tvXP.text = "XP: ${habito.experiencia} | +${habito.monedas}"
 
             btnSumar.setOnClickListener {
                 onAccionHabito(habito, 1)

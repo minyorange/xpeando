@@ -50,10 +50,12 @@
             android:id="@+id/tvHistorialRecompensas"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+500 Oro"
+            android:text="+500"
             android:textColor="#FFD700"
             android:textSize="12sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            app:drawableEndCompat="@drawable/ic_coins_small"
+            android:drawablePadding="4dp"/>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
