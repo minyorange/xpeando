@@ -136,6 +136,11 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/fuerza" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -159,6 +164,11 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/inteligencia" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -182,6 +192,11 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/constitucion" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -205,6 +220,11 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginBottom="4dp"
+                        android:src="@drawable/percepcion" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

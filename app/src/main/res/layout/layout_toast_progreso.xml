@@ -19,10 +19,9 @@
 
         <ImageView
             android:id="@+id/iv_icon_feedback"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@android:drawable/btn_star_big_on"
-            app:tint="@color/habitica_blue_xp" />
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/experiencia" />
 
         <TextView
             android:id="@+id/tv_xp_feedback"

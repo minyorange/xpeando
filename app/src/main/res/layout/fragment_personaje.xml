@@ -103,20 +103,34 @@
                             android:textSize="12sp"
                             android:textStyle="bold" />
                     </RelativeLayout>
-                    <ProgressBar
-                        android:id="@+id/pb_hp"
-                        style="?android:attr/progressBarStyleHorizontal"
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="8dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:max="50"
-                        android:progress="50"
-                        android:progressTint="@color/habitica_red_negative" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/vida" />
+
+                        <ProgressBar
+                            android:id="@+id/pb_hp"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:max="50"
+                            android:progress="50"
+                            android:progressTint="@color/habitica_red_negative" />
+                    </LinearLayout>
 
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -124,6 +138,7 @@
                             android:textColor="@color/habitica_blue_xp"
                             android:textSize="12sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/tv_xp_valor"
                             android:layout_width="wrap_content"
@@ -134,15 +149,29 @@
                             android:textSize="12sp"
                             android:textStyle="bold" />
                     </RelativeLayout>
-                    <ProgressBar
-                        android:id="@+id/pb_experiencia"
-                        style="?android:attr/progressBarStyleHorizontal"
+
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="8dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:max="100"
-                        android:progress="0"
-                        android:progressTint="@color/habitica_blue_xp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/experiencia" />
+
+                        <ProgressBar
+                            android:id="@+id/pb_experiencia"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:max="100"
+                            android:progress="0"
+                            android:progressTint="@color/habitica_blue_xp" />
+                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layout_monedas_personaje"
@@ -233,12 +262,17 @@
                         android:orientation="vertical"
                         android:padding="12dp"
                         android:gravity="center">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginBottom="4dp"
+                            android:src="@drawable/fuerza" />
                         <TextView
                             android:id="@+id/tv_fuerza_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="FUERZA"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:textColor="@color/habitica_text_secondary" />
                         <TextView
                             android:id="@+id/tv_fuerza_valor"
@@ -274,12 +308,17 @@
                         android:orientation="vertical"
                         android:padding="12dp"
                         android:gravity="center">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginBottom="4dp"
+                            android:src="@drawable/inteligencia" />
                         <TextView
                             android:id="@+id/tv_inteligencia_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="INTELIGENCIA"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:textColor="@color/habitica_text_secondary" />
                         <TextView
                             android:id="@+id/tv_inteligencia_valor"
@@ -315,12 +354,17 @@
                         android:orientation="vertical"
                         android:padding="12dp"
                         android:gravity="center">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginBottom="4dp"
+                            android:src="@drawable/constitucion" />
                         <TextView
                             android:id="@+id/tv_constitucion_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="CONSTITUCIÓN"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:textColor="@color/habitica_text_secondary" />
                         <TextView
                             android:id="@+id/tv_constitucion_valor"
@@ -356,12 +400,17 @@
                         android:orientation="vertical"
                         android:padding="12dp"
                         android:gravity="center">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginBottom="4dp"
+                            android:src="@drawable/percepcion" />
                         <TextView
                             android:id="@+id/tv_percepcion_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="PERCEPCIÓN"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:textColor="@color/habitica_text_secondary" />
                         <TextView
                             android:id="@+id/tv_percepcion_valor"

@@ -124,27 +124,53 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <ProgressBar
-                        android:id="@+id/pb_header_hp"
-                        style="?android:attr/progressBarStyleHorizontal"
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="6dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:max="50"
-                        android:progress="50"
-                        android:progressTint="@color/habitica_red_negative"
-                        android:progressBackgroundTint="#40FFFFFF" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <ProgressBar
-                        android:id="@+id/pb_header_xp"
-                        style="?android:attr/progressBarStyleHorizontal"
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:src="@drawable/vida" />
+
+                        <ProgressBar
+                            android:id="@+id/pb_header_hp"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp"
+                            android:max="50"
+                            android:progress="50"
+                            android:progressBackgroundTint="#40FFFFFF"
+                            android:progressTint="@color/habitica_red_negative" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="6dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:max="100"
-                        android:progress="0"
-                        android:progressTint="@color/habitica_blue_xp"
-                        android:progressBackgroundTint="#40FFFFFF" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:src="@drawable/experiencia" />
+
+                        <ProgressBar
+                            android:id="@+id/pb_header_xp"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp"
+                            android:max="100"
+                            android:progress="0"
+                            android:progressBackgroundTint="#40FFFFFF"
+                            android:progressTint="@color/habitica_blue_xp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

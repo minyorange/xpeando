@@ -3,11 +3,11 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/fragmentoPersonaje"
-            android:icon="@drawable/ic_personaje"
+            android:icon="@drawable/heroe"
             android:title="Mi Héroe" />
         <item
             android:id="@+id/fragmentoEstadisticas"
-            android:icon="@android:drawable/ic_menu_today"
+            android:icon="@drawable/estadistica"
             android:title="Estadísticas" />
         <item
             android:id="@+id/fragmentoLogros"
@@ -15,7 +15,7 @@
             android:title="Sala de Trofeos" />
         <item
             android:id="@+id/fragmentoJefes"
-            android:icon="@android:drawable/ic_menu_compass"
+            android:icon="@drawable/misionjefe"
             android:title="Misiones de Jefe" />
     </group>
 
