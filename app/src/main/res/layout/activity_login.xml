@@ -18,9 +18,8 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="20dp"
-            android:src="@drawable/ic_personaje"
-            app:tint="@color/habitica_purple_primary" />
+            android:padding="0dp"
+            android:src="@mipmap/ic_lan" />
     </com.google.android.material.card.MaterialCardView>
 
     <TextView

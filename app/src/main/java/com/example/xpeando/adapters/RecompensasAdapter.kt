@@ -29,8 +29,14 @@ class RecompensasAdapter(
             tvNombre.text = recompensa.nombre
             btnComprar.text = recompensa.precio.toString()
 
-            // Volvemos a usar el icono por defecto o local
-            ivIcono.setImageResource(R.drawable.ic_recompensas)
+            // Carga dinámica de iconos
+            val context = itemView.context
+            val resId = context.resources.getIdentifier(recompensa.icono, "drawable", context.packageName)
+            if (resId != 0) {
+                ivIcono.setImageResource(resId)
+            } else {
+                ivIcono.setImageResource(R.drawable.ic_recompensas)
+            }
 
             btnComprar.setOnClickListener {
                 onComprarClick(recompensa)

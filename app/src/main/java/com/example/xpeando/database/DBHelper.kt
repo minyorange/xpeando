@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 27) { // Subido a 27 para separar datos por usuario
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 28) { // Subido a 28 para actualizar icono de poción
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -87,7 +87,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             arrayOf("Espada de Madera", "EQUIPO", "ARMA", "100", "2", "0", "0", "0", "0", "wooden-sword"),
             arrayOf("Escudo de Cartón", "EQUIPO", "ARMADURA", "120", "0", "0", "3", "0", "0", "round-shield"),
             arrayOf("Gafas de Estudioso", "EQUIPO", "ARMA", "150", "0", "4", "0", "0", "0", "spectacles"),
-            arrayOf("Poción de Salud", "CONSUMIBLE", "POCION", "50", "0", "0", "0", "0", "20", "health-potion")
+            arrayOf("Poción de Salud", "CONSUMIBLE", "POCION", "50", "0", "0", "0", "0", "20", "pocion_vida")
         )
         for (item in items) {
             val v = ContentValues().apply {

@@ -19,8 +19,7 @@
             android:id="@+id/iv_articulo_icono"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_recompensas"
-            app:tint="@color/habitica_purple_primary" />
+            android:src="@drawable/ic_recompensas" />
 
         <TextView
             android:id="@+id/tv_articulo_nombre"

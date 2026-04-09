@@ -21,8 +21,7 @@
             android:id="@+id/iv_recompensa"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_recompensas"
-            app:tint="@color/pergamino_texto" />
+            android:src="@drawable/ic_recompensas" />
 
         <LinearLayout
             android:layout_width="0dp"
