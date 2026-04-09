@@ -22,20 +22,20 @@ object LogroManager {
 
         val logros = listOf(
             // --- MISIONES ---
-            Logro("Primeros Pasos", "Completa 1 misión", 1, totalTareas, totalTareas >= 1, R.drawable.ic_tareas),
-            Logro("Cazador de Misiones", "Completa 10 misiones", 10, totalTareas, totalTareas >= 10, R.drawable.ic_tareas),
-            Logro("Héroe Legendario", "Completa 50 misiones", 50, totalTareas, totalTareas >= 50, R.drawable.ic_tareas),
+            Logro("Primeros Pasos", "Completa 1 misión", 1, totalTareas, totalTareas >= 1, R.drawable.pasos),
+            Logro("Cazador de Misiones", "Completa 10 misiones", 10, totalTareas, totalTareas >= 10, R.drawable.misiones),
+            Logro("Héroe Legendario", "Completa 50 misiones", 50, totalTareas, totalTareas >= 50, R.drawable.lengendario),
             // --- DAILIES ---
-            Logro("Rutina de Hierro", "Completa 5 dailies", 5, totalDailies, totalDailies >= 5, android.R.drawable.ic_menu_today),
-            Logro("Inquebrantable", "Completa 30 dailies", 30, totalDailies, totalDailies >= 30, android.R.drawable.ic_menu_today),
+            Logro("Rutina de Hierro", "Completa 5 dailies", 5, totalDailies, totalDailies >= 5, R.drawable.hierro),
+            Logro("Inquebrantable", "Completa 30 dailies", 30, totalDailies, totalDailies >= 30, R.drawable.inquebrantable),
             // --- HÁBITOS ---
-            Logro("Maestro de Hábitos", "Realiza 20 acciones de hábitos", 20, totalHabitos, totalHabitos >= 20, R.drawable.ic_habitos),
+            Logro("Maestro de Hábitos", "Realiza 20 acciones de hábitos", 20, totalHabitos, totalHabitos >= 20, R.drawable.mhabitos),
             // --- NIVEL / PERSONAJE ---
-            Logro("Ascensión I", "Llega a nivel 5", 5, usuario.nivel, usuario.nivel >= 5, R.drawable.ic_personaje),
+            Logro("Ascensión I", "Llega a nivel 5", 5, usuario.nivel, usuario.nivel >= 5, R.drawable.ascension),
             // --- ECONOMÍA ---
-            Logro("Ahorrador", "Consigue 500 monedas", 500, monedas, monedas >= 500, R.drawable.ic_recompensas),
+            Logro("Ahorrador", "Consigue 500 monedas", 500, monedas, monedas >= 500, R.drawable.colecionista),
             // --- COLECCIÓN ---
-            Logro("Coleccionista", "Ten 3 objetos en tu inventario", 3, totalItems, totalItems >= 3, R.drawable.ic_recompensas),
+            Logro("Coleccionista", "Ten 3 objetos en tu inventario", 3, totalItems, totalItems >= 3, R.drawable.rey),
             // --- LOGRO SECRETO ---
             Logro(
                 if (monedas >= 1000) "El Rey Midas" else "???",

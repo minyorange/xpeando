@@ -11,7 +11,7 @@ data class Articulo(
     val bonusCon: Int = 0,
     val bonusPer: Int = 0,
     val bonusHp: Int = 0,
-    val icono: String = "ic_recompensas",
+    val icono: String = "premios",
     var equipado: Boolean = false,
     var esPropio: Boolean = false, // Para saber si el usuario ya lo tiene
     var cantidad: Int = 1

@@ -22,7 +22,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_recompensas" />
+            android:src="@drawable/premios" />
 
         <LinearLayout
             android:layout_width="0dp"

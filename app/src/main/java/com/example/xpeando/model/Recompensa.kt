@@ -5,5 +5,5 @@ data class Recompensa(
     val correo_usuario: String = "",
     val nombre: String,
     val precio: Int,
-    val icono: String = "ic_recompensas"
+    val icono: String = "premios"
 )

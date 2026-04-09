@@ -18,8 +18,7 @@
             android:id="@+id/ivHistorialIcono"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_boss_dragon"
-            app:tint="#FF5252"/>
+            android:src="@drawable/dragon_pere" />
 
         <LinearLayout
             android:layout_width="0dp"

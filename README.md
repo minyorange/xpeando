@@ -81,7 +81,7 @@ Xpeando/
 
 ## 🛠️ 8. Ficha Técnica
 *   **Persistencia:** SQLite vía `DBHelper`.
-*   **Versión de DB Actual:** 27 (Aislamiento de datos y escalado de jefes).
+*   **Versión de DB Actual:** 32 (Branding visual: `ic_lan`, `premios`, `pocion_vida` y eliminación de tints).
 *   **Arquitectura:** Single Activity (`MainActivity`) con Navigation Component.
 *   **Compatibilidad:** Código refactorizado para evitar caracteres no ASCII (ñ) en identificadores técnicos.
 

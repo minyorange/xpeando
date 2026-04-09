@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 31) { // Subida a 31 para limpieza total y asegurar Dragón Pere
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 32) { // Subida a 32 para actualizar iconos de recompensas a "premios"
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -106,9 +106,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         }
 
         val recompensasDefault = listOf(
-            arrayOf("Cena Especial", "50", "chicken-leg"),
-            arrayOf("Ver Película", "30", "clapperboard"),
-            arrayOf("Dormir Siesta", "20", "bed")
+            arrayOf("Cena Especial", "50", "premios"),
+            arrayOf("Ver Película", "30", "premios"),
+            arrayOf("Dormir Siesta", "20", "premios")
         )
         for (r in recompensasDefault) {
             val v = ContentValues().apply {

@@ -28,7 +28,7 @@
                 android:scaleType="fitCenter"
                 android:padding="8dp"
                 android:adjustViewBounds="true"
-                android:src="@drawable/ic_recompensas" />
+                android:src="@drawable/premios" />
 
             <!-- Badge de Cantidad -->
             <TextView

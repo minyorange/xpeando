@@ -53,7 +53,7 @@ class InventarioAdapter(
         if (resId != 0) {
             holder.ivIcono.setImageResource(resId)
         } else {
-            holder.ivIcono.setImageResource(R.drawable.ic_recompensas) // Fallback
+            holder.ivIcono.setImageResource(R.drawable.premios) // Fallback
         }
         
         // Lógica de compra vs equipar/usar

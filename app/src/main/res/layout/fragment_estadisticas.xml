@@ -271,8 +271,8 @@
                 <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_tareas"
-                    app:tint="@color/habitica_purple_primary" />
+                    android:src="@drawable/mfinal"
+                    />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -319,8 +319,8 @@
                 <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@android:drawable/ic_menu_today"
-                    app:tint="@color/habitica_red_negative" />
+                    android:src="@drawable/drealizada"
+                     />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -367,8 +367,8 @@
                 <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_habitos"
-                    app:tint="@color/habitica_blue_xp" />
+                    android:src="@drawable/ahabitos"
+                     />
 
                 <LinearLayout
                     android:layout_width="0dp"
