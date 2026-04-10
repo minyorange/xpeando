@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 32) { // Subida a 32 para actualizar iconos de recompensas a "premios"
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 33) { // Subida a 32 para actualizar iconos de recompensas a "premios"
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -192,7 +192,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                         put("hpActual", nuevoHpMax)
                         put("recompensaMonedas", nuevaRecompensaMonedas)
                         put("recompensaXP", nuevaRecompensaXP)
-                        put("icono", "dragon_pere") // Aseguramos que siempre use este icono al resucitar
+                        put("icono", "dragon_pereza") // Aseguramos que siempre use este icono al resucitar
                         put("fechaMuerte", 0)
                         put("nivel", nuevoNivel)
                         put("armadura", nuevaArmadura)
@@ -216,7 +216,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
                     put("hpActual", 500)
                     put("recompensaMonedas", 1000)
                     put("recompensaXP", 500)
-                    put("icono", "dragon_pere")
+                    put("icono", "dragon_pereza")
                     put("derrotado", 0)
                     put("fechaMuerte", 0L)
                     put("nivel", 10) // Nivel más alto por ser especial
@@ -316,7 +316,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             put("hpActual", 500)
             put("recompensaMonedas", 1000)
             put("recompensaXP", 500)
-            put("icono", "dragon_pere")
+            put("icono", "dragon_pereza")
             put("derrotado", 0)
             put("fechaMuerte", 0L)
             put("nivel", 10)
