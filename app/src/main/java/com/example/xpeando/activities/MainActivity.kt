@@ -289,6 +289,10 @@ class MainActivity : AppCompatActivity() {
                 val headerView = navView.getHeaderView(0)
                 headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)?.text = it.nombre
                 headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)?.text = "Nivel ${it.nivel}"
+                
+                // Actualizar barras de vida y experiencia en el menú lateral
+                headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)?.progress = it.hp
+                headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)?.progress = it.experiencia.toInt()
             }
         }
     }

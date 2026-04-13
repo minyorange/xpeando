@@ -6,6 +6,7 @@
     <!-- Habitica Inspired Palette -->
     <color name="xpeando_purple_primary">#4E4198</color>
     <color name="xpeando_purple_dark">#342B5E</color>
+    <color name="xpeando_purple_dark_alpha">#CC342B5E</color>
     <color name="xpeando_purple_light">#7A6EB5</color>
 
     <color name="xpeando_green_positive">#47A04B</color>

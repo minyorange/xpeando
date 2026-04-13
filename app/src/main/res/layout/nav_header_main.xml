@@ -1,31 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="160dp"
+    android:layout_height="wrap_content"
     android:background="@color/xpeando_purple_dark"
-    android:gravity="bottom"
-    android:orientation="vertical"
-    android:padding="16dp"
+    android:orientation="horizontal"
+    android:paddingLeft="20dp"
+    android:paddingTop="48dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="20dp"
+    android:gravity="center_vertical"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
     <ImageView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:id="@+id/iv_nav_header_avatar"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
         android:src="@drawable/perfil" />
 
-    <TextView
-        android:id="@+id/tv_nav_header_nombre"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Nombre del Héroe"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textStyle="bold" />
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_nav_header_nivel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Nivel 1" />
+        <TextView
+            android:id="@+id/tv_nav_header_nombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Héroe"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_nav_header_nivel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nivel 1"
+            android:textColor="@color/xpeando_yellow_gold"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+
+        <!-- Barra de Vida -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:src="@drawable/vida" />
+
+            <ProgressBar
+                android:id="@+id/pb_nav_hp"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:max="50"
+                android:progress="50"
+                android:progressBackgroundTint="#40FFFFFF"
+                android:progressTint="@color/xpeando_red_negative" />
+        </LinearLayout>
+
+        <!-- Barra de Experiencia -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:src="@drawable/experiencia" />
+
+            <ProgressBar
+                android:id="@+id/pb_nav_xp"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:max="100"
+                android:progress="0"
+                android:progressBackgroundTint="#40FFFFFF"
+                android:progressTint="@color/xpeando_blue_xp" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
