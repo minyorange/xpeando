@@ -74,6 +74,106 @@ class MainActivity : AppCompatActivity() {
         }
 
         actualizarHeader()
+
+        // --- TUTORIAL DE BIENVENIDA ---
+        val prefsXpeando = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefsXpeando.getString("correo_usuario", "") ?: ""
+        
+        val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
+        val tutorialVisto = prefsTutorial.getBoolean("tutorial_visto_$correo", false)
+        
+        if (correo.isNotEmpty() && !tutorialVisto) {
+            mostrarTutorialBienvenida(correo)
+        }
+    }
+
+    private fun mostrarTutorialBienvenida(correo: String) {
+        val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_bienvenida, null)
+        val flipper = vista.findViewById<android.widget.ViewFlipper>(R.id.view_flipper_bienvenida)
+        val btnAtras = vista.findViewById<Button>(R.id.btn_bienvenida_anterior)
+        val btnSig = vista.findViewById<Button>(R.id.btn_bienvenida_siguiente)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSig.setOnClickListener {
+            if (flipper.displayedChild < flipper.childCount - 1) {
+                flipper.setInAnimation(this, R.anim.slide_in_right)
+                flipper.setOutAnimation(this, R.anim.slide_out_left)
+                flipper.showNext()
+                btnAtras.visibility = View.VISIBLE
+                if (flipper.displayedChild == flipper.childCount - 1) {
+                    btnSig.text = "¡Empezar Aventura!"
+                }
+            } else {
+                val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
+                prefsTutorial.edit().putBoolean("tutorial_visto_$correo", true).apply()
+                dialog.dismiss()
+                mostrarTutorialAtributos(correo)
+            }
+        }
+
+        btnAtras.setOnClickListener {
+            if (flipper.displayedChild > 0) {
+                flipper.setInAnimation(this, R.anim.slide_in_left)
+                flipper.setOutAnimation(this, R.anim.slide_out_right)
+                flipper.showPrevious()
+                btnSig.text = "Siguiente"
+                if (flipper.displayedChild == 0) {
+                    btnAtras.visibility = View.INVISIBLE
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun mostrarTutorialAtributos(correo: String) {
+        val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_atributos, null)
+        val flipper = vista.findViewById<android.widget.ViewFlipper>(R.id.view_flipper_tutorial)
+        val btnAtras = vista.findViewById<Button>(R.id.btn_tutorial_anterior)
+        val btnSig = vista.findViewById<Button>(R.id.btn_tutorial_siguiente)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSig.setOnClickListener {
+            if (flipper.displayedChild < flipper.childCount - 1) {
+                flipper.setInAnimation(this, R.anim.slide_in_right)
+                flipper.setOutAnimation(this, R.anim.slide_out_left)
+                flipper.showNext()
+                btnAtras.visibility = View.VISIBLE
+                if (flipper.displayedChild == flipper.childCount - 1) {
+                    btnSig.text = "¡Todo Claro!"
+                }
+            } else {
+                val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
+                prefsTutorial.edit().putBoolean("tutorial_atributos_visto_$correo", true).apply()
+                dialog.dismiss()
+            }
+        }
+
+        btnAtras.setOnClickListener {
+            if (flipper.displayedChild > 0) {
+                flipper.setInAnimation(this, R.anim.slide_in_left)
+                flipper.setOutAnimation(this, R.anim.slide_out_right)
+                flipper.showPrevious()
+                btnSig.text = "Siguiente"
+                if (flipper.displayedChild == 0) {
+                    btnAtras.visibility = View.INVISIBLE
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private var isDeathDialogShowing = false
@@ -133,7 +233,6 @@ class MainActivity : AppCompatActivity() {
         isDeathDialogShowing = false
         actualizarHeader()
         
-        // Forzar refresco del fragmento actual para actualizar listas
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.contenedor_fragmentos) as NavHostFragment
         val currentFragment = navHostFragment.childFragmentManager.fragments.firstOrNull()
         if (currentFragment is com.example.xpeando.fragments.FragmentHabitos) {
@@ -169,7 +268,6 @@ class MainActivity : AppCompatActivity() {
             tvNombre.text = it.nombre
             tvNivel.text = "Nvl ${it.nivel}"
             
-            // --- ACTUALIZAR RACHA 🔥 ---
             if (it.rachaActual > 0) {
                 tvRacha.text = "🔥 ${it.rachaActual}"
                 cvRacha.visibility = View.VISIBLE
@@ -177,13 +275,11 @@ class MainActivity : AppCompatActivity() {
                 cvRacha.visibility = View.GONE
             }
 
-            // --- ACTUALIZAR MONEDAS 💰 ---
             tvMonedas.text = "${it.monedas}"
 
             pbHP.progress = it.hp
             pbXP.progress = it.experiencia.toInt()
 
-            // Si el HP llega a 0, activamos el sistema de resurrección
             if (it.hp <= 0 && !isDeathDialogShowing) {
                 mostrarDialogoMuerte()
             }

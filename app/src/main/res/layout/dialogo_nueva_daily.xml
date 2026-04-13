@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     android:orientation="vertical"
     android:padding="24dp">
 
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:text="Nueva Tarea Diaria"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="22sp"
         android:textStyle="bold" />
 
@@ -21,8 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Título de la rutina"
-        app:boxStrokeColor="@color/habitica_purple_primary"
-        app:hintTextColor="@color/habitica_purple_primary">
+        app:boxStrokeColor="@color/xpeando_purple_primary"
+        app:hintTextColor="@color/xpeando_purple_primary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_nombre_daily_dialogo"
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="Dificultad de la rutina:"
-        android:textColor="@color/habitica_text_secondary"
+        android:textColor="@color/xpeando_text_secondary"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -46,7 +46,7 @@
         android:layout_marginTop="8dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp"
-        app:strokeColor="@color/habitica_purple_light"
+        app:strokeColor="@color/xpeando_purple_light"
         app:strokeWidth="1dp">
 
         <Spinner
@@ -69,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancelar"
-            android:textColor="@color/habitica_text_secondary" />
+            android:textColor="@color/xpeando_text_secondary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_aceptar_daily"

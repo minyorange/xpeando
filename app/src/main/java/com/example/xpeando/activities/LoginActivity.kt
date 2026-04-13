@@ -23,8 +23,20 @@ class LoginActivity : AppCompatActivity() {
 
         val etCorreo = findViewById<EditText>(R.id.et_correo)
         val etContrasena = findViewById<EditText>(R.id.et_contrasena)
+        val cbRecordar = findViewById<android.widget.CheckBox>(R.id.cb_recordar_sesion)
         val btnLogin = findViewById<Button>(R.id.btn_login)
         val tvIrARegistro = findViewById<TextView>(R.id.tv_ir_a_registro)
+
+        // --- COMPROBAR SESIÓN AUTOMÁTICA ---
+        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val sesionActiva = prefs.getBoolean("sesion_activa", false)
+        val correoGuardado = prefs.getString("correo_usuario", "")
+
+        if (sesionActiva && !correoGuardado.isNullOrEmpty()) {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
 
         btnLogin.setOnClickListener {
             val correo = etCorreo.text.toString()
@@ -33,8 +45,10 @@ class LoginActivity : AppCompatActivity() {
             if (correo.isNotEmpty() && contrasena.isNotEmpty()) {
                 if (db.validarUsuario(correo, contrasena)) {
                     // --- GUARDAR SESIÓN DEL USUARIO ---
-                    val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-                    prefs.edit().putString("correo_usuario", correo).apply()
+                    val editor = prefs.edit()
+                    editor.putString("correo_usuario", correo)
+                    editor.putBoolean("sesion_activa", cbRecordar.isChecked)
+                    editor.apply()
 
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)

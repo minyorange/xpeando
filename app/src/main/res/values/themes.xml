@@ -1,27 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Xpeando" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Base application theme (Forzado a Light para que sea igual en ambos modos) -->
+    <style name="Base.Theme.Xpeando" parent="Theme.Material3.Light.NoActionBar">
         <!-- Main colors -->
-        <item name="colorPrimary">@color/habitica_purple_primary</item>
+        <item name="colorPrimary">@color/xpeando_purple_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/habitica_purple_light</item>
+        <item name="colorPrimaryContainer">@color/xpeando_purple_light</item>
 
-        <item name="android:windowBackground">@color/habitica_bg_light</item>
-        <item name="android:textColorPrimary">@color/habitica_text_main</item>
-        <item name="android:textColorSecondary">@color/habitica_text_secondary</item>
+        <item name="android:windowBackground">@color/xpeando_bg_light</item>
+        <item name="android:textColorPrimary">@color/xpeando_text_main</item>
+        <item name="android:textColorSecondary">@color/xpeando_text_secondary</item>
 
-        <item name="colorSurface">@color/habitica_card_bg</item>
-        <item name="colorOnSurface">@color/habitica_text_main</item>
+        <item name="colorSurface">@color/xpeando</item>
+        <item name="colorOnSurface">@color/xpeando_text_main</item>
 
         <!-- Bottom Navigation Style -->
         <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
     </style>
 
     <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="backgroundTint">@color/habitica_purple_dark</item>
+        <item name="backgroundTint">@color/xpeando_purple_dark</item>
         <item name="itemIconTint">@color/bnv_tab_item_foreground</item>
         <item name="itemTextColor">@color/bnv_tab_item_foreground</item>
-        <item name="itemRippleColor">@color/habitica_purple_light</item>
+        <item name="itemRippleColor">@color/xpeando_purple_light</item>
 
         <!-- Reducir el tamaño del indicador (la "píldora" de fondo) -->
         <item name="itemActiveIndicatorStyle">@style/App.CustomIndicator</item>
@@ -30,7 +30,7 @@
     <style name="App.CustomIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:width">48dp</item>
         <item name="android:height">32dp</item>
-        <item name="android:color">@color/habitica_purple_light</item>
+        <item name="android:color">@color/xpeando_purple_light</item>
     </style>
 
     <style name="Theme.Xpeando" parent="Base.Theme.Xpeando" />

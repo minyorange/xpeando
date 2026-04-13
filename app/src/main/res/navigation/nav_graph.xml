@@ -53,4 +53,10 @@
         android:label="Jefes"
         tools:layout="@layout/fragment_jefes" />
 
+    <fragment
+        android:id="@+id/fragmentoFAQ"
+        android:name="com.example.xpeando.fragments.FragmentFAQ"
+        android:label="FAQ"
+        tools:layout="@layout/fragment_faq" />
+
 </navigation>

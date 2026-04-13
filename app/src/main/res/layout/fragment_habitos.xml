@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     tools:context=".fragments.FragmentHabitos">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -26,7 +26,7 @@
         android:layout_margin="16dp"
         android:contentDescription="Añadir hábito"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/habitica_purple_primary"
+        app:backgroundTint="@color/xpeando_purple_primary"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

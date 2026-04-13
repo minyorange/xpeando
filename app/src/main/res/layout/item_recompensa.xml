@@ -56,7 +56,7 @@
             android:text="50"
             app:icon="@drawable/coins"
             app:iconTint="@null"
-            android:backgroundTint="@color/habitica_purple_dark"
+            android:backgroundTint="@color/xpeando_purple_dark"
             android:textColor="@color/white"
             app:cornerRadius="20dp" />
 

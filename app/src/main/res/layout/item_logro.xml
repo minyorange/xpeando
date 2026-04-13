@@ -6,7 +6,7 @@
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/habitica_card_bg">
+    app:cardBackgroundColor="@color/xpeando">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Nombre"
-            android:textColor="@color/habitica_text_main"
+            android:textColor="@color/xpeando_text_main"
             android:textSize="14sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0/10"
-            android:textColor="@color/habitica_text_secondary"
+            android:textColor="@color/xpeando_text_secondary"
             android:textSize="12sp" />
 
         <ProgressBar
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="4dp"
             android:layout_marginTop="8dp"
-            android:progressTint="@color/habitica_yellow_gold" />
+            android:progressTint="@color/xpeando_yellow_gold" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

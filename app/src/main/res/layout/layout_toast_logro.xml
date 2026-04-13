@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     app:cardCornerRadius="24dp"
     app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/habitica_purple_dark"
+    app:cardBackgroundColor="@color/xpeando_purple_dark"
     android:layout_margin="16dp">
 
     <LinearLayout
@@ -23,7 +23,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:src="@android:drawable/btn_star_big_on"
-            app:tint="@color/habitica_yellow_gold" />
+            app:tint="@color/xpeando_yellow_gold" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="¡LOGRO DESBLOQUEADO!"
-                android:textColor="@color/habitica_yellow_gold"
+                android:textColor="@color/xpeando_yellow_gold"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 

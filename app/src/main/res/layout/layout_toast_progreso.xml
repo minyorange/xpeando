@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     app:cardCornerRadius="24dp"
     app:cardElevation="6dp"
-    app:cardBackgroundColor="@color/habitica_purple_dark">
+    app:cardBackgroundColor="@color/xpeando_purple_dark">
 
     <LinearLayout
         android:layout_width="wrap_content"

@@ -6,7 +6,7 @@
     android:layout_margin="8dp"
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp"
-    app:cardBackgroundColor="@color/habitica_card_bg">
+    app:cardBackgroundColor="@color/xpeando">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,7 +25,7 @@
             android:insetRight="0dp"
             android:insetBottom="0dp"
             android:text="+"
-            android:textColor="@color/habitica_green_positive"
+            android:textColor="@color/xpeando_green_positive"
             android:textSize="24sp"
             android:textStyle="bold"
             app:cornerRadius="24dp" />
@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Nombre del Hábito"
-                android:textColor="@color/habitica_text_main"
+                android:textColor="@color/xpeando_text_main"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="XP: 10 | +5"
-                android:textColor="@color/habitica_blue_xp"
+                android:textColor="@color/xpeando_blue_xp"
                 android:textStyle="bold"
                 app:drawableEndCompat="@drawable/ic_coins_small"
                 android:drawablePadding="4dp"
@@ -72,7 +72,7 @@
             android:insetRight="0dp"
             android:insetBottom="0dp"
             android:text="-"
-            android:textColor="@color/habitica_red_negative"
+            android:textColor="@color/xpeando_red_negative"
             android:textSize="24sp"
             android:textStyle="bold"
             app:cornerRadius="24dp" />

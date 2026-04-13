@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="12dp"
+    android:layout_margin="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_titulo_bienvenida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="¡Bienvenido a Xpeando!"
+            android:textColor="@color/xpeando_purple_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="20dp"/>
+
+        <ViewFlipper
+            android:id="@+id/view_flipper_bienvenida"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- INTRO: DE QUÉ VA LA APP -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/ic_personaje"
+                    android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Convierte tu vida en un RPG"
+                    android:textColor="@color/xpeando_text_main"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Completa tareas reales para ganar Experiencia (XP) y Monedas de Oro. ¡Sube de nivel y mejora a tu héroe!"
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="12dp"/>
+            </LinearLayout>
+
+            <!-- HÁBITOS, DAILIES Y TAREAS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp">
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/habitos" android:layout_margin="4dp"/>
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/dailies" android:layout_margin="4dp"/>
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/tareas" android:layout_margin="4dp"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tus 3 Pilares"
+                    android:textColor="@color/xpeando_text_main"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HÁBITOS: Acciones que repites mucho.\nDAILIES: Tareas obligatorias cada día.\nTAREAS: Misiones únicas por completar."
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="12dp"/>
+            </LinearLayout>
+
+            <!-- EL JEFE (DRAGÓN PEREZA) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/dragon_pereza"
+                    android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="El Dragón Pereza"
+                    android:textColor="@color/xpeando_red_negative"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="¡Cada vez que completas algo, golpeas al jefe! Si olvidas tus Dailies, el jefe te golpeará a ti. ¡Manten tu HP alto!"
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="12dp"/>
+            </LinearLayout>
+
+            <!-- RACHAS Y ATRIBUTOS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="40sp"/>
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/fuerza" android:layout_margin="4dp"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rachas y Atributos"
+                    android:textColor="@color/xpeando_purple_primary"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="La racha diaria (🔥) potencia tus premios. Al subir de nivel, reparte puntos en Fuerza, Inteligencia, Constitución y Percepción."
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="12dp"/>
+            </LinearLayout>
+
+            <!-- TIENDA Y EQUIPO -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/tienda"
+                    android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tienda e Inventario"
+                    android:textColor="@color/xpeando_yellow_gold"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gasta tus monedas en armas, escudos y pociones. ¡Equípalos en tu mochila para obtener bonos permanentes!"
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="12dp"/>
+            </LinearLayout>
+
+        </ViewFlipper>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="32dp"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_bienvenida_anterior"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Atrás"
+                android:visibility="invisible"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"/>
+
+            <Button
+                android:id="@+id/btn_bienvenida_siguiente"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Siguiente"
+                android:backgroundTint="@color/xpeando_purple_primary"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

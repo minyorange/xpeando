@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     tools:context=".fragments.FragmentTareas">
 
     <com.google.android.material.chip.ChipGroup
@@ -24,9 +24,9 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:text="Pendientes"
-            app:chipBackgroundColor="@color/habitica_purple_light"
+            app:chipBackgroundColor="@color/xpeando_purple_light"
             android:textColor="@color/white"
-            app:checkedIconVisible="true"
+            app:checkedIconVisible="false"
             app:checkedIconTint="@color/white" />
 
         <com.google.android.material.chip.Chip
@@ -35,9 +35,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Completadas"
-            app:chipBackgroundColor="@color/habitica_purple_light"
+            app:chipBackgroundColor="@color/xpeando_purple_light"
             android:textColor="@color/white"
-            app:checkedIconVisible="true"
+            app:checkedIconVisible="false"
             app:checkedIconTint="@color/white" />
 
     </com.google.android.material.chip.ChipGroup>
@@ -63,7 +63,7 @@
         android:layout_margin="16dp"
         android:contentDescription="Nueva misión"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/habitica_purple_primary"
+        app:backgroundTint="@color/xpeando_purple_primary"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

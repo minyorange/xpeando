@@ -6,7 +6,7 @@
     android:layout_marginVertical="4dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/habitica_card_bg">
+    app:cardBackgroundColor="@color/xpeando">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:id="@+id/cb_daily"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:buttonTint="@color/habitica_purple_primary" />
+            android:buttonTint="@color/xpeando_purple_primary" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nombre de la Daily"
-                android:textColor="@color/habitica_text_main"
+                android:textColor="@color/xpeando_text_main"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -42,19 +42,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+15 XP | +10"
-                android:textColor="@color/habitica_text_secondary"
+                android:textColor="@color/xpeando_blue_xp"
                 android:textSize="12sp"
                 app:drawableEndCompat="@drawable/ic_coins_small"
                 android:drawablePadding="4dp"
                 android:gravity="center_vertical" />
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/iv_status_daily"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_dialog_info"
-            app:tint="@color/habitica_text_secondary" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

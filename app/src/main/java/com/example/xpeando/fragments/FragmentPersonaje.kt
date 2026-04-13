@@ -44,7 +44,64 @@ class FragmentPersonaje : Fragment() {
             mostrarMochila()
         }
 
+        val ivInfo = view.findViewById<View>(R.id.iv_info_atributos)
+        ivInfo.setOnClickListener {
+            mostrarTutorialAtributos()
+        }
+
+        // Mostrar tutorial automáticamente la primera vez por usuario
+        val prefsTutorial = requireActivity().getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
+        val tutorialVisto = prefsTutorial.getBoolean("tutorial_atributos_visto_$correoUsuario", false)
+        if (correoUsuario.isNotEmpty() && !tutorialVisto) {
+            mostrarTutorialAtributos()
+            prefsTutorial.edit().putBoolean("tutorial_atributos_visto_$correoUsuario", true).apply()
+        }
+
         actualizarUI()
+    }
+
+    private fun mostrarTutorialAtributos() {
+        val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_atributos, null)
+        val flipper = vista.findViewById<android.widget.ViewFlipper>(R.id.view_flipper_tutorial)
+        val btnAtras = vista.findViewById<Button>(R.id.btn_tutorial_anterior)
+        val btnSig = vista.findViewById<Button>(R.id.btn_tutorial_siguiente)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(vista)
+            .create()
+        
+        // Hacer el fondo del diálogo transparente para que se vea el redondeado de la card
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSig.setOnClickListener {
+            if (flipper.displayedChild < flipper.childCount - 1) {
+                // Siguiente: Entra desde la derecha, sale por la izquierda
+                flipper.setInAnimation(requireContext(), R.anim.slide_in_right)
+                flipper.setOutAnimation(requireContext(), R.anim.slide_out_left)
+                flipper.showNext()
+                btnAtras.visibility = View.VISIBLE
+                if (flipper.displayedChild == flipper.childCount - 1) {
+                    btnSig.text = "¡Entendido!"
+                }
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        btnAtras.setOnClickListener {
+            if (flipper.displayedChild > 0) {
+                // Atrás: Entra desde la izquierda, sale por la derecha
+                flipper.setInAnimation(requireContext(), R.anim.slide_in_left)
+                flipper.setOutAnimation(requireContext(), R.anim.slide_out_right)
+                flipper.showPrevious()
+                btnSig.text = "Siguiente"
+                if (flipper.displayedChild == 0) {
+                    btnAtras.visibility = View.INVISIBLE
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private fun actualizarUI() {

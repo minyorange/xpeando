@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     android:padding="16dp"
     tools:context=".fragments.FragmentLogros">
 
@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Sala de Trofeos"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tus hazañas y medallas épicas"
-        android:textColor="@color/habitica_text_secondary"
+        android:textColor="@color/xpeando_text_secondary"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_titulo_logros" />

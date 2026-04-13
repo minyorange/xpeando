@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     tools:context=".fragments.FragmentRecompensas">
 
     <TextView
@@ -14,7 +14,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:text="El Mercado"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:textColor="@color/habitica_yellow_gold"
+            android:textColor="@color/xpeando_yellow_gold"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -55,9 +55,9 @@
         android:layout_marginTop="8dp"
         android:background="@android:color/transparent"
         app:layout_constraintTop_toBottomOf="@id/tv_titulo_tienda"
-        app:tabIndicatorColor="@color/habitica_purple_primary"
-        app:tabSelectedTextColor="@color/habitica_purple_primary"
-        app:tabTextColor="@color/habitica_text_secondary">
+        app:tabIndicatorColor="@color/xpeando_purple_primary"
+        app:tabSelectedTextColor="@color/xpeando_purple_primary"
+        app:tabTextColor="@color/xpeando_text_secondary">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
@@ -88,7 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/habitica_purple_primary"
+        app:backgroundTint="@color/xpeando_purple_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white" />

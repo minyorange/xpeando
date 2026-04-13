@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="160dp"
-    android:background="@color/habitica_purple_dark"
+    android:background="@color/xpeando_purple_dark"
     android:gravity="bottom"
     android:orientation="vertical"
     android:padding="16dp"
@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:src="@drawable/ic_personaje" />
+        android:src="@drawable/perfil" />
 
     <TextView
         android:id="@+id/tv_nav_header_nombre"

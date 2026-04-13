@@ -41,7 +41,7 @@ object LogroManager {
                 if (monedas >= 1000) "El Rey Midas" else "???",
                 if (monedas >= 1000) "Consigue 1000 monedas" else "Logro oculto: Sigue explorando...",
                 1000, monedas, monedas >= 1000,
-                R.drawable.ic_recompensas
+                R.drawable.almondi
             )
         )
 

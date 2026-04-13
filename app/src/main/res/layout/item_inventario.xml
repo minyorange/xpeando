@@ -6,7 +6,7 @@
     android:layout_margin="2dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/habitica_card_bg"
+    app:cardBackgroundColor="@color/xpeando"
     app:strokeColor="#26000000"
     app:strokeWidth="1dp">
 
@@ -71,7 +71,7 @@
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="Item Name"
-                android:textColor="@color/habitica_text_main"
+                android:textColor="@color/xpeando_text_main"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -83,7 +83,7 @@
                 android:gravity="center_vertical"
                 app:drawableEndCompat="@drawable/ic_coins_small"
                 android:drawablePadding="2dp"
-                android:textColor="@color/habitica_yellow_gold"
+                android:textColor="@color/xpeando_yellow_gold"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -99,7 +99,7 @@
                 android:text="Usar"
                 android:textSize="10sp"
                 app:cornerRadius="8dp"
-                app:backgroundTint="@color/habitica_purple_primary" />
+                app:backgroundTint="@color/xpeando_purple_primary" />
 
             <!-- Bonus oculto o muy pequeño para no robar espacio -->
             <TextView
@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+5 FZA"
-                android:textColor="@color/habitica_text_secondary"
+                android:textColor="@color/xpeando_text_secondary"
                 android:textSize="9sp" />
         </LinearLayout>
 

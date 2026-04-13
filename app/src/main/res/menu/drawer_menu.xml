@@ -22,9 +22,9 @@
     <item android:title="Otros">
         <menu>
             <item
-                android:id="@+id/item_ajustes"
-                android:icon="@android:drawable/ic_menu_preferences"
-                android:title="Ajustes" />
+                android:id="@+id/fragmentoFAQ"
+                android:icon="@drawable/help"
+                android:title="FAQ" />
             <item
                 android:id="@+id/item_salir"
                 android:icon="@android:drawable/ic_lock_power_off"

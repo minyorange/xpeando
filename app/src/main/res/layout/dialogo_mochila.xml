@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="Mochila del Héroe"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -21,9 +21,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        app:tabIndicatorColor="@color/habitica_purple_primary"
-        app:tabSelectedTextColor="@color/habitica_purple_primary"
-        app:tabTextColor="@color/habitica_text_secondary">
+        app:tabIndicatorColor="@color/xpeando_purple_primary"
+        app:tabSelectedTextColor="@color/xpeando_purple_primary"
+        app:tabTextColor="@color/xpeando_text_secondary">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"

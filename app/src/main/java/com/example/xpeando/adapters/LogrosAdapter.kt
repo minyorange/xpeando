@@ -41,7 +41,7 @@ class LogrosAdapter(private val logros: List<Logro>) :
 
         if (logro.completado) {
             holder.ivIcono.alpha = 1.0f
-            holder.tvNombre.setTextColor(holder.itemView.context.getColor(R.color.habitica_purple_primary))
+            holder.tvNombre.setTextColor(holder.itemView.context.getColor(R.color.xpeando_purple_primary))
         } else {
             holder.ivIcono.alpha = 0.3f
         }

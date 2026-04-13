@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/habitica_purple_dark"
+    android:background="@color/xpeando_purple_dark"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="24dp">
@@ -13,7 +13,7 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:src="@android:drawable/ic_delete"
-        app:tint="@color/habitica_red_negative" />
+        app:tint="@color/xpeando_red_negative" />
 
     <TextView
         android:id="@+id/tv_titulo_muerte"
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="¡HAS CAÍDO!"
-        android:textColor="@color/habitica_red_negative"
+        android:textColor="@color/xpeando_red_negative"
         android:textSize="24sp"
         android:textStyle="bold" />
 
@@ -43,7 +43,7 @@
         android:layout_marginTop="24dp"
         android:text="Usar Poción (Cura 50 HP)"
         android:textAllCaps="false"
-        app:backgroundTint="@color/habitica_purple_primary"
+        app:backgroundTint="@color/xpeando_purple_primary"
         app:cornerRadius="8dp"
         app:icon="@drawable/ic_recompensas" />
 
@@ -56,7 +56,7 @@
         android:layout_marginTop="8dp"
         android:text="Pagar 50 (Cura 25 HP)"
         android:textAllCaps="false"
-        app:backgroundTint="@color/habitica_yellow_gold"
+        app:backgroundTint="@color/xpeando_yellow_gold"
         app:cornerRadius="8dp"
         app:icon="@drawable/coins"
         app:iconTint="@null" />

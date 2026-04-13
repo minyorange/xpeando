@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    android:layout_margin="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_titulo_tutorial"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Guía de Atributos"
+            android:textColor="@color/xpeando_purple_primary"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <ViewFlipper
+            android:id="@+id/view_flipper_tutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- FUERZA -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/fuerza"
+                    android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FUERZA"
+                    android:textColor="@color/xpeando_red_negative"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aumenta el daño que infliges al Dragón Pereza cuando completas tareas y hábitos positivos. ¡Derrótalo más rápido!"
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- INTELIGENCIA -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/inteligencia"
+                    android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="INTELIGENCIA"
+                    android:textColor="@color/xpeando_blue_xp"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Multiplica la Experiencia (XP) obtenida. Cuanto más inteligente seas, más rápido subirás de nivel y obtendrás puntos."
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- CONSTITUCION -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/constitucion"
+                    android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CONSTITUCIÓN"
+                    android:textColor="#4CAF50"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reduce el daño que recibes al fallar Dailies o hábitos negativos. ¡Te permite aguantar más golpes antes de perder tu racha!"
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- PERCEPCION -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/percepcion"
+                    android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PERCEPCIÓN"
+                    android:textColor="@color/xpeando_yellow_gold"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aumenta la probabilidad de encontrar botín y multiplica las Monedas de Oro ganadas por tus acciones heroicas."
+                    android:textAlignment="center"
+                    android:textColor="@color/xpeando_text_secondary"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+        </ViewFlipper>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_tutorial_anterior"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Atrás"
+                android:visibility="invisible"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"/>
+
+            <Button
+                android:id="@+id/btn_tutorial_siguiente"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Siguiente"
+                android:backgroundTint="@color/xpeando_purple_primary"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

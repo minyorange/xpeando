@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="24dp">
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="Nueva Gesta"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="32sp"
         android:textStyle="bold" />
 
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:text="Crea tu héroe para empezar"
-        android:textColor="@color/habitica_text_secondary"
+        android:textColor="@color/xpeando_text_secondary"
         android:textSize="16sp" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -30,10 +30,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Nombre de héroe"
-        app:boxStrokeColor="@color/habitica_purple_primary"
-        app:hintTextColor="@color/habitica_purple_primary"
-        app:startIconDrawable="@drawable/ic_personaje"
-        app:startIconTint="@color/habitica_purple_light">
+        app:boxStrokeColor="@color/xpeando_purple_primary"
+        app:hintTextColor="@color/xpeando_purple_primary"
+        app:startIconDrawable="@drawable/perfil"
+        app:startIconTint="@color/xpeando_purple_light">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_nombre_registro"
@@ -48,8 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Correo electrónico"
-        app:boxStrokeColor="@color/habitica_purple_primary"
-        app:hintTextColor="@color/habitica_purple_primary">
+        app:boxStrokeColor="@color/xpeando_purple_primary"
+        app:hintTextColor="@color/xpeando_purple_primary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_correo_registro"
@@ -64,8 +64,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Contraseña"
-        app:boxStrokeColor="@color/habitica_purple_primary"
-        app:hintTextColor="@color/habitica_purple_primary"
+        app:boxStrokeColor="@color/xpeando_purple_primary"
+        app:hintTextColor="@color/xpeando_purple_primary"
         app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -81,8 +81,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Confirmar Contraseña"
-        app:boxStrokeColor="@color/habitica_purple_primary"
-        app:hintTextColor="@color/habitica_purple_primary"
+        app:boxStrokeColor="@color/xpeando_purple_primary"
+        app:hintTextColor="@color/xpeando_purple_primary"
         app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -107,7 +107,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="¿Ya tienes un héroe? Entra"
-        android:textColor="@color/habitica_purple_light"
+        android:textColor="@color/xpeando_purple_light"
         android:textStyle="bold" />
 
 </LinearLayout>

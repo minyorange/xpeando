@@ -6,8 +6,8 @@
     android:layout_margin="8dp"
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp"
-    app:cardBackgroundColor="@color/habitica_card_bg"
-    app:strokeColor="@color/habitica_bg_light"
+    app:cardBackgroundColor="@color/xpeando"
+    app:strokeColor="@color/xpeando_bg_light"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -21,7 +21,7 @@
             android:id="@+id/cb_completada"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:buttonTint="@color/habitica_purple_primary" />
+            android:buttonTint="@color/xpeando_purple_primary" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/habitica_text_main"
+                android:textColor="@color/xpeando_text_main"
                 android:text="Misión" />
 
             <TextView
@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:text="Dificultad: Normal | XP: 20 | +10"
                 android:textSize="12sp"
-                android:textColor="@color/habitica_blue_xp"
+                android:textColor="@color/xpeando_blue_xp"
                 app:drawableEndCompat="@drawable/ic_coins_small"
                 android:drawablePadding="4dp"
                 android:gravity="center_vertical" />

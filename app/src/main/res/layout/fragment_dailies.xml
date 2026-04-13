@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/habitica_bg_light"
+    android:background="@color/xpeando_bg_light"
     tools:context=".fragments.FragmentDailies">
 
     <TextView
@@ -14,7 +14,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:text="Tareas Diarias"
-        android:textColor="@color/habitica_purple_primary"
+        android:textColor="@color/xpeando_purple_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/habitica_purple_primary"
+        app:backgroundTint="@color/xpeando_purple_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white" />
