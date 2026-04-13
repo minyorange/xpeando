@@ -8,6 +8,14 @@
     android:orientation="vertical"
     android:padding="24dp">
 
+    <!-- Animación del Dragón -->
+    <ImageView
+        android:id="@+id/img_dragon_anim"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/perfil" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

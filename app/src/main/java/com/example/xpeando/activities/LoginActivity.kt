@@ -3,6 +3,7 @@ package com.example.xpeando.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.xpeando.R
 import com.example.xpeando.database.DBHelper
+import com.google.android.material.card.MaterialCardView
 
 class LoginActivity : AppCompatActivity() {
 
@@ -20,6 +22,11 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         db = DBHelper(this)
+
+        // --- ANIMACIÓN LOGO ---
+        val cardLogo = findViewById<MaterialCardView>(R.id.card_logo)
+        val animation = AnimationUtils.loadAnimation(this, R.anim.float_animation)
+        cardLogo.startAnimation(animation)
 
         val etCorreo = findViewById<EditText>(R.id.et_correo)
         val etContrasena = findViewById<EditText>(R.id.et_contrasena)

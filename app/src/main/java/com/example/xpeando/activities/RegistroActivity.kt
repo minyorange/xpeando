@@ -1,8 +1,10 @@
 package com.example.xpeando.activities
 
 import android.os.Bundle
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +21,10 @@ class RegistroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_registro)
 
         db = DBHelper(this)
+
+        val imgDragon = findViewById<ImageView>(R.id.img_dragon_anim)
+        val animation = AnimationUtils.loadAnimation(this, R.anim.float_animation)
+        imgDragon.startAnimation(animation)
 
         val etNombre = findViewById<EditText>(R.id.et_nombre_registro)
         val etCorreo = findViewById<EditText>(R.id.et_correo_registro)
