@@ -84,7 +84,94 @@ class MainActivity : AppCompatActivity() {
         
         if (correo.isNotEmpty() && !tutorialVisto) {
             mostrarTutorialBienvenida(correo)
+        } else if (correo.isNotEmpty()) {
+            verificarRecompensaDiaria(correo)
         }
+    }
+
+    private fun verificarRecompensaDiaria(correo: String) {
+        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val hoy = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+        val ultimaRecompensa = prefs.getString("ultima_recompensa_diaria_$correo", "")
+
+        if (ultimaRecompensa != hoy) {
+            mostrarDialogoRecompensaDiaria(correo, hoy)
+        }
+    }
+
+    private fun mostrarDialogoRecompensaDiaria(correo: String, hoy: String) {
+        val vista = layoutInflater.inflate(R.layout.dialogo_recompensa_diaria, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val card1 = vista.findViewById<View>(R.id.card_1)
+        val card2 = vista.findViewById<View>(R.id.card_2)
+        val card3 = vista.findViewById<View>(R.id.card_3)
+        val tvMensaje = vista.findViewById<TextView>(R.id.tv_recompensa_mensaje)
+        val btnAceptar = vista.findViewById<Button>(R.id.btn_recompensa_aceptar)
+
+        val random = java.util.Random().nextInt(100)
+        val premio = when {
+            random < 40 -> "COINS" to "¡+100 Monedas de oro!" // 40%
+            random < 75 -> "BONUS_XP" to "¡Bonus de +50 XP!" // 35%
+            random < 95 -> "POCION" to "¡Has encontrado una Poción!" // 20%
+            else -> "ATRIBUTO" to "¡+1 Punto de Atributo!" // 5%
+        }
+
+        fun elegirCarta(card: View, imageView: android.widget.ImageView) {
+            // Guardar que ya se reclamó hoy inmediatamente para evitar duplicados por cierres inesperados
+            getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE).edit()
+                .putString("ultima_recompensa_diaria_$correo", hoy)
+                .apply()
+
+            // Deshabilitar clics para no elegir más de una
+            card1.isEnabled = false
+            card2.isEnabled = false
+            card3.isEnabled = false
+
+            tvMensaje.text = premio.second
+            tvMensaje.visibility = View.VISIBLE
+            btnAceptar.visibility = View.VISIBLE
+
+            when (premio.first) {
+                "BONUS_XP" -> {
+                    db.actualizarProgresoUsuario(correo, 50, 0)
+                    imageView.setImageResource(R.drawable.experiencia)
+                }
+                "POCION" -> {
+                    db.regalarPocion(correo)
+                    imageView.setImageResource(R.drawable.pocion_vida)
+                }
+                "COINS" -> {
+                    db.actualizarProgresoUsuario(correo, 0, 100)
+                    imageView.setImageResource(R.drawable.coins)
+                }
+                "ATRIBUTO" -> {
+                    db.actualizarAtributos(correo, puntosUsados = -1)
+                    imageView.setImageResource(R.drawable.fuerza)
+                }
+            }
+
+            // Animación simple de escala al revelar
+            card.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300).withEndAction {
+                card.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start()
+            }.start()
+        }
+
+        card1.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_1)) }
+        card2.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_2)) }
+        card3.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_3)) }
+
+        btnAceptar.setOnClickListener {
+            dialog.dismiss()
+            actualizarHeader()
+        }
+
+        dialog.show()
     }
 
     private fun mostrarTutorialBienvenida(correo: String) {
@@ -158,6 +245,7 @@ class MainActivity : AppCompatActivity() {
                 val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
                 prefsTutorial.edit().putBoolean("tutorial_atributos_visto_$correo", true).apply()
                 dialog.dismiss()
+                verificarRecompensaDiaria(correo) // Comprobar recompensa tras el tutorial
             }
         }
 
@@ -251,7 +339,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun cerrarSesion() {
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        prefs.edit().clear().apply()
+        prefs.edit()
+            .putBoolean("sesion_activa", false)
+            .apply()
 
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

@@ -847,6 +847,41 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         db.close()
     }
 
+    fun regalarPocion(correo: String) {
+        val db = this.writableDatabase
+        val nombrePocion = "Poción de Salud"
+        
+        // Verificar si ya existe para apilarla
+        val cursor = db.rawQuery(
+            "SELECT id, cantidad FROM inventario WHERE correo_usuario = ? AND nombre = ? AND tipo = 'CONSUMIBLE'",
+            arrayOf(correo, nombrePocion)
+        )
+        
+        if (cursor.moveToFirst()) {
+            val idExistente = cursor.getInt(0)
+            val cantidadActual = cursor.getInt(1)
+            db.execSQL("UPDATE inventario SET cantidad = ? WHERE id = ?", arrayOf(cantidadActual + 1, idExistente))
+        } else {
+            val valores = ContentValues().apply {
+                put("correo_usuario", correo)
+                put("nombre", nombrePocion)
+                put("tipo", "CONSUMIBLE")
+                put("subtipo", "POCION")
+                put("bonusFza", 0)
+                put("bonusInt", 0)
+                put("bonusCon", 0)
+                put("bonusPer", 0)
+                put("bonusHp", 20)
+                put("icono", "pocion_vida")
+                put("equipado", 0)
+                put("cantidad", 1)
+            }
+            db.insert("inventario", null, valores)
+        }
+        cursor.close()
+        db.close()
+    }
+
     // --- MÉTODOS PARA LOGROS ---
 
     fun esLogroDesbloqueado(correo: String, nombreLogro: String): Boolean {
