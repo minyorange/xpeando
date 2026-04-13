@@ -32,7 +32,7 @@
         android:hint="Nombre de héroe"
         app:boxStrokeColor="@color/xpeando_purple_primary"
         app:hintTextColor="@color/xpeando_purple_primary"
-        app:startIconDrawable="@drawable/perfil"
+        app:startIconDrawable="@drawable/ic_personaje"
         app:startIconTint="@color/xpeando_purple_light">
 
         <com.google.android.material.textfield.TextInputEditText
