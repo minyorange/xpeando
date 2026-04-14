@@ -9,18 +9,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.xpeando.R
+import androidx.activity.viewModels
+import com.example.xpeando.viewmodel.UsuarioViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
+import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Usuario
 
 class RegistroActivity : AppCompatActivity() {
 
-    private lateinit var db: DBHelper
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(this))) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registro)
 
-        db = DBHelper(this)
+        // db = DBHelper(this)
 
         val imgDragon = findViewById<ImageView>(R.id.img_dragon_anim)
         val animation = AnimationUtils.loadAnimation(this, R.anim.float_animation)
@@ -42,13 +46,13 @@ class RegistroActivity : AppCompatActivity() {
             if (nombre.isNotEmpty() && correo.isNotEmpty() && contrasena.isNotEmpty() && confirmarContrasena.isNotEmpty()) {
                 if (contrasena == confirmarContrasena) {
                     val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
-                    val id = db.registrarUsuario(nuevoUsuario)
-
-                    if (id != -1L) {
-                        Toast.makeText(this, "Registro con éxito", Toast.LENGTH_SHORT).show()
-                        finish() // Vuelve al Login
-                    } else {
-                        Toast.makeText(this, "Error: El correo ya existe", Toast.LENGTH_SHORT).show()
+                    viewModel.registrarUsuario(nuevoUsuario) { id ->
+                        if (id != -1L) {
+                            Toast.makeText(this, "Registro con éxito", Toast.LENGTH_SHORT).show()
+                            finish() // Vuelve al Login
+                        } else {
+                            Toast.makeText(this, "Error: El correo ya existe", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 } else {
                     Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()

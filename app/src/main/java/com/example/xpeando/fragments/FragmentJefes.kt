@@ -10,16 +10,25 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.adapters.HistorialJefesAdapter
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Jefe
 import com.example.xpeando.utils.NotificationHelper
+import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.viewmodel.RpgViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
+import kotlinx.coroutines.launch
 
 class FragmentJefes : Fragment() {
 
     private lateinit var dbHelper: DBHelper
+    private val rpgViewModel: RpgViewModel by viewModels {
+        ViewModelFactory(DataRepository(DBHelper(requireContext())))
+    }
     private var jefeActual: Jefe? = null
 
     private lateinit var tvNombreJefe: TextView
@@ -51,23 +60,62 @@ class FragmentJefes : Fragment() {
         tvContadorReaparicion = view.findViewById(R.id.tvContadorReaparicion)
         rvHistorial = view.findViewById(R.id.rvHistorialJefes)
 
-        cargarJefe()
-        cargarHistorial()
+        ivJefe.setOnClickListener {
+            atacarAlJefe()
+        }
+
+        observarViewModel()
+        
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        rpgViewModel.cargarJefeActivo(correo)
+        rpgViewModel.cargarHistorial(correo)
 
         return view
     }
 
+    private fun atacarAlJefe() {
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        
+        jefeActual?.let { jefe ->
+            // Efecto visual de golpe
+            ivJefe.animate().scaleX(0.9f).scaleY(0.9f).setDuration(50).withEndAction {
+                ivJefe.animate().scaleX(1.0f).scaleY(1.0f).setDuration(50)
+            }
+
+            rpgViewModel.atacarJefe(10, correo) { derrotado ->
+                if (derrotado) {
+                    android.widget.Toast.makeText(requireContext(), "¡HAS DERROTADO AL JEFE!", android.widget.Toast.LENGTH_LONG).show()
+                    (activity as? com.example.xpeando.activities.MainActivity)?.actualizarHeader()
+                }
+            }
+        }
+    }
+
+    private fun observarViewModel() {
+        lifecycleScope.launch {
+            rpgViewModel.jefeActivo.collect { jefe ->
+                actualizarUIJefe(jefe)
+            }
+        }
+        lifecycleScope.launch {
+            rpgViewModel.historialJefes.collect { historial ->
+                rvHistorial.adapter = HistorialJefesAdapter(historial)
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        cargarJefe()
-        cargarHistorial()
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        rpgViewModel.cargarJefeActivo(correo)
+        rpgViewModel.cargarHistorial(correo)
     }
 
     private fun cargarHistorial() {
-        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
-        val jefesDerrotados = dbHelper.obtenerJefesDerrotados(correo)
-        rvHistorial.adapter = HistorialJefesAdapter(jefesDerrotados)
+        // Obsoleto, ahora se maneja por StateFlow
     }
 
     override fun onPause() {
@@ -76,11 +124,13 @@ class FragmentJefes : Fragment() {
     }
 
     private fun cargarJefe() {
+        // Obsoleto, ahora se maneja por StateFlow
+    }
+
+    private fun actualizarUIJefe(jefe: Jefe?) {
         countDownTimer?.cancel()
-        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
-        jefeActual = dbHelper.obtenerJefeActivo(correo)
-        jefeActual?.let {
+        jefeActual = jefe
+        jefe?.let {
             tvNombreJefe.text = it.nombre
             tvDescripcionJefe.text = it.descripcion
             tvDescripcionJefe.visibility = View.VISIBLE
@@ -115,35 +165,40 @@ class FragmentJefes : Fragment() {
     }
 
     private fun iniciarContadorReaparicion() {
-        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
-        val ultimaMuerte = dbHelper.obtenerUltimoJefeDerrotadoTime(correo)
-        if (ultimaMuerte == 0L) {
-            tvContadorReaparicion.visibility = View.GONE
-            return
-        }
+        lifecycleScope.launch {
+            val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+            val correo = prefs.getString("correo_usuario", "") ?: ""
+            val ultimaMuerte = rpgViewModel.obtenerUltimoJefeDerrotadoTime(correo)
+            
+            if (ultimaMuerte == 0L) {
+                tvContadorReaparicion.visibility = View.GONE
+                return@launch
+            }
 
-        val tiempoRespawn = 21 * 60 * 60 * 1000L
-        val tiempoRestante = (ultimaMuerte + tiempoRespawn) - System.currentTimeMillis()
+            val tiempoRespawn = 21 * 60 * 60 * 1000L
+            val tiempoRestante = (ultimaMuerte + tiempoRespawn) - System.currentTimeMillis()
 
-        if (tiempoRestante > 0) {
-            tvContadorReaparicion.visibility = View.VISIBLE
-            countDownTimer = object : CountDownTimer(tiempoRestante, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    val horas = (millisUntilFinished / (1000 * 60 * 60))
-                    val minutos = (millisUntilFinished / (1000 * 60)) % 60
-                    val segundos = (millisUntilFinished / 1000) % 60
-                    tvContadorReaparicion.text = String.format(java.util.Locale.getDefault(), "Reaparece en: %02d:%02d:%02d", horas, minutos, segundos)
-                }
+            if (tiempoRestante > 0) {
+                tvContadorReaparicion.visibility = View.VISIBLE
+                countDownTimer = object : CountDownTimer(tiempoRestante, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        val horas = (millisUntilFinished / (1000 * 60 * 60))
+                        val minutos = (millisUntilFinished / (1000 * 60)) % 60
+                        val segundos = (millisUntilFinished / 1000) % 60
+                        tvContadorReaparicion.text = String.format(java.util.Locale.getDefault(), "Reaparece en: %02d:%02d:%02d", horas, minutos, segundos)
+                    }
 
-                override fun onFinish() {
-                    NotificationHelper.enviarNotificacionLogro(requireContext(), "¡El Jefe ha reaparecido!", "Un nuevo desafío te espera en la sección de Jefes.")
-                    cargarJefe()
-                }
-            }.start()
-        } else {
-            // Ya debería haber reaparecido, intentamos recargar (DBHelper lo resucitará)
-            cargarJefe()
+                    override fun onFinish() {
+                        if (isAdded) {
+                            NotificationHelper.enviarNotificacionLogro(requireContext(), "¡El Jefe ha reaparecido!", "Un nuevo desafío te espera en la sección de Jefes.")
+                            rpgViewModel.cargarJefeActivo(correo)
+                        }
+                    }
+                }.start()
+            } else {
+                // Ya debería haber reaparecido
+                rpgViewModel.cargarJefeActivo(correo)
+            }
         }
     }
 }

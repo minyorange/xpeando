@@ -17,17 +17,26 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.example.xpeando.R
 import com.example.xpeando.database.DBHelper
+import com.example.xpeando.repository.DataRepository
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.xpeando.utils.NotificationHelper
+import com.example.xpeando.viewmodel.UsuarioViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var db: DBHelper
+    private lateinit var repository: DataRepository
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(this))) }
     private lateinit var tvNombre: TextView
     private lateinit var tvNivel: TextView
     private lateinit var cvRacha: View
@@ -41,7 +50,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        db = DBHelper(this)
+        repository = DataRepository(DBHelper(this))
+
+        observarUsuario()
 
         tvNombre = findViewById(R.id.tv_header_nombre)
         tvNivel = findViewById(R.id.tv_header_nivel)
@@ -65,15 +76,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         navView.setNavigationItemSelectedListener { menuItem ->
+            drawerLayout.closeDrawer(GravityCompat.START)
             when (menuItem.itemId) {
                 R.id.item_salir -> {
                     mostrarDialogoCerrarSesion()
                     true
                 }
                 else -> {
+                    // Intentar navegación automática de Jetpack Navigation
                     val handled = NavigationUI.onNavDestinationSelected(menuItem, navController)
-                    if (handled) drawerLayout.closeDrawer(GravityCompat.START)
-                    handled
+                    if (!handled) {
+                        // Si falla la automática (a veces pasa con IDs manuales), forzar navegación
+                        try {
+                            navController.navigate(menuItem.itemId)
+                            true
+                        } catch (e: Exception) {
+                            false
+                        }
+                    } else {
+                        true
+                    }
                 }
             }
         }
@@ -149,19 +171,19 @@ class MainActivity : AppCompatActivity() {
 
             when (premio.first) {
                 "BONUS_XP" -> {
-                    db.actualizarProgresoUsuario(correo, 50, 0)
+                    viewModel.actualizarProgreso(correo, 50, 0)
                     imageView.setImageResource(R.drawable.experiencia)
                 }
                 "POCION" -> {
-                    db.regalarPocion(correo)
+                    viewModel.comprarArticulo(correo, com.example.xpeando.model.Articulo(0, "Poción de Vida", "CONSUMIBLE", "POCION", 0, 0, 0, 0, 0, 25, "pocion_vida"))
                     imageView.setImageResource(R.drawable.pocion_vida)
                 }
                 "COINS" -> {
-                    db.actualizarProgresoUsuario(correo, 0, 100)
+                    viewModel.actualizarProgreso(correo, 0, 100)
                     imageView.setImageResource(R.drawable.coins)
                 }
                 "ATRIBUTO" -> {
-                    db.actualizarAtributos(correo, puntosUsados = -1)
+                    viewModel.actualizarAtributos(correo, 0.0, 0.0, 0.0, 0.0, -1)
                     imageView.setImageResource(R.drawable.fuerza)
                 }
             }
@@ -282,7 +304,7 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
-        val usuario = db.obtenerUsuarioLogueado(correo) ?: return
+        val usuario = viewModel.usuario.value ?: return
 
         val builder = AlertDialog.Builder(this)
         val inflater = layoutInflater
@@ -293,18 +315,20 @@ class MainActivity : AppCompatActivity() {
         val dialog = builder.create()
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_pocion).apply {
-            val pociones = db.obtenerInventario(correo).filter { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
-            isEnabled = pociones.isNotEmpty()
-            val pocion = pociones.firstOrNull()
-            if (pocion != null) {
-                text = "Usar ${pocion.nombre} (+${pocion.bonusHp} HP)"
-                setOnClickListener {
-                    db.actualizarProgresoUsuario(correo, 0, 0, pocion.bonusHp)
-                    db.eliminarDelInventario(pocion.id)
-                    finalizarMuerte(dialog)
+            viewModel.obtenerInventario(correo) { inventario ->
+                val pociones = inventario.filter { it.tipo == "CONSUMIBLE" && it.subtipo == "POCION" }
+                isEnabled = pociones.isNotEmpty()
+                val pocion = pociones.firstOrNull()
+                if (pocion != null) {
+                    text = "Usar ${pocion.nombre} (+${pocion.bonusHp} HP)"
+                    setOnClickListener {
+                        viewModel.actualizarProgreso(correo, 0, 0, pocion.bonusHp)
+                        viewModel.eliminarDelInventario(pocion.id, correo)
+                        finalizarMuerte(dialog)
+                    }
+                } else {
+                    text = "Sin Pociones"
                 }
-            } else {
-                text = "Sin Pociones"
             }
         }
 
@@ -313,13 +337,13 @@ class MainActivity : AppCompatActivity() {
             text = "Pagar $costo (+25 HP)"
             isEnabled = usuario.monedas >= costo
             setOnClickListener {
-                db.actualizarProgresoUsuario(correo, 0, -costo, 25)
+                viewModel.actualizarProgreso(correo, 0, -costo, 25)
                 finalizarMuerte(dialog)
             }
         }
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_gratis).setOnClickListener {
-            db.actualizarProgresoUsuario(correo, 0, 0, 10)
+            viewModel.actualizarProgreso(correo, 0, 0, 10)
             finalizarMuerte(dialog)
         }
 
@@ -359,42 +383,54 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    fun actualizarHeader() {
+    private fun observarUsuario() {
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         
-        val usuario = db.obtenerUsuarioLogueado(correo)
-        usuario?.let {
-            tvNombre.text = it.nombre
-            tvNivel.text = "Nvl ${it.nivel}"
-            
-            if (it.rachaActual > 0) {
-                tvRacha.text = "🔥 ${it.rachaActual}"
-                cvRacha.visibility = View.VISIBLE
-            } else {
-                cvRacha.visibility = View.GONE
-            }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.usuario.collect { usuario ->
+                    usuario?.let {
+                        tvNombre.text = it.nombre
+                        tvNivel.text = "Nvl ${it.nivel}"
+                        
+                        if (it.rachaActual > 0) {
+                            tvRacha.text = "🔥 ${it.rachaActual}"
+                            cvRacha.visibility = View.VISIBLE
+                        } else {
+                            cvRacha.visibility = View.GONE
+                        }
 
-            tvMonedas.text = "${it.monedas}"
+                        tvMonedas.text = "${it.monedas}"
 
-            pbHP.progress = it.hp
-            pbXP.progress = it.experiencia.toInt()
+                        pbHP.progress = it.hp
+                        pbXP.progress = it.experiencia.toInt()
 
-            if (it.hp <= 0 && !isDeathDialogShowing) {
-                mostrarDialogoMuerte()
-            }
+                        if (it.hp <= 0 && !isDeathDialogShowing) {
+                            mostrarDialogoMuerte()
+                        }
 
-            val navView = findViewById<NavigationView>(R.id.nav_view)
-            if (navView.headerCount > 0) {
-                val headerView = navView.getHeaderView(0)
-                headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)?.text = it.nombre
-                headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)?.text = "Nivel ${it.nivel}"
-                
-                // Actualizar barras de vida y experiencia en el menú lateral
-                headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)?.progress = it.hp
-                headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)?.progress = it.experiencia.toInt()
+                        val navView = findViewById<NavigationView>(R.id.nav_view)
+                        if (navView.headerCount > 0) {
+                            val headerView = navView.getHeaderView(0)
+                            headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)?.text = it.nombre
+                            headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)?.text = "Nivel ${it.nivel}"
+                            
+                            headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)?.progress = it.hp
+                            headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)?.progress = it.experiencia.toInt()
+                        }
+                    }
+                }
             }
         }
+        
+        viewModel.cargarUsuario(correo)
+    }
+
+    fun actualizarHeader() {
+        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        viewModel.refrescarUsuario(correo)
     }
 
     private fun pedirPermisoNotificaciones() {

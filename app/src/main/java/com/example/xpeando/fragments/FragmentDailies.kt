@@ -5,34 +5,36 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.DailiesAdapter
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Daily
+import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.utils.LogroManager
 import com.example.xpeando.utils.NotificationHelper
+import com.example.xpeando.viewmodel.DailiesViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import android.view.Gravity
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.TextView
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class FragmentDailies : Fragment() {
 
-    private lateinit var db: DBHelper
+    private lateinit var repository: DataRepository
+    private val viewModel: DailiesViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
     private lateinit var adaptador: DailiesAdapter
     private lateinit var rvDailies: RecyclerView
     private var correoUsuario: String = ""
@@ -47,7 +49,7 @@ class FragmentDailies : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        db = DBHelper(requireContext())
+        repository = DataRepository(DBHelper(requireContext()))
         val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         correoUsuario = prefs.getString("correo_usuario", "") ?: ""
 
@@ -56,6 +58,7 @@ class FragmentDailies : Fragment() {
 
         verificarPenalizacionDiaria()
         configurarRecyclerView()
+        observarViewModel()
 
         fab.setOnClickListener {
             mostrarDialogoNuevaDaily()
@@ -83,11 +86,10 @@ class FragmentDailies : Fragment() {
                     val diasDiferencia = (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
 
                     if (diasDiferencia > 0) {
-                        val danio = db.procesarDailiesFallidas(correoUsuario, diasDiferencia)
+                        val danio = viewModel.procesarDailiesFallidas(correoUsuario, diasDiferencia)
                         if (danio > 0) {
                             Toast.makeText(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.", Toast.LENGTH_LONG).show()
                             NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Penalización por Ausencia!", "Has recibido $danio de daño por no completar tus dailies.")
-                            (activity as? MainActivity)?.actualizarHeader()
                         }
                         prefs.edit().putString("ultima_penalizacion_dailies", hoy).apply()
                     }
@@ -100,49 +102,13 @@ class FragmentDailies : Fragment() {
 
     private fun configurarRecyclerView() {
         adaptador = DailiesAdapter(
-            lista = db.obtenerTodasDailies(correoUsuario).filter { !it.completadaHoy },
+            lista = emptyList(),
             onCheckedChange = { daily, completada ->
-                if (completada) { // Solo actuamos si se marca, no se puede desmarcar
-                    val dailiesAntes = db.obtenerTotalDailiesCompletadas(correoUsuario)
-                    val usuarioAntes = db.obtenerUsuarioLogueado(correoUsuario)
-                    val nivelAntes = usuarioAntes?.nivel ?: 1
-
-                    db.actualizarEstadoDaily(daily, true)
-                    
-                    // --- ACTUALIZAR RACHA ---
-                    db.actualizarRacha(correoUsuario)
-                    
-                    // La lógica de Multiplicadores (INT, PER) ya está dentro de este método en DBHelper
-                    db.actualizarProgresoUsuario(
-                        correoUsuario,
-                        daily.experiencia,
-                        daily.monedas
-                    )
-                    
-                    // La lógica de Multiplicador de Fuerza (FZA) ya está dentro de este método en DBHelper
-                    db.atacarJefe(25, correoUsuario)
-
-                    val dailiesDespues = db.obtenerTotalDailiesCompletadas(correoUsuario)
-                    val usuarioDespues = db.obtenerUsuarioLogueado(correoUsuario)
-                    val nivelDespues = usuarioDespues?.nivel ?: 1
-
-                    // Verificar logros
-                    usuarioDespues?.let {
-                        LogroManager.verificarNuevosLogros(requireContext(), db, it, dailiesAntes, dailiesDespues, "DAILY")
-                        LogroManager.verificarNuevosLogros(requireContext(), db, it, usuarioAntes?.monedas ?: 0, it.monedas, "MONEDAS")
-
-                        if (nivelDespues > nivelAntes) {
-                            LogroManager.verificarNuevosLogros(requireContext(), db, it, nivelAntes, nivelDespues, "NIVEL")
-                        }
+                if (completada) {
+                    viewModel.completarDaily(requireContext(), daily, correoUsuario) { nuevoNivel ->
+                        mostrarDialogoSubidaNivel(nuevoNivel)
                     }
-
-                    (activity as? MainActivity)?.actualizarHeader()
-                    actualizarLista()
                     mostrarToastPersonalizado("¡Tarea Diaria Realizada!")
-                    
-                    if (db.obtenerTodasDailies(correoUsuario).none { !it.completadaHoy }) {
-                        mostrarToastPersonalizado("¡No quedan tareas para hoy!")
-                    }
                 }
             },
             onLongClick = { daily ->
@@ -150,6 +116,39 @@ class FragmentDailies : Fragment() {
             }
         )
         rvDailies.adapter = adaptador
+        viewModel.cargarDailies(correoUsuario)
+    }
+
+    private fun observarViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.dailies.collect { lista ->
+                        adaptador.actualizarLista(lista)
+                        if (lista.isEmpty()) {
+                            // Feedback de lista vacía se puede añadir aquí
+                        }
+                    }
+                }
+                launch {
+                    viewModel.usuario.collect { usuario ->
+                        usuario?.let {
+                            (activity as? MainActivity)?.actualizarHeader()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun mostrarDialogoSubidaNivel(nuevoNivel: Int) {
+        val vista = layoutInflater.inflate(R.layout.dialogo_subida_nivel, null)
+        val tvNivel = vista.findViewById<TextView>(R.id.tv_nivel_nuevo)
+        val btnContinuar = vista.findViewById<Button>(R.id.btn_continuar_aventura)
+        tvNivel.text = "Nivel $nuevoNivel"
+        val dialog = AlertDialog.Builder(requireContext()).setView(vista).setCancelable(false).create()
+        btnContinuar.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun mostrarDialogoNuevaDaily() {
@@ -161,7 +160,7 @@ class FragmentDailies : Fragment() {
 
         val opciones = arrayOf("Trivial", "Fácil", "Normal", "Difícil")
         spinnerDificultad.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, opciones)
-        spinnerDificultad.setSelection(1) // Por defecto "Fácil"
+        spinnerDificultad.setSelection(1)
 
         val dialog = AlertDialog.Builder(requireContext()).setView(vista).create()
 
@@ -169,17 +168,7 @@ class FragmentDailies : Fragment() {
             val nombre = etNombre.text.toString()
             if (nombre.isNotEmpty()) {
                 val dificultad = spinnerDificultad.selectedItemPosition + 1
-                // Calculamos XP y Monedas según dificultad
-                val xpBase = 10 * dificultad
-                val monedasBase = 5 * dificultad
-                
-                db.insertarDaily(Daily(
-                    correo_usuario = correoUsuario,
-                    nombre = nombre,
-                    experiencia = xpBase,
-                    monedas = monedasBase
-                ))
-                actualizarLista()
+                viewModel.insertarDaily(Daily(correo_usuario = correoUsuario, nombre = nombre, experiencia = 10 * dificultad, monedas = 5 * dificultad))
                 dialog.dismiss()
             } else {
                 etNombre.error = "Escribe un nombre para la rutina"
@@ -194,38 +183,24 @@ class FragmentDailies : Fragment() {
             .setTitle("Eliminar Daily")
             .setMessage("¿Deseas eliminar '${daily.nombre}'?")
             .setPositiveButton("Eliminar") { _, _ ->
-                db.eliminarDaily(daily.id)
-                actualizarLista()
+                viewModel.eliminarDaily(daily.id, correoUsuario)
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 
-    private fun actualizarLista() {
-        val listaFiltrada = db.obtenerTodasDailies(correoUsuario).filter { !it.completadaHoy }
-        adaptador.actualizarLista(listaFiltrada)
-    }
-
     private fun mostrarToastPersonalizado(mensaje: String) {
         val snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
         val snackbarLayout = snackbar.view as ViewGroup
-        
         snackbarLayout.removeAllViews()
         snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         snackbarLayout.setPadding(0, 0, 0, 150)
-
         val layoutInflater = LayoutInflater.from(requireContext())
         val customView = layoutInflater.inflate(R.layout.layout_toast_daily_completada, snackbarLayout, false)
-        
         customView.findViewById<TextView>(R.id.tv_mensaje_toast).text = mensaje
-
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT
-        )
+        val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         params.gravity = Gravity.CENTER_HORIZONTAL
         customView.layoutParams = params
-        
         snackbarLayout.addView(customView)
         snackbar.show()
     }

@@ -11,20 +11,30 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.InventarioAdapter
 import com.example.xpeando.adapters.RecompensasAdapter
 import com.example.xpeando.database.DBHelper
-import com.example.xpeando.model.Recompensa
 import com.example.xpeando.model.Articulo
+import com.example.xpeando.model.Recompensa
+import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.viewmodel.RecompensasViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.launch
 
 class FragmentRecompensas : Fragment() {
 
-    private lateinit var db: DBHelper
+    private val viewModel: RecompensasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
     private lateinit var rvRecompensas: RecyclerView
     private lateinit var tvSaldo: TextView
     private lateinit var tabLayout: TabLayout
@@ -41,12 +51,10 @@ class FragmentRecompensas : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        db = DBHelper(requireContext())
         val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         correoUsuario = prefs.getString("correo_usuario", "") ?: ""
         
         rvRecompensas = view.findViewById(R.id.rv_recompensas)
-        rvRecompensas.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
         tvSaldo = view.findViewById(R.id.tv_saldo_monedas)
         tabLayout = view.findViewById(R.id.tab_layout_tienda)
         fabAnadir = view.findViewById(R.id.fab_anadir_recompensa)
@@ -63,36 +71,44 @@ class FragmentRecompensas : Fragment() {
             mostrarDialogoAnadirRecompensa()
         }
 
-        actualizarSaldo()
-        actualizarListaSegunTab()
-    }
-
-    private fun actualizarListaSegunTab() {
-        if (tabLayout.selectedTabPosition == 0) {
-            // "Mis Premios" - Mantener lista vertical
-            fabAnadir.visibility = View.VISIBLE
-            rvRecompensas.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
-            configurarListaRecompensasPersonales()
-        } else {
-            // "Armería" - Cambiar a Cuadrícula de 3 columnas
-            fabAnadir.visibility = View.GONE
-            rvRecompensas.layoutManager = androidx.recyclerview.widget.GridLayoutManager(requireContext(), 3)
-            configurarListaArmeria()
+        observarViewModel()
+        
+        if (correoUsuario.isNotEmpty()) {
+            viewModel.cargarDatos(correoUsuario)
         }
     }
 
-    private fun configurarListaRecompensasPersonales() {
+    private fun observarViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    tvSaldo.text = "${state.usuario?.monedas ?: 0}"
+                    actualizarListaSegunTab(state)
+                }
+            }
+        }
+    }
+
+    private fun actualizarListaSegunTab(state: com.example.xpeando.viewmodel.RecompensasState? = null) {
+        val currentState = state ?: viewModel.state.value
+        if (tabLayout.selectedTabPosition == 0) {
+            fabAnadir.visibility = View.VISIBLE
+            rvRecompensas.layoutManager = LinearLayoutManager(requireContext())
+            configurarListaRecompensasPersonales(currentState.recompensasPersonales)
+        } else {
+            fabAnadir.visibility = View.GONE
+            rvRecompensas.layoutManager = GridLayoutManager(requireContext(), 3)
+            configurarListaArmeria(currentState.armeria)
+        }
+    }
+
+    private fun configurarListaRecompensasPersonales(lista: List<Recompensa>) {
         val adaptador = RecompensasAdapter(
-            listaRecompensas = db.obtenerTodasRecompensas(correoUsuario),
+            listaRecompensas = lista,
             onComprarClick = { recompensa ->
-                val usuario = db.obtenerUsuarioLogueado(correoUsuario)
-                if (usuario != null && usuario.monedas >= recompensa.precio) {
-                    db.actualizarProgresoUsuario(correoUsuario, 0, -recompensa.precio)
-                    Toast.makeText(requireContext(), "¡Has canjeado ${recompensa.nombre}!", Toast.LENGTH_SHORT).show()
-                    (activity as? MainActivity)?.actualizarHeader()
-                    actualizarSaldo()
-                } else {
-                    Toast.makeText(requireContext(), "No tienes suficientes monedas", Toast.LENGTH_SHORT).show()
+                viewModel.canjearRecompensaPersonal(requireContext(), correoUsuario, recompensa) { exito, mensaje ->
+                    Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                    if (exito) (activity as? MainActivity)?.actualizarHeader()
                 }
             },
             onLongClick = { recompensa ->
@@ -102,18 +118,11 @@ class FragmentRecompensas : Fragment() {
         rvRecompensas.adapter = adaptador
     }
 
-    private fun configurarListaArmeria() {
-        val armeria = db.obtenerTiendaRPG()
-        val adaptador = InventarioAdapter(armeria) { articulo ->
-            val usuario = db.obtenerUsuarioLogueado(correoUsuario)
-            if (usuario != null && usuario.monedas >= articulo.precio) {
-                if (db.comprarArticulo(correoUsuario, articulo)) {
-                    Toast.makeText(requireContext(), "¡Has comprado ${articulo.nombre}!", Toast.LENGTH_SHORT).show()
-                    (activity as? MainActivity)?.actualizarHeader()
-                    actualizarSaldo()
-                }
-            } else {
-                Toast.makeText(requireContext(), "No tienes suficientes monedas", Toast.LENGTH_SHORT).show()
+    private fun configurarListaArmeria(lista: List<Articulo>) {
+        val adaptador = InventarioAdapter(lista) { articulo ->
+            viewModel.comprarArticuloArmeria(requireContext(), correoUsuario, articulo) { exito, mensaje ->
+                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                if (exito) (activity as? MainActivity)?.actualizarHeader()
             }
         }
         rvRecompensas.adapter = adaptador
@@ -132,12 +141,11 @@ class FragmentRecompensas : Fragment() {
             val nombre = etNombre.text.toString()
             val precioStr = etPrecio.text.toString()
             if (nombre.isNotEmpty() && precioStr.isNotEmpty()) {
-                db.insertarRecompensa(Recompensa(
+                viewModel.insertarRecompensa(Recompensa(
                     correo_usuario = correoUsuario,
                     nombre = nombre,
                     precio = precioStr.toIntOrNull() ?: 0
                 ))
-                actualizarListaSegunTab()
                 Toast.makeText(requireContext(), "¡Tesoro '$nombre' añadido!", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
@@ -151,15 +159,9 @@ class FragmentRecompensas : Fragment() {
             .setTitle("Eliminar Recompensa")
             .setMessage("¿Eliminar '${recompensa.nombre}'?")
             .setPositiveButton("Eliminar") { _, _ ->
-                db.eliminarRecompensa(recompensa.id)
-                actualizarListaSegunTab()
+                viewModel.eliminarRecompensa(recompensa.id, correoUsuario)
             }
             .setNegativeButton("Cancelar", null)
             .show()
-    }
-
-    private fun actualizarSaldo() {
-        val usuario = db.obtenerUsuarioLogueado(correoUsuario)
-        tvSaldo.text = "${usuario?.monedas ?: 0}"
     }
 }

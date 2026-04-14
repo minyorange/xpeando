@@ -11,5 +11,6 @@ data class Jefe(
     val icono: String,
     val derrotado: Boolean = false,
     val nivel: Int = 1,
-    val armadura: Int = 0
+    val armadura: Int = 0,
+    val fechaMuerte: Long = 0
 )

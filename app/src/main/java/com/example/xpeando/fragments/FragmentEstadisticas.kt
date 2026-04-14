@@ -1,6 +1,7 @@
 package com.example.xpeando.fragments
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,30 +9,42 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.graphics.Color
 import com.example.xpeando.R
 import com.example.xpeando.adapters.LogrosAdapter
 import com.example.xpeando.database.DBHelper
-import com.example.xpeando.utils.LogroManager
+import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.viewmodel.EstadisticasViewModel
+import com.example.xpeando.viewmodel.ViewModelFactory
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
-import java.util.Locale
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
 class FragmentEstadisticas : Fragment() {
 
-    private lateinit var db: DBHelper
+    private val viewModel: EstadisticasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private lateinit var rvLogros: RecyclerView
+    private lateinit var tvTareas: TextView
+    private lateinit var tvDailies: TextView
+    private lateinit var tvHabitos: TextView
+    private lateinit var tvNivel: TextView
+    private lateinit var tvXpTexto: TextView
+    private lateinit var pbXp: ProgressBar
+    private lateinit var tvFza: TextView
+    private lateinit var tvInt: TextView
+    private lateinit var tvCon: TextView
+    private lateinit var tvPer: TextView
+    private lateinit var chartXP: LineChart
+    private lateinit var chartDistribucion: PieChart
 
     class LabelFormatter(private val labels: List<String>) : ValueFormatter() {
         override fun getFormattedValue(value: Float): String {
@@ -50,66 +63,72 @@ class FragmentEstadisticas : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        db = DBHelper(requireContext())
-
         // Vistas de Progresión Global
-        val tvTareas = view.findViewById<TextView>(R.id.tv_total_tareas)
-        val tvDailies = view.findViewById<TextView>(R.id.tv_total_dailies)
-        val tvHabitos = view.findViewById<TextView>(R.id.tv_total_habitos)
+        tvTareas = view.findViewById(R.id.tv_total_tareas)
+        tvDailies = view.findViewById(R.id.tv_total_dailies)
+        tvHabitos = view.findViewById(R.id.tv_total_habitos)
 
         // Vistas de Nivel y XP
-        val tvNivel = view.findViewById<TextView>(R.id.tv_stat_nivel_valor)
-        val tvXpTexto = view.findViewById<TextView>(R.id.tv_stat_xp_porcentaje)
-        val pbXp = view.findViewById<ProgressBar>(R.id.pb_stat_xp)
+        tvNivel = view.findViewById(R.id.tv_stat_nivel_valor)
+        tvXpTexto = view.findViewById(R.id.tv_stat_xp_porcentaje)
+        pbXp = view.findViewById(R.id.pb_stat_xp)
 
         // Vistas de Atributos
-        val tvFza = view.findViewById<TextView>(R.id.tv_stat_fza)
-        val tvInt = view.findViewById<TextView>(R.id.tv_stat_int)
-        val tvCon = view.findViewById<TextView>(R.id.tv_stat_con)
-        val tvPer = view.findViewById<TextView>(R.id.tv_stat_per)
+        tvFza = view.findViewById(R.id.tv_stat_fza)
+        tvInt = view.findViewById(R.id.tv_stat_int)
+        tvCon = view.findViewById(R.id.tv_stat_con)
+        tvPer = view.findViewById(R.id.tv_stat_per)
 
         // RecyclerView de Logros
-        val rvLogros = view.findViewById<RecyclerView>(R.id.rv_logros)
+        rvLogros = view.findViewById(R.id.rv_logros)
+        rvLogros.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
-        // Cargar datos del usuario
+        // Gráficos
+        chartXP = view.findViewById(R.id.chart_xp_semanal)
+        chartDistribucion = view.findViewById(R.id.chart_distribucion_actividad)
+
         val prefs = requireContext().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         
-        val usuario = db.obtenerUsuarioLogueado(correo)
-        usuario?.let { user ->
-            // Actualizar Nivel y XP
-            tvNivel.text = "Nivel ${user.nivel}"
-            tvXpTexto.text = "${user.experiencia}/100 XP"
-            pbXp.progress = user.experiencia
-
-            // Actualizar Atributos
-            tvFza.text = String.format(Locale.getDefault(), "%.1f", user.fuerza)
-            tvInt.text = String.format(Locale.getDefault(), "%.1f", user.inteligencia)
-            tvCon.text = String.format(Locale.getDefault(), "%.1f", user.constitucion)
-            tvPer.text = String.format(Locale.getDefault(), "%.1f", user.percepcion)
-
-            // Configurar Logros usando el Manager centralizado
-            val listaLogros = LogroManager.obtenerLogrosDefinidos(db, user)
-            rvLogros.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            rvLogros.adapter = LogrosAdapter(listaLogros)
+        observarViewModel()
+        
+        if (correo.isNotEmpty()) {
+            viewModel.cargarEstadisticas(correo)
         }
-
-        // Cargar totales
-        tvTareas.text = db.obtenerTotalTareasCompletadas(correo).toString()
-        tvDailies.text = db.obtenerTotalDailiesCompletadas(correo).toString()
-        tvHabitos.text = (usuario?.totalHabitos ?: 0).toString()
-
-        // Configurar Gráficos
-        configurarGraficoXP(view.findViewById(R.id.chart_xp_semanal), correo)
-        configurarGraficoDistribucion(view.findViewById(R.id.chart_distribucion_actividad), correo)
     }
 
-    private fun configurarGraficoXP(chart: LineChart, correo: String) {
-        val historial = db.obtenerHistorial(correo)
+    private fun observarViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    state.usuario?.let { user ->
+                        tvNivel.text = "Nivel ${user.nivel}"
+                        tvXpTexto.text = "${user.experiencia}/100 XP"
+                        pbXp.progress = user.experiencia
+
+                        tvFza.text = String.format(Locale.getDefault(), "%.1f", user.fuerza)
+                        tvInt.text = String.format(Locale.getDefault(), "%.1f", user.inteligencia)
+                        tvCon.text = String.format(Locale.getDefault(), "%.1f", user.constitucion)
+                        tvPer.text = String.format(Locale.getDefault(), "%.1f", user.percepcion)
+                    }
+
+                    tvTareas.text = state.totalTareas.toString()
+                    tvDailies.text = state.totalDailies.toString()
+                    tvHabitos.text = state.totalHabitos.toString()
+
+                    rvLogros.adapter = LogrosAdapter(state.logros)
+
+                    configurarGraficoXP(chartXP, state.xpSemanal)
+                    configurarGraficoDistribucion(chartDistribucion, state.totalTareas, state.totalDailies, state.totalHabitos)
+                }
+            }
+        }
+    }
+
+    private fun configurarGraficoXP(chart: LineChart, xpSemanal: Map<String, Int>) {
         val entries = mutableListOf<Entry>()
         val labels = mutableListOf<String>()
 
-        // Agrupar XP por fecha (últimos 7 días)
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val calendar = Calendar.getInstance()
         val hoy = Date()
@@ -119,7 +138,7 @@ class FragmentEstadisticas : Fragment() {
             calendar.add(Calendar.DAY_OF_YEAR, -i)
             val fechaStr = sdf.format(calendar.time)
             
-            val xpDia = historial.filter { it.fecha == fechaStr }.sumOf { it.xp }
+            val xpDia = xpSemanal[fechaStr] ?: 0
             entries.add(Entry((6 - i).toFloat(), xpDia.toFloat()))
             labels.add(fechaStr.substring(5)) // Solo MM-dd
         }
@@ -140,11 +159,7 @@ class FragmentEstadisticas : Fragment() {
         chart.invalidate()
     }
 
-    private fun configurarGraficoDistribucion(chart: PieChart, correo: String) {
-        val tareas = db.obtenerTotalTareasCompletadas(correo)
-        val dailies = db.obtenerTotalDailiesCompletadas(correo)
-        val habitos = db.obtenerTotalHabitosCompletados(correo)
-
+    private fun configurarGraficoDistribucion(chart: PieChart, tareas: Int, dailies: Int, habitos: Int) {
         val entries = mutableListOf<PieEntry>()
         if (tareas > 0) entries.add(PieEntry(tareas.toFloat(), "Tareas"))
         if (dailies > 0) entries.add(PieEntry(dailies.toFloat(), "Dailies"))

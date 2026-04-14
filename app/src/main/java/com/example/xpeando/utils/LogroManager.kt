@@ -7,17 +7,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.example.xpeando.R
-import com.example.xpeando.database.DBHelper
+import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.model.Logro
 import com.example.xpeando.model.Usuario
 
 object LogroManager {
 
-    fun obtenerLogrosDefinidos(db: DBHelper, usuario: Usuario): List<Logro> {
-        val totalTareas = db.obtenerTotalTareasCompletadas(usuario.correo)
-        val totalDailies = db.obtenerTotalDailiesCompletadas(usuario.correo)
-        val totalHabitos = db.obtenerTotalHabitosCompletados(usuario.correo)
-        val totalItems = db.obtenerInventario(usuario.correo).size
+    fun obtenerLogrosDefinidos(repository: DataRepository, usuario: Usuario): List<Logro> {
+        val totalTareas = repository.obtenerTotalTareasCompletadas(usuario.correo)
+        val totalDailies = repository.obtenerTotalDailiesCompletadas(usuario.correo)
+        val totalHabitos = repository.obtenerTodosHabitos(usuario.correo).size
+        val totalItems = repository.obtenerInventario(usuario.correo).size
         val monedas = usuario.monedas
 
         val logros = listOf(
@@ -47,15 +47,15 @@ object LogroManager {
 
         // Sincronizar con la base de datos para asegurar que los completados estén registrados
         for (logro in logros) {
-            if (logro.completado && !db.esLogroDesbloqueado(usuario.correo, logro.nombre)) {
-                db.desbloquearLogro(usuario.correo, logro.nombre)
+            if (logro.completado && !repository.esLogroDesbloqueado(usuario.correo, logro.nombre)) {
+                repository.desbloquearLogro(usuario.correo, logro.nombre)
             }
         }
 
         return logros
     }
 
-    fun verificarNuevosLogros(context: Context, db: DBHelper, usuario: Usuario, estadisticaAnterior: Int, estadisticaNueva: Int, tipo: String) {
+    fun verificarNuevosLogros(context: Context, repository: DataRepository, usuario: Usuario, estadisticaAnterior: Int, estadisticaNueva: Int, tipo: String) {
         var nombreLogro = ""
 
         when (tipo) {
@@ -78,12 +78,15 @@ object LogroManager {
             "NIVEL" -> {
                 if (estadisticaAnterior < 5 && estadisticaNueva >= 5) nombreLogro = "Ascensión I"
             }
+            "COLECCION" -> {
+                if (estadisticaAnterior < 3 && estadisticaNueva >= 3) nombreLogro = "Coleccionista"
+            }
         }
 
         if (nombreLogro.isNotEmpty()) {
             // Solo mostrar si no estaba desbloqueado previamente en la DB
-            if (!db.esLogroDesbloqueado(usuario.correo, nombreLogro)) {
-                db.desbloquearLogro(usuario.correo, nombreLogro)
+            if (!repository.esLogroDesbloqueado(usuario.correo, nombreLogro)) {
+                repository.desbloquearLogro(usuario.correo, nombreLogro)
                 mostrarToastPersonalizado(context, nombreLogro)
                 NotificationHelper.enviarNotificacionLogro(context, "¡Nuevo Logro Desbloqueado!", "Has conseguido: $nombreLogro")
             }
