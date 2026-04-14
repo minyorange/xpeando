@@ -85,6 +85,7 @@ object LogroManager {
             if (!db.esLogroDesbloqueado(usuario.correo, nombreLogro)) {
                 db.desbloquearLogro(usuario.correo, nombreLogro)
                 mostrarToastPersonalizado(context, nombreLogro)
+                NotificationHelper.enviarNotificacionLogro(context, "¡Nuevo Logro Desbloqueado!", "Has conseguido: $nombreLogro")
             }
         }
     }

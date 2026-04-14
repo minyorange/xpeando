@@ -19,6 +19,7 @@ import com.example.xpeando.adapters.DailiesAdapter
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Daily
 import com.example.xpeando.utils.LogroManager
+import com.example.xpeando.utils.NotificationHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import android.view.Gravity
@@ -85,6 +86,7 @@ class FragmentDailies : Fragment() {
                         val danio = db.procesarDailiesFallidas(correoUsuario, diasDiferencia)
                         if (danio > 0) {
                             Toast.makeText(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.", Toast.LENGTH_LONG).show()
+                            NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Penalización por Ausencia!", "Has recibido $danio de daño por no completar tus dailies.")
                             (activity as? MainActivity)?.actualizarHeader()
                         }
                         prefs.edit().putString("ultima_penalizacion_dailies", hoy).apply()

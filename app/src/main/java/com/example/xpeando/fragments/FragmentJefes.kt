@@ -15,6 +15,7 @@ import com.example.xpeando.R
 import com.example.xpeando.adapters.HistorialJefesAdapter
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Jefe
+import com.example.xpeando.utils.NotificationHelper
 
 class FragmentJefes : Fragment() {
 
@@ -136,6 +137,7 @@ class FragmentJefes : Fragment() {
                 }
 
                 override fun onFinish() {
+                    NotificationHelper.enviarNotificacionLogro(requireContext(), "¡El Jefe ha reaparecido!", "Un nuevo desafío te espera en la sección de Jefes.")
                     cargarJefe()
                 }
             }.start()

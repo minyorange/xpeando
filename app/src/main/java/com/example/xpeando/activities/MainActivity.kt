@@ -20,6 +20,11 @@ import com.example.xpeando.database.DBHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import com.example.xpeando.utils.NotificationHelper
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var db: DBHelper
@@ -74,6 +79,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         actualizarHeader()
+
+        // --- INICIALIZAR NOTIFICACIONES ---
+        NotificationHelper.createNotificationChannels(this)
+        NotificationHelper.programarRecordatorioDiario(this)
+        pedirPermisoNotificaciones()
 
         // --- TUTORIAL DE BIENVENIDA ---
         val prefsXpeando = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
@@ -383,6 +393,14 @@ class MainActivity : AppCompatActivity() {
                 // Actualizar barras de vida y experiencia en el menú lateral
                 headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)?.progress = it.hp
                 headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)?.progress = it.experiencia.toInt()
+            }
+        }
+    }
+
+    private fun pedirPermisoNotificaciones() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
             }
         }
     }

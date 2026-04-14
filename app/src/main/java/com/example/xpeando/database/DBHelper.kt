@@ -12,11 +12,12 @@ import com.example.xpeando.model.Daily
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Jefe
 import com.example.xpeando.model.Nota
+import com.example.xpeando.model.Progreso
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 37) { // Versión 37: Reset tutorial en upgrade
+class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 38) { // Versión 38: Tabla Historial
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -64,6 +65,8 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeand
         db.execSQL("CREATE TABLE notas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, titulo TEXT, contenido TEXT, fecha LONG)")
 
         db.execSQL("CREATE TABLE logros_usuario (id INTEGER PRIMARY KEY AUTOINCREMENT, correo TEXT, nombre_logro TEXT, fecha TEXT)")
+
+        db.execSQL("CREATE TABLE historial_progreso (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, fecha TEXT, xp INTEGER, monedas INTEGER, tipo TEXT)")
 
         insertarObjetosIniciales(db)
     }
@@ -118,6 +121,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeand
         db.execSQL("DROP TABLE IF EXISTS tienda_rpg")
         db.execSQL("DROP TABLE IF EXISTS jefes")
         db.execSQL("DROP TABLE IF EXISTS logros_usuario")
+        db.execSQL("DROP TABLE IF EXISTS historial_progreso")
         db.execSQL("DROP TABLE IF EXISTS notas_rapidas")
         db.execSQL("DROP TABLE IF EXISTS notas")
 
@@ -425,6 +429,51 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeand
         }
         db.update("usuarios", valores, "correo = ?", arrayOf(correo))
         db.close()
+
+        // Registrar en historial si hubo ganancia de XP o Monedas (o pérdida de HP)
+        if (xpBase != 0 || monedasBase != 0 || hpCambioBase != 0) {
+            val tipo = when {
+                xpBase > 0 -> "GANANCIA"
+                hpCambioBase < 0 -> "PENALIZACION"
+                else -> "ACCION"
+            }
+            registrarHistorial(correo, xpFinal, monedasFinal, tipo)
+        }
+    }
+
+    fun registrarHistorial(correo: String, xp: Int, monedas: Int, tipo: String) {
+        val db = this.writableDatabase
+        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val valores = ContentValues().apply {
+            put("correo_usuario", correo)
+            put("fecha", hoy)
+            put("xp", xp)
+            put("monedas", monedas)
+            put("tipo", tipo)
+        }
+        db.insert("historial_progreso", null, valores)
+        db.close()
+    }
+
+    fun obtenerHistorial(correo: String): List<Progreso> {
+        val lista = mutableListOf<Progreso>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM historial_progreso WHERE correo_usuario = ? ORDER BY fecha ASC", arrayOf(correo))
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(Progreso(
+                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("fecha")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("xp")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("tipo"))
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lista
     }
 
     fun actualizarAtributos(correo: String, fza: Double = 0.0, int: Double = 0.0, con: Double = 0.0, per: Double = 0.0, puntosUsados: Int = 0) {
