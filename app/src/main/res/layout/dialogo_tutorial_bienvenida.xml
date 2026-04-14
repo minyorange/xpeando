@@ -44,14 +44,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Convierte tu vida en un RPG"
+                    android:text="¡Tu Vida, Tu Aventura!"
                     android:textColor="@color/xpeando_text_main"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Completa tareas reales para ganar Experiencia (XP) y Monedas de Oro. ¡Sube de nivel y mejora a tu héroe!"
+                    android:text="Bienvenido a Xpeando. Aquí, cada tarea que completas en el mundo real te hace más fuerte en el mundo digital. ¡Es hora de subir de nivel!"
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
                     android:layout_marginTop="12dp"/>
@@ -69,21 +69,21 @@
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_marginBottom="16dp">
-                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/habitos" android:layout_margin="4dp"/>
-                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/dailies" android:layout_margin="4dp"/>
-                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/tareas" android:layout_margin="4dp"/>
+                    <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/habitos" android:layout_margin="8dp"/>
+                    <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/dailies" android:layout_margin="8dp"/>
+                    <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/tareas" android:layout_margin="8dp"/>
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tus 3 Pilares"
+                    android:text="Misiones de Entrenamiento"
                     android:textColor="@color/xpeando_text_main"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="HÁBITOS: Acciones que repites mucho.\nDAILIES: Tareas obligatorias cada día.\nTAREAS: Misiones únicas por completar."
+                    android:text="HÁBITOS: Mejora tus rutinas.\nDAILIES: Tareas sagradas del día.\nTAREAS: Grandes hitos que superar."
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
                     android:layout_marginTop="12dp"/>
@@ -96,21 +96,22 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
+                    android:id="@+id/iv_tutorial_jefe"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
                     android:src="@drawable/dragon_pereza"
                     android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="El Dragón Pereza"
+                    android:text="¡Derrota al Dragón Pereza!"
                     android:textColor="@color/xpeando_red_negative"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="¡Cada vez que completas algo, golpeas al jefe! Si olvidas tus Dailies, el jefe te golpeará a ti. ¡Manten tu HP alto!"
+                    android:text="Al completar tareas, golpeas al jefe. ¡Si logras vaciar su HP, ganarás un tesoro de XP y Monedas! Pero cuidado... si fallas tus Dailies, el dragón te quemará a ti."
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
                     android:layout_marginTop="12dp"/>
@@ -128,20 +129,20 @@
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_marginBottom="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="40sp"/>
-                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/fuerza" android:layout_margin="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="45sp"/>
+                    <ImageView android:layout_width="45dp" android:layout_height="45dp" android:src="@drawable/fuerza" android:layout_margin="4dp"/>
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rachas y Atributos"
+                    android:text="Poder y Consistencia"
                     android:textColor="@color/xpeando_purple_primary"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="La racha diaria (🔥) potencia tus premios. Al subir de nivel, reparte puntos en Fuerza, Inteligencia, Constitución y Percepción."
+                    android:text="Mantén tu Racha (🔥) para multiplicar tus ganancias. Al subir de nivel, usa tus puntos de Atributo para ser invencible."
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
                     android:layout_marginTop="12dp"/>
@@ -154,21 +155,21 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/tienda"
                     android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tienda e Inventario"
+                    android:text="Equípate para la Victoria"
                     android:textColor="@color/xpeando_yellow_gold"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gasta tus monedas en armas, escudos y pociones. ¡Equípalos en tu mochila para obtener bonos permanentes!"
+                    android:text="Compra equipo legendario en la tienda. Espadas para más daño, escudos para más salud y pociones para no morir en combate."
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
                     android:layout_marginTop="12dp"/>

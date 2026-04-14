@@ -13,7 +13,7 @@ import com.example.xpeando.model.Usuario
 
 object LogroManager {
 
-    fun obtenerLogrosDefinidos(repository: DataRepository, usuario: Usuario): List<Logro> {
+    suspend fun obtenerLogrosDefinidos(repository: DataRepository, usuario: Usuario): List<Logro> {
         val totalTareas = repository.obtenerTotalTareasCompletadas(usuario.correo)
         val totalDailies = repository.obtenerTotalDailiesCompletadas(usuario.correo)
         val totalHabitos = repository.obtenerTodosHabitos(usuario.correo).size
@@ -55,7 +55,7 @@ object LogroManager {
         return logros
     }
 
-    fun verificarNuevosLogros(context: Context, repository: DataRepository, usuario: Usuario, estadisticaAnterior: Int, estadisticaNueva: Int, tipo: String) {
+    suspend fun verificarNuevosLogros(context: Context, repository: DataRepository, usuario: Usuario, estadisticaAnterior: Int, estadisticaNueva: Int, tipo: String) {
         var nombreLogro = ""
 
         when (tipo) {

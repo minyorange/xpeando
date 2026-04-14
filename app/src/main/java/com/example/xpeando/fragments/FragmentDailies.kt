@@ -26,6 +26,7 @@ import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import android.view.Gravity
+import com.example.xpeando.utils.XpeandoToast
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -88,7 +89,7 @@ class FragmentDailies : Fragment() {
                     if (diasDiferencia > 0) {
                         val danio = viewModel.procesarDailiesFallidas(correoUsuario, diasDiferencia)
                         if (danio > 0) {
-                            Toast.makeText(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.", Toast.LENGTH_LONG).show()
+                            XpeandoToast.error(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.")
                             NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Penalización por Ausencia!", "Has recibido $danio de daño por no completar tus dailies.")
                         }
                         prefs.edit().putString("ultima_penalizacion_dailies", hoy).apply()

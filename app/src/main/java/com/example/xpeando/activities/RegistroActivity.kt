@@ -14,6 +14,7 @@ import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.database.DBHelper
+import com.example.xpeando.utils.XpeandoToast
 import com.example.xpeando.model.Usuario
 
 class RegistroActivity : AppCompatActivity() {
@@ -48,17 +49,17 @@ class RegistroActivity : AppCompatActivity() {
                     val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
                     viewModel.registrarUsuario(nuevoUsuario) { id ->
                         if (id != -1L) {
-                            Toast.makeText(this, "Registro con éxito", Toast.LENGTH_SHORT).show()
+                            XpeandoToast.success(this@RegistroActivity, "¡Registro con éxito!")
                             finish() // Vuelve al Login
                         } else {
-                            Toast.makeText(this, "Error: El correo ya existe", Toast.LENGTH_SHORT).show()
+                            XpeandoToast.error(this@RegistroActivity, "Error: El correo ya existe")
                         }
                     }
                 } else {
-                    Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    XpeandoToast.error(this@RegistroActivity, "Las contraseñas no coinciden")
                 }
             } else {
-                Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+                XpeandoToast.info(this@RegistroActivity, "Por favor, rellena todos los campos")
             }
         }
 

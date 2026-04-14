@@ -36,24 +36,24 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/fuerza"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="FUERZA"
+                    android:text="FUERZA: El Martillo"
                     android:textColor="@color/xpeando_red_negative"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Aumenta el daño que infliges al Dragón Pereza cuando completas tareas y hábitos positivos. ¡Derrótalo más rápido!"
+                    android:text="Aumenta tu daño base. Cada hábito positivo o tarea que termines golpeará con más fuerza al Dragón Pereza. ¡Siente el poder!"
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="12dp"/>
             </LinearLayout>
 
             <!-- INTELIGENCIA -->
@@ -63,24 +63,24 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/inteligencia"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="INTELIGENCIA"
+                    android:text="INTELIGENCIA: La Mente"
                     android:textColor="@color/xpeando_blue_xp"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Multiplica la Experiencia (XP) obtenida. Cuanto más inteligente seas, más rápido subirás de nivel y obtendrás puntos."
+                    android:text="Optimiza tu aprendizaje. Gana mucha más Experiencia (XP) por cada acción. ¡Alcanza niveles legendarios en tiempo récord!"
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="12dp"/>
             </LinearLayout>
 
             <!-- CONSTITUCION -->
@@ -90,24 +90,24 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/constitucion"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CONSTITUCIÓN"
+                    android:text="CONSTITUCIÓN: El Escudo"
                     android:textColor="#4CAF50"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Reduce el daño que recibes al fallar Dailies o hábitos negativos. ¡Te permite aguantar más golpes antes de perder tu racha!"
+                    android:text="Tu resistencia física. Reduce drásticamente el daño que recibes cuando fallas tus Dailies. ¡Sobrevive a la pereza!"
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="12dp"/>
             </LinearLayout>
 
             <!-- PERCEPCION -->
@@ -117,24 +117,24 @@
                 android:orientation="vertical"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/percepcion"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="16dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PERCEPCIÓN"
+                    android:text="PERCEPCIÓN: El Ojo"
                     android:textColor="@color/xpeando_yellow_gold"
                     android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Aumenta la probabilidad de encontrar botín y multiplica las Monedas de Oro ganadas por tus acciones heroicas."
+                    android:text="Encuentra tesoros ocultos. Multiplica las Monedas de Oro que recibes. ¡Ideal para llenar tu inventario de objetos épicos!"
                     android:textAlignment="center"
                     android:textColor="@color/xpeando_text_secondary"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="12dp"/>
             </LinearLayout>
 
         </ViewFlipper>

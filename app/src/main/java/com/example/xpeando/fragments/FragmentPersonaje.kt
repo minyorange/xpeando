@@ -24,6 +24,7 @@ import com.example.xpeando.model.Usuario
 import com.example.xpeando.viewmodel.PersonajeViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.xpeando.utils.XpeandoToast
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -282,12 +283,12 @@ class FragmentPersonaje : Fragment() {
         val usuario = personajeViewModel.usuario.value ?: return
         
         if (usuario.hp >= 50) {
-            Toast.makeText(requireContext(), "Tu salud ya está al máximo", Toast.LENGTH_SHORT).show()
+            XpeandoToast.info(requireContext(), "Tu salud ya está al máximo")
             return
         }
 
         personajeViewModel.usarPocion(correoUsuario, id, curacion)
-        Toast.makeText(requireContext(), "¡Poción usada! +$curacion HP", Toast.LENGTH_SHORT).show()
+        XpeandoToast.success(requireContext(), "¡Poción usada! +$curacion HP")
         (activity as? MainActivity)?.actualizarHeader()
     }
 

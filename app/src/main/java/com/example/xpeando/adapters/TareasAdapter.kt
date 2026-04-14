@@ -38,8 +38,16 @@ class TareasAdapter(
             cbCompletada.setOnCheckedChangeListener(null)
             cbCompletada.isChecked = tarea.completada
             
-            cbCompletada.setOnCheckedChangeListener { _, isChecked ->
-                onTareaCompletada(tarea, isChecked)
+            // Si la tarea ya está completada, deshabilitamos el CheckBox para evitar errores
+            if (tarea.completada) {
+                cbCompletada.isEnabled = false
+                itemView.alpha = 0.6f // Tarea completada se ve más tenue
+            } else {
+                cbCompletada.isEnabled = true
+                itemView.alpha = 1.0f
+                cbCompletada.setOnCheckedChangeListener { _, isChecked ->
+                    onTareaCompletada(tarea, isChecked)
+                }
             }
 
             itemView.setOnLongClickListener {

@@ -21,6 +21,7 @@ class TareaDao(private val dbHelper: DBHelper) {
             put("monedas", habito.monedas)
             put("completadoHoy", if (habito.completadoHoy) 1 else 0)
             put("atributo", habito.atributo)
+            put("vecesCompletado", habito.vecesCompletado)
         }
         val id = db.insert("habitos", null, valores)
         return id
@@ -39,7 +40,8 @@ class TareaDao(private val dbHelper: DBHelper) {
                     cursor.getInt(cursor.getColumnIndexOrThrow("experiencia")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("completadoHoy")) == 1,
-                    cursor.getString(cursor.getColumnIndexOrThrow("atributo"))
+                    cursor.getString(cursor.getColumnIndexOrThrow("atributo")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("vecesCompletado"))
                 ))
             } while (cursor.moveToNext())
         }
@@ -56,6 +58,10 @@ class TareaDao(private val dbHelper: DBHelper) {
         val db = dbHelper.writableDatabase
         val valores = ContentValues().apply {
             put("completadoHoy", if (habito.completadoHoy) 1 else 0)
+            if (habito.completadoHoy) {
+                // Si se marca como completado, incrementamos el contador total
+                db.execSQL("UPDATE habitos SET vecesCompletado = vecesCompletado + 1 WHERE id = ?", arrayOf(habito.id))
+            }
         }
         db.update("habitos", valores, "id = ?", arrayOf(habito.id.toString()))
     }
@@ -119,6 +125,7 @@ class TareaDao(private val dbHelper: DBHelper) {
         val valores = ContentValues().apply {
             put("correo_usuario", daily.correo_usuario)
             put("nombre", daily.nombre)
+            put("dificultad", daily.dificultad)
             put("experiencia", daily.experiencia)
             put("monedas", daily.monedas)
             put("completadaHoy", 0)
@@ -140,6 +147,7 @@ class TareaDao(private val dbHelper: DBHelper) {
                     cursor.getInt(cursor.getColumnIndexOrThrow("id")),
                     cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
                     cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("dificultad")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("experiencia")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
                     ultimaVez == hoy,
@@ -170,7 +178,7 @@ class TareaDao(private val dbHelper: DBHelper) {
 
     fun obtenerTotalHabitosCompletados(correo: String): Int {
         val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM habitos WHERE correo_usuario = ? AND completadoHoy = 1", arrayOf(correo))
+        val cursor = db.rawQuery("SELECT SUM(vecesCompletado) FROM habitos WHERE correo_usuario = ?", arrayOf(correo))
         var total = 0
         if (cursor.moveToFirst()) total = cursor.getInt(0)
         cursor.close()

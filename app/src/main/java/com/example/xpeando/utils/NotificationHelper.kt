@@ -26,8 +26,8 @@ object NotificationHelper {
                 description = descLogros
             }
 
-            val nameRecordatorios = "Recordatorios de Tareas"
-            val descRecordatorios = "Avisos para completar tus dailies y hábitos"
+            val nameRecordatorios = "Alertas de Aventura"
+            val descRecordatorios = "Avisos críticos sobre el Dragón Pereza y tus misiones diarias"
             val importanceRecordatorios = NotificationManager.IMPORTANCE_HIGH
             val channelRecordatorios = NotificationChannel(CHANNEL_ID_RECORDATORIOS, nameRecordatorios, importanceRecordatorios).apply {
                 description = descRecordatorios
@@ -66,7 +66,7 @@ object NotificationHelper {
         }
     }
 
-    fun enviarNotificacionRecordatorio(context: Context, titulo: String, mensaje: String) {
+    fun enviarNotificacionRecordatorio(context: Context, titulo: String = "¡Alerta de Aventura!", mensaje: String = "El Dragón Pereza está acechando. ¡Completa tus Dailies antes de que sea tarde!") {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -79,9 +79,11 @@ object NotificationHelper {
             .setSmallIcon(R.mipmap.ic_lan)
             .setContentTitle(titulo)
             .setContentText(mensaje)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(mensaje))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .setColor(context.getColor(R.color.xpeando_purple_primary))
 
         try {
             with(NotificationManagerCompat.from(context)) {
@@ -102,11 +104,11 @@ object NotificationHelper {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // Programar para las 20:00 (8 PM)
+        // Programar para las 20:30 (8:30 PM)
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, 20)
-            set(Calendar.MINUTE, 0)
+            set(Calendar.MINUTE, 30)
             set(Calendar.SECOND, 0)
         }
 

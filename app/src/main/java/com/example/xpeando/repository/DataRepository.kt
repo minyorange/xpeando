@@ -4,69 +4,101 @@ import com.example.xpeando.database.DBHelper
 import com.example.xpeando.database.daos.*
 import com.example.xpeando.model.*
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 class DataRepository(private val dbHelper: DBHelper) {
 
-    private val usuarioDao = UsuarioDao(dbHelper)
-    private val rpgDao = RpgDao(dbHelper)
-    private val logroDao = LogroDao(dbHelper)
-    private val tareaDao = TareaDao(dbHelper)
-    private val notaDao = NotaDao(dbHelper)
+    private val usuarioDao = dbHelper.usuarioDao
+    private val rpgDao = dbHelper.rpgDao
+    private val logroDao = dbHelper.logroDao
+    private val tareaDao = dbHelper.tareaDao
+    private val notaDao = dbHelper.notaDao
 
     // --- USUARIO ---
-    fun registrarUsuario(usuario: Usuario) = usuarioDao.registrarUsuario(usuario)
-    fun validarUsuario(correo: String, contrasena: String) = usuarioDao.validarUsuario(correo, contrasena)
-    fun obtenerUsuarioLogueado(correo: String) = usuarioDao.obtenerUsuarioLogueado(correo)
-    fun actualizarProgresoUsuario(correo: String, xp: Int, monedas: Int, hp: Int = 0) = 
+    suspend fun registrarUsuario(usuario: Usuario) = withContext(Dispatchers.IO) {
+        usuarioDao.registrarUsuario(usuario)
+    }
+
+    suspend fun validarUsuario(correo: String, contrasena: String) = withContext(Dispatchers.IO) {
+        usuarioDao.validarUsuario(correo, contrasena)
+    }
+
+    suspend fun obtenerUsuarioLogueado(correo: String): Usuario? = withContext(Dispatchers.IO) {
+        usuarioDao.obtenerUsuarioLogueado(correo)
+    }
+
+    suspend fun actualizarProgresoUsuario(correo: String, xp: Int, monedas: Int, hp: Int = 0) = withContext(Dispatchers.IO) {
         usuarioDao.actualizarProgresoUsuario(correo, xp, monedas, hp)
-    fun actualizarRacha(correo: String) = usuarioDao.actualizarRacha(correo)
-    fun actualizarAtributos(correo: String, fza: Double, int: Double, con: Double, per: Double, puntos: Int) =
+    }
+
+    suspend fun actualizarRacha(correo: String) = withContext(Dispatchers.IO) {
+        usuarioDao.actualizarRacha(correo)
+    }
+
+    suspend fun actualizarAtributos(correo: String, fza: Double, int: Double, con: Double, per: Double, puntos: Int) = withContext(Dispatchers.IO) {
         usuarioDao.actualizarAtributos(correo, fza, int, con, per, puntos)
-    fun obtenerXPSemanal(correo: String) = usuarioDao.obtenerXPSemanal(correo)
+    }
+
+    suspend fun obtenerXPSemanal(correo: String) = withContext(Dispatchers.IO) {
+        usuarioDao.obtenerXPSemanal(correo)
+    }
 
     // --- RPG ---
-    fun obtenerTiendaRPG() = rpgDao.obtenerTiendaRPG()
-    fun comprarArticulo(correo: String, articulo: Articulo) = rpgDao.comprarArticulo(correo, articulo)
-    fun obtenerInventario(correo: String) = rpgDao.obtenerInventario(correo)
-    fun equiparDesequipar(correo: String, idArticulo: Int) = rpgDao.equiparDesequipar(correo, idArticulo)
-    fun eliminarDelInventario(id: Int) = rpgDao.eliminarDelInventario(id)
-    fun obtenerJefeActivo(correo: String) = rpgDao.obtenerJefeActivo(correo)
-    fun atacarJefe(danio: Int, correo: String) = rpgDao.atacarJefe(danio, correo)
-    fun obtenerJefesDerrotados(correo: String) = rpgDao.obtenerJefesDerrotados(correo)
-    fun obtenerUltimoJefeDerrotadoTime(correo: String) = rpgDao.obtenerUltimoJefeDerrotadoTime(correo)
+    suspend fun obtenerTiendaRPG() = withContext(Dispatchers.IO) { rpgDao.obtenerTiendaRPG() }
+    suspend fun comprarArticulo(correo: String, articulo: Articulo) = withContext(Dispatchers.IO) {
+        rpgDao.comprarArticulo(correo, articulo)
+    }
+    suspend fun obtenerInventario(correo: String) = withContext(Dispatchers.IO) { rpgDao.obtenerInventario(correo) }
+    suspend fun equiparDesequipar(correo: String, idArticulo: Int) = withContext(Dispatchers.IO) {
+        rpgDao.equiparDesequipar(correo, idArticulo)
+    }
+    suspend fun eliminarDelInventario(id: Int) = withContext(Dispatchers.IO) { rpgDao.eliminarDelInventario(id) }
+    suspend fun obtenerJefeActivo(correo: String) = withContext(Dispatchers.IO) { rpgDao.obtenerJefeActivo(correo) }
+    suspend fun atacarJefe(danio: Int, correo: String) = withContext(Dispatchers.IO) { rpgDao.atacarJefe(danio, correo) }
+    suspend fun obtenerJefesDerrotados(correo: String) = withContext(Dispatchers.IO) { rpgDao.obtenerJefesDerrotados(correo) }
+    suspend fun obtenerUltimoJefeDerrotadoTime(correo: String) = withContext(Dispatchers.IO) { rpgDao.obtenerUltimoJefeDerrotadoTime(correo) }
 
     // --- RECOMPENSAS ---
-    fun insertarRecompensa(recompensa: Recompensa) = rpgDao.insertarRecompensa(recompensa)
-    fun obtenerTodasRecompensas(correo: String) = rpgDao.obtenerTodasRecompensas(correo)
-    fun eliminarRecompensa(id: Int) = rpgDao.eliminarRecompensa(id)
+    suspend fun insertarRecompensa(recompensa: Recompensa) = withContext(Dispatchers.IO) { rpgDao.insertarRecompensa(recompensa) }
+    suspend fun obtenerTodasRecompensas(correo: String) = withContext(Dispatchers.IO) { rpgDao.obtenerTodasRecompensas(correo) }
+    suspend fun eliminarRecompensa(id: Int) = withContext(Dispatchers.IO) { rpgDao.eliminarRecompensa(id) }
 
     // --- LOGROS ---
-    fun esLogroDesbloqueado(correo: String, nombre: String) = logroDao.esLogroDesbloqueado(correo, nombre)
-    fun desbloquearLogro(correo: String, nombre: String) = logroDao.desbloquearLogro(correo, nombre)
+    suspend fun esLogroDesbloqueado(correo: String, nombre: String) = withContext(Dispatchers.IO) { logroDao.esLogroDesbloqueado(correo, nombre) }
+    suspend fun desbloquearLogro(correo: String, nombre: String) = withContext(Dispatchers.IO) { logroDao.desbloquearLogro(correo, nombre) }
 
     // --- TAREAS, HABITOS, DAILIES ---
-    fun insertarHabito(habito: Habito) = tareaDao.insertarHabito(habito)
-    fun obtenerTodosHabitos(correo: String) = tareaDao.obtenerTodosHabitos(correo)
-    fun eliminarHabito(id: Int) = tareaDao.eliminarHabito(id)
-    fun actualizarEstadoHabito(habito: Habito) = tareaDao.actualizarEstadoHabito(habito)
+    suspend fun insertarHabito(habito: Habito) = withContext(Dispatchers.IO) { tareaDao.insertarHabito(habito) }
+    suspend fun obtenerTodosHabitos(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTodosHabitos(correo) }
+    suspend fun eliminarHabito(id: Int) = withContext(Dispatchers.IO) { tareaDao.eliminarHabito(id) }
+    suspend fun actualizarEstadoHabito(habito: Habito) = withContext(Dispatchers.IO) {
+        tareaDao.actualizarEstadoHabito(habito)
+    }
 
-    fun insertarTarea(tarea: Tarea) = tareaDao.insertarTarea(tarea)
-    fun obtenerTodasLasTareas(correo: String) = tareaDao.obtenerTodasLasTareas(correo)
-    fun eliminarTarea(id: Int) = tareaDao.eliminarTarea(id)
-    fun actualizarTarea(tarea: Tarea) = tareaDao.actualizarTarea(tarea)
+    suspend fun insertarTarea(tarea: Tarea) = withContext(Dispatchers.IO) { tareaDao.insertarTarea(tarea) }
+    suspend fun obtenerTodasLasTareas(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTodasLasTareas(correo) }
+    suspend fun eliminarTarea(id: Int) = withContext(Dispatchers.IO) { tareaDao.eliminarTarea(id) }
+    suspend fun actualizarTarea(tarea: Tarea) = withContext(Dispatchers.IO) { tareaDao.actualizarTarea(tarea) }
 
-    fun insertarDaily(daily: Daily) = tareaDao.insertarDaily(daily)
-    fun obtenerTodasDailies(correo: String) = tareaDao.obtenerTodasDailies(correo)
-    fun actualizarEstadoDaily(daily: Daily, completada: Boolean) = tareaDao.actualizarEstadoDaily(daily, completada)
-    fun eliminarDaily(id: Int) = tareaDao.eliminarDaily(id)
+    suspend fun insertarDaily(daily: Daily) = withContext(Dispatchers.IO) { tareaDao.insertarDaily(daily) }
+    suspend fun obtenerTodasDailies(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTodasDailies(correo) }
+    suspend fun actualizarEstadoDaily(daily: Daily, completada: Boolean) = withContext(Dispatchers.IO) {
+        tareaDao.actualizarEstadoDaily(daily, completada)
+    }
+    suspend fun eliminarDaily(id: Int) = withContext(Dispatchers.IO) { tareaDao.eliminarDaily(id) }
     
-    fun obtenerTotalTareasCompletadas(correo: String) = tareaDao.obtenerTotalTareasCompletadas(correo)
-    fun obtenerTotalDailiesCompletadas(correo: String) = tareaDao.obtenerTotalDailiesCompletadas(correo)
-    fun obtenerTotalHabitosCompletados(correo: String) = tareaDao.obtenerTotalHabitosCompletados(correo)
-    fun procesarDailiesFallidas(correo: String, mult: Int = 1) = tareaDao.procesarDailiesFallidas(correo, mult)
+    suspend fun obtenerTotalTareasCompletadas(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTotalTareasCompletadas(correo) }
+    suspend fun obtenerTotalDailiesCompletadas(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTotalDailiesCompletadas(correo) }
+    suspend fun obtenerTotalHabitosCompletados(correo: String) = withContext(Dispatchers.IO) { tareaDao.obtenerTotalHabitosCompletados(correo) }
+    suspend fun procesarDailiesFallidas(correo: String, mult: Int = 1) = withContext(Dispatchers.IO) {
+        tareaDao.procesarDailiesFallidas(correo, mult)
+    }
 
     // --- NOTAS ---
-    fun insertarNota(nota: Nota) = notaDao.insertarNota(nota)
-    fun obtenerTodasNotas(correo: String) = notaDao.obtenerTodasNotas(correo)
-    fun eliminarNota(id: Int) = notaDao.eliminarNota(id)
-    fun actualizarNota(nota: Nota) = notaDao.actualizarNota(nota)
+    suspend fun insertarNota(nota: Nota) = withContext(Dispatchers.IO) { notaDao.insertarNota(nota) }
+    suspend fun obtenerTodasNotas(correo: String) = withContext(Dispatchers.IO) { notaDao.obtenerTodasNotas(correo) }
+    suspend fun eliminarNota(id: Int) = withContext(Dispatchers.IO) { notaDao.eliminarNota(id) }
+    suspend fun actualizarNota(nota: Nota) = withContext(Dispatchers.IO) { notaDao.actualizarNota(nota) }
+
 }

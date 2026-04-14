@@ -20,6 +20,7 @@ import com.example.xpeando.adapters.NotasAdapter
 import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Nota
 import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.utils.XpeandoToast
 import com.example.xpeando.viewmodel.NotasViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -106,7 +107,7 @@ class FragmentNotas : Fragment() {
                         viewModel.actualizarNota(notaExistente)
                     }
                 } else {
-                    Toast.makeText(context, "La nota no puede estar vacía", Toast.LENGTH_SHORT).show()
+                    XpeandoToast.info(requireContext(), "La nota no puede estar vacía")
                 }
             }
             .setNegativeButton("Cancelar", null)
@@ -119,7 +120,7 @@ class FragmentNotas : Fragment() {
             .setMessage("¿Estás seguro de que quieres eliminar esta nota?")
             .setPositiveButton("Eliminar") { _, _ ->
                 viewModel.eliminarNota(nota.id, correoUsuario)
-                Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()
+                XpeandoToast.info(requireContext(), "Nota eliminada")
             }
             .setNegativeButton("Cancelar", null)
             .show()

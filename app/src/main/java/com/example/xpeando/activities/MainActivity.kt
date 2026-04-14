@@ -35,8 +35,9 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var dbHelper: DBHelper
     private lateinit var repository: DataRepository
-    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(this))) }
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(repository) }
     private lateinit var tvNombre: TextView
     private lateinit var tvNivel: TextView
     private lateinit var cvRacha: View
@@ -50,7 +51,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        repository = DataRepository(DBHelper(this))
+        dbHelper = DBHelper(this)
+        repository = DataRepository(dbHelper)
 
         observarUsuario()
 
@@ -112,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         val correo = prefsXpeando.getString("correo_usuario", "") ?: ""
         
         val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
-        val tutorialVisto = prefsTutorial.getBoolean("tutorial_visto_$correo", false)
+        val tutorialVisto = prefsTutorial.getBoolean("tutorial_v2_visto_$correo", false)
         
         if (correo.isNotEmpty() && !tutorialVisto) {
             mostrarTutorialBienvenida(correo)
@@ -230,7 +232,7 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
-                prefsTutorial.edit().putBoolean("tutorial_visto_$correo", true).apply()
+                prefsTutorial.edit().putBoolean("tutorial_v2_visto_$correo", true).apply()
                 dialog.dismiss()
                 mostrarTutorialAtributos(correo)
             }
@@ -444,5 +446,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         actualizarHeader()
+    }
+
+    override fun onDestroy() {
+        if (::dbHelper.isInitialized) {
+            dbHelper.close()
+        }
+        super.onDestroy()
     }
 }

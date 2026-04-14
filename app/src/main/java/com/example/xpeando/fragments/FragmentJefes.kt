@@ -60,9 +60,11 @@ class FragmentJefes : Fragment() {
         tvContadorReaparicion = view.findViewById(R.id.tvContadorReaparicion)
         rvHistorial = view.findViewById(R.id.rvHistorialJefes)
 
+        /*
         ivJefe.setOnClickListener {
             atacarAlJefe()
         }
+        */
 
         observarViewModel()
         
@@ -74,28 +76,40 @@ class FragmentJefes : Fragment() {
         return view
     }
 
-    private fun atacarAlJefe() {
-        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
+    private fun ejecutarAnimacionDano() {
+        // 1. Efecto de "Flash Rojo"
+        ivJefe.setColorFilter(android.graphics.Color.parseColor("#80FF0000")) 
         
-        jefeActual?.let { jefe ->
-            // Efecto visual de golpe
-            ivJefe.animate().scaleX(0.9f).scaleY(0.9f).setDuration(50).withEndAction {
-                ivJefe.animate().scaleX(1.0f).scaleY(1.0f).setDuration(50)
+        // 2. Efecto de Vibración y Escala
+        ivJefe.animate()
+            .translationXBy(15f)
+            .scaleX(0.85f)
+            .scaleY(0.85f)
+            .setDuration(50)
+            .withEndAction {
+                ivJefe.animate()
+                    .translationXBy(-30f)
+                    .setDuration(50)
+                    .withEndAction {
+                        ivJefe.animate()
+                            .translationX(0f)
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(50)
+                            .withEndAction {
+                                ivJefe.clearColorFilter()
+                            }
+                    }
             }
-
-            rpgViewModel.atacarJefe(10, correo) { derrotado ->
-                if (derrotado) {
-                    android.widget.Toast.makeText(requireContext(), "¡HAS DERROTADO AL JEFE!", android.widget.Toast.LENGTH_LONG).show()
-                    (activity as? com.example.xpeando.activities.MainActivity)?.actualizarHeader()
-                }
-            }
-        }
     }
 
     private fun observarViewModel() {
         lifecycleScope.launch {
             rpgViewModel.jefeActivo.collect { jefe ->
+                if (jefeActual != null && jefe != null && jefe.hpActual < jefeActual!!.hpActual) {
+                    // Si el HP ha bajado desde la última vez, animamos
+                    ejecutarAnimacionDano()
+                }
                 actualizarUIJefe(jefe)
             }
         }

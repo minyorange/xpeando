@@ -26,6 +26,7 @@ import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Recompensa
 import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.utils.XpeandoToast
 import com.example.xpeando.viewmodel.RecompensasViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -107,8 +108,12 @@ class FragmentRecompensas : Fragment() {
             listaRecompensas = lista,
             onComprarClick = { recompensa ->
                 viewModel.canjearRecompensaPersonal(requireContext(), correoUsuario, recompensa) { exito, mensaje ->
-                    Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
-                    if (exito) (activity as? MainActivity)?.actualizarHeader()
+                    if (exito) {
+                        XpeandoToast.success(requireContext(), mensaje)
+                        (activity as? MainActivity)?.actualizarHeader()
+                    } else {
+                        XpeandoToast.error(requireContext(), mensaje)
+                    }
                 }
             },
             onLongClick = { recompensa ->
@@ -121,8 +126,12 @@ class FragmentRecompensas : Fragment() {
     private fun configurarListaArmeria(lista: List<Articulo>) {
         val adaptador = InventarioAdapter(lista) { articulo ->
             viewModel.comprarArticuloArmeria(requireContext(), correoUsuario, articulo) { exito, mensaje ->
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
-                if (exito) (activity as? MainActivity)?.actualizarHeader()
+                if (exito) {
+                    XpeandoToast.success(requireContext(), mensaje)
+                    (activity as? MainActivity)?.actualizarHeader()
+                } else {
+                    XpeandoToast.error(requireContext(), mensaje)
+                }
             }
         }
         rvRecompensas.adapter = adaptador
@@ -146,7 +155,7 @@ class FragmentRecompensas : Fragment() {
                     nombre = nombre,
                     precio = precioStr.toIntOrNull() ?: 0
                 ))
-                Toast.makeText(requireContext(), "¡Tesoro '$nombre' añadido!", Toast.LENGTH_SHORT).show()
+                XpeandoToast.success(requireContext(), "¡Tesoro '$nombre' añadido!")
                 dialog.dismiss()
             }
         }

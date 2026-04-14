@@ -38,7 +38,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Pregunta 1 -->
+            <!-- Pregunta 1: XP -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="¿Cómo gano experiencia (XP)?"
+                        android:text="¿Cómo gano Experiencia (XP)?"
                         android:textStyle="bold"
                         android:textColor="@color/xpeando_purple_primary"
                         android:textSize="16sp"/>
@@ -61,11 +61,38 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Completando tus Hábitos, Dailies y Misiones. Cuanto más difícil sea la tarea, ¡más XP recibirás!"/>
+                        android:text="Ganarás XP completando Hábitos (+), Dailies y Tareas Únicas. ¡Subir de nivel te otorga puntos de Atributo para mejorar a tu héroe!"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Pregunta 2 -->
+            <!-- Pregunta 2: El Jefe -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="¿Cómo derroto al Dragón Pereza?"
+                        android:textStyle="bold"
+                        android:textColor="@color/xpeando_red_negative"
+                        android:textSize="16sp"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Cada vez que completas una tarea o hábito positivo, infliges daño al jefe. Si logras derrotarlo, recibirás un gran botín de Monedas y XP. ¡El jefe resucitará más fuerte 24h después!"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Pregunta 3: Muerte -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -88,11 +115,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Si pierdes toda tu vida, ¡tu personaje morirá! Perderás un nivel y parte de tu oro. ¡Mantente sano completando tus Dailies!"/>
+                        android:text="Si pierdes toda tu vida, aparecerá el menú de Resurrección. Podrás usar una Poción, pagar Monedas o resucitar gratis con muy poca vida. ¡No cumplir tus Dailies dañará tu salud!"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Pregunta 3 -->
+            <!-- Pregunta 4: Atributos -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,7 +134,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="¿Para qué sirven las monedas?"
+                        android:text="¿Para qué sirve cada Atributo?"
                         android:textStyle="bold"
                         android:textColor="@color/xpeando_purple_primary"
                         android:textSize="16sp"/>
@@ -115,11 +142,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Puedes usarlas en la Tienda para comprar equipamiento que mejore tus atributos o pociones de salud."/>
+                        android:text="FUERZA: Más daño al jefe.\nINTELIGENCIA: Más experiencia ganada.\nCONSTITUCIÓN: Menos daño recibido.\nPERCEPCIÓN: Más monedas encontradas."/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Pregunta 4 -->
+            <!-- Pregunta 5: Racha -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -134,7 +161,34 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="¿Cómo funcionan los Atributos?"
+                        android:text="¿Por qué es importante la Racha (🔥)?"
+                        android:textStyle="bold"
+                        android:textColor="@color/xpeando_yellow_gold"
+                        android:textSize="16sp"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Mantener tu racha diaria aumenta el multiplicador de recompensas. Si completas tus Dailies varios días seguidos, ¡tus ganancias de Oro y XP se dispararán!"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Pregunta 6: Equipo -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="¿El equipo mejora mis estadísticas?"
                         android:textStyle="bold"
                         android:textColor="@color/xpeando_purple_primary"
                         android:textSize="16sp"/>
@@ -142,7 +196,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Fuerza aumenta el daño a jefes, Inteligencia aumenta la XP ganada, Constitución reduce el daño recibido y Percepción aumenta el oro encontrado."/>
+                        android:text="¡Sí! Al equipar objetos desde tu Inventario, sus bonos se sumarán a tus atributos base. Por ejemplo, una espada legendaria aumentará enormemente tu daño de Fuerza."/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -10,7 +10,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 38) {
+class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 42) {
+
+    private var dbShared: SQLiteDatabase? = null
+
+    val database: SQLiteDatabase
+        get() {
+            if (dbShared == null || !dbShared!!.isOpen) {
+                dbShared = writableDatabase
+            }
+            return dbShared!!
+        }
 
     // Instancias de DAOs
     val usuarioDao = UsuarioDao(this)
@@ -19,12 +29,17 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeand
     val logroDao = LogroDao(this)
     val notaDao = NotaDao(this)
 
+    override fun close() {
+        dbShared?.close()
+        super.close()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
+        db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza', vecesCompletado INTEGER DEFAULT 0)")
         db.execSQL("CREATE TABLE tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, dificultad INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 20, monedas INTEGER DEFAULT 10, completada INTEGER DEFAULT 0)")
         db.execSQL("CREATE TABLE usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, correo TEXT UNIQUE, contrasena TEXT, nivel INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 0, monedas INTEGER DEFAULT 0, hp INTEGER DEFAULT 50, fuerza REAL DEFAULT 1.0, inteligencia REAL DEFAULT 1.0, constitucion REAL DEFAULT 1.0, percepcion REAL DEFAULT 1.0, puntosDisponibles INTEGER DEFAULT 0, totalHabitos INTEGER DEFAULT 0, rachaActual INTEGER DEFAULT 0, rachaMaxima INTEGER DEFAULT 0, ultimaFechaActividad TEXT)")
         db.execSQL("CREATE TABLE recompensas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, precio INTEGER, icono TEXT)")
-        db.execSQL("CREATE TABLE dailies (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 15, monedas INTEGER DEFAULT 10, completadaHoy INTEGER DEFAULT 0, ultimaVezCompletada TEXT)")
+        db.execSQL("CREATE TABLE dailies (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, dificultad INTEGER DEFAULT 1, experiencia INTEGER DEFAULT 15, monedas INTEGER DEFAULT 10, completadaHoy INTEGER DEFAULT 0, ultimaVezCompletada TEXT)")
         
         db.execSQL("""
             CREATE TABLE inventario (

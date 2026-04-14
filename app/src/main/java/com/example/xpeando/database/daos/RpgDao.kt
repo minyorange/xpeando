@@ -159,79 +159,128 @@ class RpgDao(private val dbHelper: DBHelper) {
     }
 
     fun obtenerJefeActivo(correo: String): Jefe? {
-        val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 0 LIMIT 1", arrayOf(correo))
-        var jefe: Jefe? = null
-        if (cursor.moveToFirst()) {
-            jefe = Jefe(
-                cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
-                cursor.getString(cursor.getColumnIndexOrThrow("descripcion")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("hpMax")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("hpActual")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("recompensaMonedas")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("recompensaXP")),
-                cursor.getString(cursor.getColumnIndexOrThrow("icono")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("derrotado")) == 1,
-                cursor.getInt(cursor.getColumnIndexOrThrow("nivel")),
-                cursor.getInt(cursor.getColumnIndexOrThrow("armadura"))
-            )
-        } else {
+        val db = dbHelper.database
+        db.beginTransaction()
+        try {
+            // CORRECCIÓN FORZADA DE NOMBRE E ICONO:
+            db.execSQL("UPDATE jefes SET nombre = 'Dragón Pereza (Nivel 1)', icono = 'dragon_pereza' WHERE (nombre = 'Dragón Pere' OR nombre = 'Dragón Pereza' OR icono = 'ic_boss_dragon') AND nivel = 1")
+
+            val cursor = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 0 LIMIT 1", arrayOf(correo))
+            
+            if (cursor.moveToFirst()) {
+                val jefe = Jefe(
+                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("descripcion")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("hpMax")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("hpActual")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("recompensaMonedas")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("recompensaXP")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("icono")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("derrotado")) == 1,
+                    cursor.getInt(cursor.getColumnIndexOrThrow("nivel")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("armadura"))
+                )
+                cursor.close()
+                db.setTransactionSuccessful()
+                return jefe
+            }
+            cursor.close()
+
+            // Si no hay jefe activo, buscamos el último derrotado para ver si debe reaparecer
             val cursorMuerto = db.rawQuery("SELECT * FROM jefes WHERE correo_usuario = ? AND derrotado = 1 ORDER BY fechaMuerte DESC LIMIT 1", arrayOf(correo))
             if (cursorMuerto.moveToFirst()) {
                 val fechaMuerte = cursorMuerto.getLong(cursorMuerto.getColumnIndexOrThrow("fechaMuerte"))
-                if (System.currentTimeMillis() - fechaMuerte >= 21 * 60 * 60 * 1000) {
-                    val idJefe = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("id"))
-                    val nivelAnterior = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("nivel"))
-                    val nuevoNivel = nivelAnterior + 1
-                    val nuevoHpMax = 200 + (nuevoNivel - 1) * 50
-                    val dbWrite = dbHelper.writableDatabase
+                val idJefe = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("id"))
+                val nivelActual = cursorMuerto.getInt(cursorMuerto.getColumnIndexOrThrow("nivel"))
+                
+                val tiempoTranscurrido = System.currentTimeMillis() - fechaMuerte
+                val tiempoEspera = 21 * 60 * 60 * 1000L
+
+                if (tiempoTranscurrido >= tiempoEspera) {
+                    val nuevoNivel = nivelActual + 1
+                    val nuevoHpMax = 500 + (nuevoNivel - 1) * 250
+                    
                     val v = ContentValues().apply {
-                        put("nombre", "Dragón Pere (Nivel $nuevoNivel)")
+                        put("nombre", "Dragón Pereza (Nivel $nuevoNivel)")
                         put("derrotado", 0)
                         put("hpMax", nuevoHpMax)
                         put("hpActual", nuevoHpMax)
                         put("fechaMuerte", 0)
                         put("nivel", nuevoNivel)
+                        put("recompensaMonedas", 150 + (nuevoNivel * 50))
+                        put("recompensaXP", 250 + (nuevoNivel * 75))
+                        put("icono", "dragon_pereza")
                     }
-                    dbWrite.update("jefes", v, "id = ?", arrayOf(idJefe.toString()))
+                    db.update("jefes", v, "id = ?", arrayOf(idJefe.toString()))
+                    db.setTransactionSuccessful()
                     cursorMuerto.close()
+                    db.endTransaction() 
                     return obtenerJefeActivo(correo)
+                } else {
+                    // EL JEFE ESTÁ MUERTO Y AÚN NO HA PASADO EL TIEMPO
+                    cursorMuerto.close()
+                    db.setTransactionSuccessful()
+                    return null
                 }
+            } else {
+                // NO HAY NINGÚN JEFE EN LA HISTORIA (NI VIVO NI MUERTO)
+                val vInicial = ContentValues().apply {
+                    put("correo_usuario", correo)
+                    put("nombre", "Dragón Pereza (Nivel 1)")
+                    put("descripcion", "El guardián de las tareas pendientes. ¡Derrótalo para ganar XP!")
+                    put("hpMax", 500)
+                    put("hpActual", 500)
+                    put("recompensaMonedas", 150)
+                    put("recompensaXP", 250)
+                    put("icono", "dragon_pereza")
+                    put("derrotado", 0)
+                    put("nivel", 1)
+                    put("armadura", 0)
+                }
+                db.insert("jefes", null, vInicial)
+                db.setTransactionSuccessful()
+                db.endTransaction()
+                return obtenerJefeActivo(correo)
             }
-            cursorMuerto.close()
+        } finally {
+            if (db.inTransaction()) db.endTransaction()
         }
-        cursor.close()
-        return jefe
     }
 
     fun atacarJefe(danioBase: Int, correo: String): Boolean {
-        val jefe = obtenerJefeActivo(correo) ?: return false
-        val usuario = dbHelper.usuarioDao.obtenerUsuarioLogueado(correo) ?: return false
-        val inventario = obtenerInventario(correo).filter { it.equipado }
-        
-        val bonusFzaEquipo = inventario.sumOf { it.bonusFza }.toDouble()
-        val fuerzaTotal = usuario.fuerza + (bonusFzaEquipo / 10.0)
+        val db = dbHelper.database
+        db.beginTransaction()
+        try {
+            val jefe = obtenerJefeActivo(correo) ?: return false
+            val usuario = dbHelper.usuarioDao.obtenerUsuarioLogueado(correo) ?: return false
+            val inventario = obtenerInventario(correo).filter { it.equipado }
+            
+            val bonusFzaEquipo = inventario.sumOf { it.bonusFza }.toDouble()
+            val fuerzaTotal = usuario.fuerza + (bonusFzaEquipo / 10.0)
 
-        val danioTrasArmadura = if (danioBase > 0) (danioBase - jefe.armadura).coerceAtLeast(1) else danioBase
-        val danioReal = (danioTrasArmadura * fuerzaTotal).toInt()
-        val nuevoHp = (jefe.hpActual - danioReal).coerceIn(0, jefe.hpMax)
+            val danioTrasArmadura = if (danioBase > 0) (danioBase - jefe.armadura).coerceAtLeast(1) else danioBase
+            val danioReal = (danioTrasArmadura * fuerzaTotal).toInt()
+            val nuevoHp = (jefe.hpActual - danioReal).coerceIn(0, jefe.hpMax)
 
-        val db = dbHelper.writableDatabase
-        val valores = ContentValues().apply {
-            put("hpActual", nuevoHp)
-            if (nuevoHp == 0) {
-                put("derrotado", 1)
-                put("fechaMuerte", System.currentTimeMillis())
+            val valores = ContentValues().apply {
+                put("hpActual", nuevoHp)
+                if (nuevoHp == 0) {
+                    put("derrotado", 1)
+                    put("fechaMuerte", System.currentTimeMillis())
+                }
             }
-        }
-        db.update("jefes", valores, "id = ?", arrayOf(jefe.id.toString()))
+            db.update("jefes", valores, "id = ?", arrayOf(jefe.id.toString()))
 
-        if (nuevoHp == 0) {
-            dbHelper.usuarioDao.actualizarProgresoUsuario(correo, jefe.recompensaXP, jefe.recompensaMonedas)
-            return true
+            if (nuevoHp == 0) {
+                dbHelper.usuarioDao.actualizarProgresoUsuario(correo, jefe.recompensaXP, jefe.recompensaMonedas)
+            }
+            
+            db.setTransactionSuccessful()
+            return nuevoHp == 0
+        } finally {
+            db.endTransaction()
         }
-        return false
     }
 
     fun obtenerJefesDerrotados(correo: String): List<Jefe> {

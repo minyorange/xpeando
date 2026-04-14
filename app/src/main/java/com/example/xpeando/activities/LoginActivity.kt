@@ -15,6 +15,7 @@ import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.database.DBHelper
+import com.example.xpeando.utils.XpeandoToast
 import com.google.android.material.card.MaterialCardView
 
 class LoginActivity : AppCompatActivity() {
@@ -38,10 +39,16 @@ class LoginActivity : AppCompatActivity() {
         val btnLogin = findViewById<Button>(R.id.btn_login)
         val tvIrARegistro = findViewById<TextView>(R.id.tv_ir_a_registro)
 
-        // --- COMPROBAR SESIÓN AUTOMÁTICA ---
+        // --- COMPROBAR SESIÓN AUTOMÁTICA Y AUTOCOMPLETAR ---
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val sesionActiva = prefs.getBoolean("sesion_activa", false)
         val correoGuardado = prefs.getString("correo_usuario", "")
+
+        // Autocompletar el correo si existe
+        if (!correoGuardado.isNullOrEmpty()) {
+            etCorreo.setText(correoGuardado)
+            cbRecordar.isChecked = sesionActiva
+        }
 
         if (sesionActiva && !correoGuardado.isNullOrEmpty()) {
             val intent = Intent(this, MainActivity::class.java)
@@ -62,15 +69,16 @@ class LoginActivity : AppCompatActivity() {
                         editor.putBoolean("sesion_activa", cbRecordar.isChecked)
                         editor.apply()
 
-                        val intent = Intent(this, MainActivity::class.java)
+                        XpeandoToast.success(this@LoginActivity, "¡Bienvenido de nuevo!")
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(intent)
                         finish()
                     } else {
-                        Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                        XpeandoToast.error(this@LoginActivity, "Correo o contraseña incorrectos")
                     }
                 }
             } else {
-                Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+                XpeandoToast.info(this@LoginActivity, "Por favor, rellena todos los campos")
             }
         }
 

@@ -39,7 +39,12 @@ class HabitosViewModel(private val repository: DataRepository) : ViewModel() {
             val monedasAntes = usuarioAntes?.monedas ?: 0
 
             withContext(Dispatchers.IO) {
-                if (delta > 0) repository.actualizarRacha(correo)
+                if (delta > 0) {
+                    repository.actualizarRacha(correo)
+                    // Importante: Actualizar el contador de veces completado en el DAO
+                    val habitoCopia = habito.copy(completadoHoy = true)
+                    repository.actualizarEstadoHabito(habitoCopia)
+                }
                 
                 val xpCambio = habito.experiencia * delta
                 val monedasCambio = if (delta > 0) habito.monedas else 0
