@@ -59,4 +59,10 @@
         android:label="FAQ"
         tools:layout="@layout/fragment_faq" />
 
+    <fragment
+        android:id="@+id/fragmentoNotas"
+        android:name="com.example.xpeando.fragments.FragmentNotas"
+        android:label="Notas Rápidas"
+        tools:layout="@layout/fragment_notas" />
+
 </navigation>

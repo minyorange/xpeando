@@ -11,11 +11,12 @@ import com.example.xpeando.model.Usuario
 import com.example.xpeando.model.Daily
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Jefe
+import com.example.xpeando.model.Nota
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 33) { // Subida a 32 para actualizar iconos de recompensas a "premios"
+class DBHelper(private val context: Context) : SQLiteOpenHelper(context, "xpeando_db", null, 37) { // Versión 37: Reset tutorial en upgrade
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE habitos (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, experiencia INTEGER DEFAULT 10, monedas INTEGER DEFAULT 5, completadoHoy INTEGER DEFAULT 0, atributo TEXT DEFAULT 'Fuerza')")
@@ -58,23 +59,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
             )
         """.trimIndent())
 
-        db.execSQL("""
-            CREATE TABLE jefes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                correo_usuario TEXT,
-                nombre TEXT,
-                descripcion TEXT,
-                hpMax INTEGER,
-                hpActual INTEGER,
-                recompensaMonedas INTEGER,
-                recompensaXP INTEGER,
-                icono TEXT,
-                derrotado INTEGER DEFAULT 0,
-                fechaMuerte LONG DEFAULT 0,
-                nivel INTEGER DEFAULT 1,
-                armadura INTEGER DEFAULT 0
-            )
-        """.trimIndent())
+        db.execSQL("CREATE TABLE jefes (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, nombre TEXT, descripcion TEXT, hpMax INTEGER, hpActual INTEGER, recompensaMonedas INTEGER, recompensaXP INTEGER, icono TEXT, derrotado INTEGER DEFAULT 0, fechaMuerte LONG DEFAULT 0, nivel INTEGER DEFAULT 1, armadura INTEGER DEFAULT 0)")
+
+        db.execSQL("CREATE TABLE notas (id INTEGER PRIMARY KEY AUTOINCREMENT, correo_usuario TEXT, titulo TEXT, contenido TEXT, fecha LONG)")
 
         db.execSQL("CREATE TABLE logros_usuario (id INTEGER PRIMARY KEY AUTOINCREMENT, correo TEXT, nombre_logro TEXT, fecha TEXT)")
 
@@ -131,6 +118,12 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         db.execSQL("DROP TABLE IF EXISTS tienda_rpg")
         db.execSQL("DROP TABLE IF EXISTS jefes")
         db.execSQL("DROP TABLE IF EXISTS logros_usuario")
+        db.execSQL("DROP TABLE IF EXISTS notas_rapidas")
+        db.execSQL("DROP TABLE IF EXISTS notas")
+
+        // Resetear el estado del tutorial en SharedPreferences al actualizar la DB
+        context.getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE).edit().clear().apply()
+
         onCreate(db)
     }
 
@@ -964,5 +957,56 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "xpeando_db", null,
         cursor.close()
         db.close()
         return lista
+    }
+
+    // --- MÉTODOS PARA NOTAS ---
+
+    fun insertarNota(nota: Nota): Long {
+        val db = this.writableDatabase
+        val valores = ContentValues().apply {
+            put("correo_usuario", nota.correo_usuario)
+            put("titulo", nota.titulo)
+            put("contenido", nota.contenido)
+            put("fecha", nota.fecha)
+        }
+        val id = db.insert("notas", null, valores)
+        db.close()
+        return id
+    }
+
+    fun obtenerTodasNotas(correo: String): List<Nota> {
+        val lista = mutableListOf<Nota>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM notas WHERE correo_usuario = ? ORDER BY fecha DESC", arrayOf(correo))
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(Nota(
+                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("titulo")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("contenido")),
+                    cursor.getLong(cursor.getColumnIndexOrThrow("fecha"))
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lista
+    }
+
+    fun actualizarNota(nota: Nota) {
+        val db = this.writableDatabase
+        val valores = ContentValues().apply {
+            put("titulo", nota.titulo)
+            put("contenido", nota.contenido)
+        }
+        db.update("notas", valores, "id = ?", arrayOf(nota.id.toString()))
+        db.close()
+    }
+
+    fun eliminarNota(id: Int) {
+        val db = this.writableDatabase
+        db.delete("notas", "id = ?", arrayOf(id.toString()))
+        db.close()
     }
 }

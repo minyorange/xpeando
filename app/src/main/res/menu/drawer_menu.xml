@@ -17,6 +17,10 @@
             android:id="@+id/fragmentoJefes"
             android:icon="@drawable/misionjefe"
             android:title="Misiones de Jefe" />
+        <item
+            android:id="@+id/fragmentoNotas"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Notas Rápidas" />
     </group>
 
     <item android:title="Otros">
