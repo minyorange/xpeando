@@ -19,8 +19,8 @@
             android:title="Misiones de Jefe" />
         <item
             android:id="@+id/fragmentoNotas"
-            android:icon="@android:drawable/ic_menu_edit"
-            android:title="Notas Rápidas" />
+            android:icon="@drawable/notas"
+            android:title="Notas" />
     </group>
 
     <item android:title="Otros">

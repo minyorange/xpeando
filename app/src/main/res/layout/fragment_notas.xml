@@ -23,6 +23,8 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="Añadir nota"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/xpeando_purple_primary"
+        app:tint="@color/white"/>
 
 </FrameLayout>

@@ -12,7 +12,7 @@
         android:id="@+id/iv_level_up"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@android:drawable/btn_star_big_on"
+        android:src="@drawable/upgrade"
         app:tint="@color/xpeando_yellow_gold" />
 
     <TextView

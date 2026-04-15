@@ -22,7 +22,7 @@
             android:id="@+id/iv_logro_toast_icono"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:src="@android:drawable/btn_star_big_on"
+            android:src="@drawable/scroll"
             app:tint="@color/xpeando_yellow_gold" />
 
         <LinearLayout

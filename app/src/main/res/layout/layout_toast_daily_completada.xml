@@ -17,8 +17,8 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@android:drawable/checkbox_on_background"
-            app:tint="@color/xpeando_yellow_gold" />
+            android:src="@drawable/daily"
+             />
 
         <TextView
             android:id="@+id/tv_mensaje_toast"
