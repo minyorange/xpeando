@@ -11,7 +11,13 @@ class RpgDao(private val dbHelper: DBHelper) {
     // --- TIENDA Y ARTÍCULOS ---
     fun obtenerTiendaRPG(): List<Articulo> {
         val lista = mutableListOf<Articulo>()
-        val db = dbHelper.readableDatabase
+        val db = dbHelper.writableDatabase // Cambiado a writable para la corrección
+        
+        // CORRECCIÓN DE ICONOS ANTIGUOS
+        db.execSQL("UPDATE tienda_rpg SET icono = 'espada_madera' WHERE icono = 'wooden-sword'")
+        db.execSQL("UPDATE tienda_rpg SET icono = 'escudo_carton' WHERE icono = 'round-shield'")
+        db.execSQL("UPDATE tienda_rpg SET icono = 'gafas_estudioso' WHERE icono = 'spectacles'")
+
         val cursor = db.rawQuery("SELECT * FROM tienda_rpg", null)
         if (cursor.moveToFirst()) {
             do {
@@ -74,7 +80,13 @@ class RpgDao(private val dbHelper: DBHelper) {
 
     fun obtenerInventario(correo: String): List<Articulo> {
         val lista = mutableListOf<Articulo>()
-        val db = dbHelper.readableDatabase
+        val db = dbHelper.writableDatabase // Cambiado a writable para la corrección
+        
+        // CORRECCIÓN DE ICONOS EN INVENTARIO
+        db.execSQL("UPDATE inventario SET icono = 'espada_madera' WHERE icono = 'wooden-sword' AND correo_usuario = ?", arrayOf(correo))
+        db.execSQL("UPDATE inventario SET icono = 'escudo_carton' WHERE icono = 'round-shield' AND correo_usuario = ?", arrayOf(correo))
+        db.execSQL("UPDATE inventario SET icono = 'gafas_estudioso' WHERE icono = 'spectacles' AND correo_usuario = ?", arrayOf(correo))
+
         val cursor = db.rawQuery("SELECT * FROM inventario WHERE correo_usuario = ?", arrayOf(correo))
         if (cursor.moveToFirst()) {
             do {
