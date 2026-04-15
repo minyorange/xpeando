@@ -145,9 +145,12 @@ class UsuarioDao(private val dbHelper: DBHelper) {
             var nuevoHp = usuario.hp + hpFinalCambio
             var nuevosPuntos = usuario.puntosDisponibles
 
-            while (nuevaXp >= 100) {
-                nuevaXp -= 100
+            // CÁLCULO DE NIVEL DINÁMICO (Cada nivel pide más XP)
+            var xpParaSiguienteNivel = nuevoNivel * 100 
+            while (nuevaXp >= xpParaSiguienteNivel) {
+                nuevaXp -= xpParaSiguienteNivel
                 nuevoNivel++
+                xpParaSiguienteNivel = nuevoNivel * 100
                 nuevoHp = 50 
                 nuevosPuntos += 3
             }

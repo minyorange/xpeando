@@ -405,7 +405,9 @@ class MainActivity : AppCompatActivity() {
 
                         tvMonedas.text = "${it.monedas}"
 
+                        val xpMax = it.nivel * 100
                         pbHP.progress = it.hp
+                        pbXP.max = xpMax
                         pbXP.progress = it.experiencia.toInt()
 
                         if (it.hp <= 0 && !isDeathDialogShowing) {
@@ -419,7 +421,9 @@ class MainActivity : AppCompatActivity() {
                             headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)?.text = "Nivel ${it.nivel}"
                             
                             headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)?.progress = it.hp
-                            headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)?.progress = it.experiencia.toInt()
+                            val pbNavXp = headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)
+                            pbNavXp?.max = xpMax
+                            pbNavXp?.progress = it.experiencia.toInt()
                         }
                     }
                 }

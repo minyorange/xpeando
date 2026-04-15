@@ -271,8 +271,11 @@ class RpgDao(private val dbHelper: DBHelper) {
             val bonusFzaEquipo = inventario.sumOf { it.bonusFza }.toDouble()
             val fuerzaTotal = usuario.fuerza + (bonusFzaEquipo / 10.0)
 
-            val danioTrasArmadura = if (danioBase > 0) (danioBase - jefe.armadura).coerceAtLeast(1) else danioBase
-            val danioReal = (danioTrasArmadura * fuerzaTotal).toInt()
+            // FÓRMULA MEJORADA: La fuerza ayuda a ignorar parte de la armadura
+            // Daño real = (Daño de tarea * Multiplicador Fuerza) - (Armadura del jefe / Nivel de usuario)
+            val armaduraMitigada = (jefe.armadura / (usuario.nivel.coerceAtLeast(1))).toInt()
+            val danioReal = ((danioBase * fuerzaTotal) - armaduraMitigada).toInt().coerceAtLeast(1)
+
             val nuevoHp = (jefe.hpActual - danioReal).coerceIn(0, jefe.hpMax)
 
             val valores = ContentValues().apply {

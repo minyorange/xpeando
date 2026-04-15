@@ -159,7 +159,9 @@ class FragmentPersonaje : Fragment() {
         tvNivel.text = "Nivel ${usuario.nivel}"
         tvHPValor.text = "${usuario.hp} / 50"
         pbHP.progress = usuario.hp
-        tvXPValor.text = "${usuario.experiencia} / 100"
+        val xpParaSiguiente = usuario.nivel * 100
+        tvXPValor.text = "${usuario.experiencia} / $xpParaSiguiente"
+        pbExperiencia.max = xpParaSiguiente
         pbExperiencia.progress = usuario.experiencia
         tvMonedas.text = "${usuario.monedas}"
         
