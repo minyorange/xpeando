@@ -14,9 +14,18 @@ class UsuarioViewModel(private val repository: DataRepository) : ViewModel() {
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario.asStateFlow()
 
+    private val _inventario = MutableStateFlow<List<Articulo>>(emptyList())
+    val inventario: StateFlow<List<Articulo>> = _inventario.asStateFlow()
+
+    private var correoActual: String? = null
+
     fun cargarUsuario(correo: String) {
+        if (correo.isEmpty()) return
+        correoActual = correo
         viewModelScope.launch {
+            val inv = repository.obtenerInventario(correo)
             val u = repository.obtenerUsuarioLogueado(correo)
+            _inventario.value = inv
             _usuario.value = u
         }
     }
@@ -53,9 +62,36 @@ class UsuarioViewModel(private val repository: DataRepository) : ViewModel() {
         }
     }
 
+    fun subirAtributo(correo: String, tipo: String) {
+        viewModelScope.launch {
+            when (tipo) {
+                "fza" -> repository.actualizarAtributos(correo, fza = 1.0, int = 0.0, con = 0.0, per = 0.0, puntos = 1)
+                "int" -> repository.actualizarAtributos(correo, fza = 0.0, int = 1.0, con = 0.0, per = 0.0, puntos = 1)
+                "con" -> repository.actualizarAtributos(correo, fza = 0.0, int = 0.0, con = 1.0, per = 0.0, puntos = 1)
+                "per" -> repository.actualizarAtributos(correo, fza = 0.0, int = 0.0, con = 0.0, per = 1.0, puntos = 1)
+            }
+            cargarUsuario(correo)
+        }
+    }
+
     fun comprarArticulo(correo: String, articulo: Articulo) {
         viewModelScope.launch {
             repository.comprarArticulo(correo, articulo)
+            cargarUsuario(correo)
+        }
+    }
+
+    fun equiparDesequipar(correo: String, idArticulo: Int) {
+        viewModelScope.launch {
+            repository.equiparDesequipar(correo, idArticulo)
+            cargarUsuario(correo)
+        }
+    }
+
+    fun usarPocion(correo: String, id: Int, curacion: Int) {
+        viewModelScope.launch {
+            repository.actualizarProgresoUsuario(correo, 0, 0, curacion)
+            repository.eliminarDelInventario(id)
             cargarUsuario(correo)
         }
     }

@@ -6,9 +6,11 @@ import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -40,6 +42,7 @@ class FragmentJefes : Fragment() {
     private lateinit var tvRecompensasXP: TextView
     private lateinit var tvContadorReaparicion: TextView
     private lateinit var rvHistorial: RecyclerView
+    private lateinit var ivInfo: ImageView
 
     private var countDownTimer: CountDownTimer? = null
 
@@ -59,6 +62,11 @@ class FragmentJefes : Fragment() {
         tvRecompensasXP = view.findViewById(R.id.tvRecompensasXPJefe)
         tvContadorReaparicion = view.findViewById(R.id.tvContadorReaparicion)
         rvHistorial = view.findViewById(R.id.rvHistorialJefes)
+        ivInfo = view.findViewById(R.id.iv_info_jefes)
+
+        ivInfo.setOnClickListener {
+            mostrarTutorialJefes()
+        }
 
         /*
         ivJefe.setOnClickListener {
@@ -73,7 +81,56 @@ class FragmentJefes : Fragment() {
         rpgViewModel.cargarJefeActivo(correo)
         rpgViewModel.cargarHistorial(correo)
 
+        // Mostrar tutorial si es la primera vez
+        val prefsTutorial = requireActivity().getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
+        val visto = prefsTutorial.getBoolean("tutorial_jefes_visto_$correo", false)
+        if (correo.isNotEmpty() && !visto) {
+            mostrarTutorialJefes()
+            prefsTutorial.edit().putBoolean("tutorial_jefes_visto_$correo", true).apply()
+        }
+
         return view
+    }
+
+    private fun mostrarTutorialJefes() {
+        val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_jefes, null)
+        val flipper = vista.findViewById<android.widget.ViewFlipper>(R.id.view_flipper_jefes)
+        val btnAtras = vista.findViewById<Button>(R.id.btn_tutorial_jefes_anterior)
+        val btnSig = vista.findViewById<Button>(R.id.btn_tutorial_jefes_siguiente)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(vista)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSig.setOnClickListener {
+            if (flipper.displayedChild < flipper.childCount - 1) {
+                flipper.setInAnimation(requireContext(), R.anim.slide_in_right)
+                flipper.setOutAnimation(requireContext(), R.anim.slide_out_left)
+                flipper.showNext()
+                btnAtras.visibility = View.VISIBLE
+                if (flipper.displayedChild == flipper.childCount - 1) {
+                    btnSig.text = "¡A la Batalla!"
+                }
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        btnAtras.setOnClickListener {
+            if (flipper.displayedChild > 0) {
+                flipper.setInAnimation(requireContext(), R.anim.slide_in_left)
+                flipper.setOutAnimation(requireContext(), R.anim.slide_out_right)
+                flipper.showPrevious()
+                btnSig.text = "Siguiente"
+                if (flipper.displayedChild == 0) {
+                    btnAtras.visibility = View.INVISIBLE
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private fun ejecutarAnimacionDano() {

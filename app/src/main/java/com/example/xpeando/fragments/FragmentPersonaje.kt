@@ -11,7 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
@@ -21,16 +21,19 @@ import com.example.xpeando.database.DBHelper
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Usuario
-import com.example.xpeando.viewmodel.PersonajeViewModel
+import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.example.xpeando.utils.XpeandoToast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.util.Locale
 
 class FragmentPersonaje : Fragment() {
 
-    private val personajeViewModel: PersonajeViewModel by viewModels {
+    private val usuarioViewModel: UsuarioViewModel by activityViewModels {
         ViewModelFactory(DataRepository(DBHelper(requireContext())))
     }
     private var correoUsuario: String = ""
@@ -39,18 +42,16 @@ class FragmentPersonaje : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_personaje, container, false)
+        return inflater.inflate(R.layout.fragment_personaje, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         
         val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         correoUsuario = prefs.getString("correo_usuario", "") ?: ""
 
         observarViewModel()
-        
-        return view
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         val fabMochila = view.findViewById<FloatingActionButton>(R.id.fab_mochila)
         fabMochila.setOnClickListener {
@@ -70,13 +71,26 @@ class FragmentPersonaje : Fragment() {
             prefsTutorial.edit().putBoolean("tutorial_atributos_visto_$correoUsuario", true).apply()
         }
 
-        personajeViewModel.cargarDatos(correoUsuario)
+        usuarioViewModel.cargarUsuario(correoUsuario)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (correoUsuario.isNotEmpty()) {
+            usuarioViewModel.cargarUsuario(correoUsuario)
+        }
     }
 
     private fun observarViewModel() {
-        lifecycleScope.launch {
-            personajeViewModel.usuario.collect { usuario ->
-                usuario?.let { actualizarUI(it) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                usuarioViewModel.usuario.combine(usuarioViewModel.inventario) { u, inv ->
+                    u to inv
+                }.collect { (usuario, _) ->
+                    usuario?.let { 
+                        actualizarUI(it) 
+                    }
+                }
             }
         }
     }
@@ -147,7 +161,7 @@ class FragmentPersonaje : Fragment() {
         val btnCon = view.findViewById<Button>(R.id.btn_subir_con)
         val btnPer = view.findViewById<Button>(R.id.btn_subir_per)
 
-        val inventario = personajeViewModel.inventario.value
+        val inventario = usuarioViewModel.inventario.value
         val equipado = inventario.filter { it.equipado }
         
         val bonusFza = equipado.sumOf { it.bonusFza }
@@ -241,7 +255,7 @@ class FragmentPersonaje : Fragment() {
         
         // Función para filtrar por pestaña
         fun obtenerListaFiltrada(tabPosition: Int): List<Articulo> {
-            val inventarioCompleto = personajeViewModel.inventario.value
+            val inventarioCompleto = usuarioViewModel.inventario.value
             return if (tabPosition == 0) {
                 inventarioCompleto.filter { it.tipo == "EQUIPO" }
             } else {
@@ -253,12 +267,12 @@ class FragmentPersonaje : Fragment() {
             if (articulo.tipo == "CONSUMIBLE" && articulo.subtipo == "POCION") {
                 usarPocion(articulo.id, articulo.bonusHp)
             } else {
-                personajeViewModel.equiparDesequipar(correoUsuario, articulo.id)
+                usuarioViewModel.equiparDesequipar(correoUsuario, articulo.id)
             }
             // El StateFlow se encargará de actualizar el adaptador mediante el recolector en mostrarMochila si lo hiciéramos reactivo.
             // Para simplificar ahora que el diálogo es síncrono, forzamos refresco del adaptador:
             lifecycleScope.launch {
-                personajeViewModel.inventario.collect {
+                usuarioViewModel.inventario.collect {
                     (rv.adapter as? InventarioAdapter)?.actualizarLista(obtenerListaFiltrada(tabLayout.selectedTabPosition))
                 }
             }
@@ -282,19 +296,19 @@ class FragmentPersonaje : Fragment() {
     }
 
     private fun usarPocion(id: Int, curacion: Int) {
-        val usuario = personajeViewModel.usuario.value ?: return
+        val usuario = usuarioViewModel.usuario.value ?: return
         
         if (usuario.hp >= 50) {
             XpeandoToast.info(requireContext(), "Tu salud ya está al máximo")
             return
         }
 
-        personajeViewModel.usarPocion(correoUsuario, id, curacion)
+        usuarioViewModel.usarPocion(correoUsuario, id, curacion)
         XpeandoToast.success(requireContext(), "¡Poción usada! +$curacion HP")
         (activity as? MainActivity)?.actualizarHeader()
     }
 
     private fun subirAtributo(tipo: String) {
-        personajeViewModel.subirAtributo(correoUsuario, tipo)
+        usuarioViewModel.subirAtributo(correoUsuario, tipo)
     }
 }

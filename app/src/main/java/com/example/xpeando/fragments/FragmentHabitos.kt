@@ -11,6 +11,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +25,7 @@ import com.example.xpeando.model.Habito
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.utils.LogroManager
 import com.example.xpeando.viewmodel.HabitosViewModel
+import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -33,6 +35,7 @@ class FragmentHabitos : Fragment() {
 
     private lateinit var repository: DataRepository
     private val viewModel: HabitosViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
     private lateinit var adaptador: HabitosAdapter
     private lateinit var rvHabitos: RecyclerView
 
@@ -68,7 +71,9 @@ class FragmentHabitos : Fragment() {
             onAccionHabito = { habito, delta ->
                 viewModel.procesarAccion(requireContext(), habito, delta, correo) { nuevoNivel ->
                     mostrarDialogoSubidaNivel(nuevoNivel)
+                    usuarioViewModel.refrescarUsuario(correo)
                 }
+                usuarioViewModel.refrescarUsuario(correo)
             },
             onLongClick = { habito ->
                 mostrarDialogoEliminar(habito)

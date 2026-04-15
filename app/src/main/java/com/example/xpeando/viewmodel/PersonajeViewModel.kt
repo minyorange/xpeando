@@ -19,13 +19,21 @@ class PersonajeViewModel(private val repository: DataRepository) : ViewModel() {
     private val _inventario = MutableStateFlow<List<Articulo>>(emptyList())
     val inventario: StateFlow<List<Articulo>> = _inventario.asStateFlow()
 
+    private var correoActual: String? = null
+
     fun cargarDatos(correo: String) {
+        if (correo.isEmpty()) return
+        correoActual = correo
         viewModelScope.launch {
             val u = withContext(Dispatchers.IO) { repository.obtenerUsuarioLogueado(correo) }
             val inv = withContext(Dispatchers.IO) { repository.obtenerInventario(correo) }
-            _usuario.value = u
-            _inventario.value = inv
+            _usuario.emit(u)
+            _inventario.emit(inv)
         }
+    }
+
+    fun refrescarSiEsNecesario() {
+        correoActual?.let { cargarDatos(it) }
     }
 
     fun subirAtributo(correo: String, tipo: String) {

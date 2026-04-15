@@ -13,15 +13,35 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvTituloJefe"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="¡ASALTO AL JEFE!"
-            android:textColor="#FF5252"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvTituloJefe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="¡ASALTO AL JEFE!"
+                android:textColor="#FF5252"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_info_jefes"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/help"
+                app:tint="@color/xpeando_purple_light"
+                android:padding="4dp"
+                android:alpha="0.8"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Ayuda sobre Jefes" />
+        </RelativeLayout>
 
         <androidx.cardview.widget.CardView
             android:layout_width="300dp"
