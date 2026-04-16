@@ -46,12 +46,16 @@ class RecompensasViewModel(private val repository: DataRepository) : ViewModel()
                 if (snapshot != null) {
                     val lista = snapshot.toObjects(Recompensa::class.java)
                     if (lista.isEmpty()) {
-                        viewModelScope.launch {
-                            val locales = withContext(Dispatchers.IO) { repository.obtenerTodasRecompensas(correo) }
-                            locales.forEach { 
-                                db.collection("usuarios").document(correo)
-                                    .collection("recompensas").document(it.id.toString()).set(it)
-                            }
+                        // Si está vacío, insertamos ejemplos por defecto
+                        val ejemplos = listOf(
+                            Recompensa(correo_usuario = correo, nombre = "Ver un capítulo de serie", precio = 30),
+                            Recompensa(correo_usuario = correo, nombre = "Comer un dulce/snack", precio = 50),
+                            Recompensa(correo_usuario = correo, nombre = "1 hora de videojuegos", precio = 100)
+                        )
+                        ejemplos.forEach { r ->
+                            val ref = db.collection("usuarios").document(correo).collection("recompensas").document()
+                            db.collection("usuarios").document(correo).collection("recompensas")
+                                .document(ref.id.hashCode().toString()).set(r.copy(id = ref.id.hashCode()))
                         }
                     } else {
                         _state.value = _state.value.copy(recompensasPersonales = lista)
@@ -62,22 +66,23 @@ class RecompensasViewModel(private val repository: DataRepository) : ViewModel()
         // 3. Cargar Armería (Global)
         viewModelScope.launch {
             try {
-                val snapshot = db.collection("tienda_rpg").get().await()
+                val snapshot = db.collection("tienda_global").get().await()
                 val items = snapshot.toObjects(Articulo::class.java)
                 
                 if (items.isEmpty()) {
-                    // Si la tienda global en la nube está vacía, cargamos los locales
-                    val locales = withContext(Dispatchers.IO) { repository.obtenerTiendaRPG() }
-                    _state.value = _state.value.copy(armeria = locales)
-                    
-                    // Opcional: Poblar la tienda global en Firestore si eres el primer usuario/admin
-                    locales.forEach { articulo ->
-                        db.collection("tienda_rpg").document(articulo.id.toString()).set(articulo)
-                    }
+                    // Si la tienda global en la nube está vacía, creamos los items básicos
+                    val basicos = listOf(
+                        Articulo(id = 1, nombre = "Espada de Madera", tipo = "EQUIPO", subtipo = "ARMA", precio = 150, bonusFza = 2, icono = "espada_madera"),
+                        Articulo(id = 2, nombre = "Escudo de Hierro", tipo = "EQUIPO", subtipo = "ESCUDO", precio = 300, bonusCon = 3, icono = "escudo_hierro"),
+                        Articulo(id = 3, nombre = "Poción de Vida", tipo = "CONSUMIBLE", subtipo = "POCION", precio = 50, bonusHp = 25, icono = "pocion_vida")
+                    )
+                    basicos.forEach { db.collection("tienda_global").document(it.id.toString()).set(it) }
+                    _state.value = _state.value.copy(armeria = basicos)
                 } else {
                     _state.value = _state.value.copy(armeria = items)
                 }
             } catch (e: Exception) {
+                // Fallback a local
                 _state.value = _state.value.copy(armeria = withContext(Dispatchers.IO) { repository.obtenerTiendaRPG() })
             }
         }
@@ -145,7 +150,7 @@ class RecompensasViewModel(private val repository: DataRepository) : ViewModel()
         viewModelScope.launch {
             db.collection("usuarios").document(correo)
                 .collection("recompensas").document(id.toString()).delete().await()
-            withContext(Dispatchers.IO) { repository.eliminarRecompensa(id) }
+            repository.eliminarRecompensa(id, correo)
         }
     }
 }

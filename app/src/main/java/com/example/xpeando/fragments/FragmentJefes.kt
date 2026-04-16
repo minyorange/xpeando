@@ -157,6 +157,19 @@ class FragmentJefes : Fragment() {
             }
     }
 
+    private fun atacarAlJefe() {
+        val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
+        val correo = prefs.getString("correo_usuario", "") ?: ""
+        if (correo.isNotEmpty()) {
+            // El daño base al hacer click es pequeño, el fuerte viene de las tareas
+            rpgViewModel.atacarJefe(5, correo) { derrotado ->
+                if (derrotado) {
+                    NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Victoria!", "Has derrotado al jefe y ganado sus recompensas.")
+                }
+            }
+        }
+    }
+
     private fun observarViewModel() {
         lifecycleScope.launch {
             rpgViewModel.jefeActivo.collect { jefe ->

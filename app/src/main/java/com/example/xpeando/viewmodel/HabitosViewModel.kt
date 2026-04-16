@@ -42,14 +42,14 @@ class HabitosViewModel(private val repository: DataRepository) : ViewModel() {
 
             // Toda la lógica de negocio ahora está centralizada en el DataRepository (Cloud)
             if (delta > 0) {
-                repository.actualizarEstadoHabito(habito.copy(completadoHoy = true))
+                repository.actualizarEstadoHabito(habito, delta)
             }
             
             val xpCambio = habito.experiencia * delta
             val monedasCambio = if (delta > 0) habito.monedas else 0
             val hpCambio = if (delta < 0) -5 else 0
             
-            repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio)
+            repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio, tipoAccion = if (delta > 0) "HABITO" else null)
 
             val usuarioDespues = repository.obtenerUsuarioLogueado(correo) ?: return@launch
             val nivelDespues = usuarioDespues.nivel

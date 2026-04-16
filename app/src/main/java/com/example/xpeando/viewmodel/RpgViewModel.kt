@@ -24,12 +24,50 @@ class RpgViewModel(private val repository: DataRepository) : ViewModel() {
     private val _inventario = MutableStateFlow<List<Articulo>>(emptyList())
     val inventario: StateFlow<List<Articulo>> = _inventario.asStateFlow()
 
+    private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+    private var jefeListener: com.google.firebase.firestore.ListenerRegistration? = null
+
     fun cargarJefeActivo(correo: String) {
         if (correo.isEmpty()) return
-        viewModelScope.launch {
-            val jefe = repository.obtenerJefeActivo(correo)
-            _jefeActivo.value = jefe
+        
+        jefeListener?.remove()
+        
+        // Escuchar cambios en el jefe activo en tiempo real
+        val jefeRef = db.collection("usuarios").document(correo).collection("rpg").document("jefe_activo")
+        jefeListener = jefeRef.addSnapshotListener { snapshot, e ->
+            if (e != null) return@addSnapshotListener
+            
+            if (snapshot != null && snapshot.exists()) {
+                val jefe = snapshot.toObject(Jefe::class.java)
+                if (jefe != null && !jefe.derrotado) {
+                    _jefeActivo.value = jefe
+                } else {
+                    // Si el jefe está derrotado, comprobamos si ha pasado el tiempo de respawn
+                    val ultimaMuerte = jefe?.fechaMuerte ?: 0L
+                    val tiempoRespawn = 21 * 60 * 60 * 1000L
+                    if (System.currentTimeMillis() >= (ultimaMuerte + tiempoRespawn)) {
+                        // Forzar regeneración a través del repositorio
+                        viewModelScope.launch {
+                            val nuevoJefe = repository.obtenerJefeActivo(correo)
+                            _jefeActivo.value = nuevoJefe
+                        }
+                    } else {
+                        _jefeActivo.value = null
+                    }
+                }
+            } else {
+                // No hay jefe, pedir uno nuevo
+                viewModelScope.launch {
+                    val nuevoJefe = repository.obtenerJefeActivo(correo)
+                    _jefeActivo.value = nuevoJefe
+                }
+            }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        jefeListener?.remove()
     }
 
     fun cargarHistorial(correo: String) {

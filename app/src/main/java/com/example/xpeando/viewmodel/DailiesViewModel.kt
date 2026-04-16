@@ -38,7 +38,7 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
             // 1. Marcar como completada en la nube
             repository.actualizarEstadoDaily(daily, true)
             // 2. Aplicar lógica de RPG (XP, Monedas, Level Up, Atributos)
-            repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas)
+            repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
             // 3. Actualizar racha
             repository.actualizarRacha(correo)
             

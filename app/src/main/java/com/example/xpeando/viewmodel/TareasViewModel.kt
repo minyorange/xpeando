@@ -43,7 +43,7 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
 
             val tareaCompletada = tarea.copy(completada = true)
             repository.actualizarTarea(tareaCompletada)
-            repository.actualizarProgresoUsuario(correo, tarea.experiencia, tarea.monedas)
+            repository.actualizarProgresoUsuario(correo, tarea.experiencia, tarea.monedas, tipoAccion = "TAREA")
             
             val uFinal = repository.obtenerUsuarioLogueado(correo)
             val nivelDespues = uFinal?.nivel ?: 1

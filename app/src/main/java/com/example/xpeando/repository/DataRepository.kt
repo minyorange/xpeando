@@ -23,11 +23,19 @@ class DataRepository {
         1L
     }
 
-    suspend fun actualizarProgresoUsuario(correo: String, xpBase: Int, monedasBase: Int, hpCambioBase: Int = 0) = withContext(Dispatchers.IO) {
+    suspend fun actualizarProgresoUsuario(correo: String, xpBase: Int, monedasBase: Int, hpCambioBase: Int = 0, tipoAccion: String? = null) = withContext(Dispatchers.IO) {
         val userRef = db.collection("usuarios").document(correo)
+        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        
         db.runTransaction { transaction ->
+            // --- LECTURAS (READS) ---
             val u = transaction.get(userRef).toObject(Usuario::class.java) ?: return@runTransaction
             
+            val jefeRef = userRef.collection("rpg").document("jefe_activo")
+            val jefeSnap = if (tipoAccion != null) transaction.get(jefeRef) else null
+            val jefe = jefeSnap?.toObject(Jefe::class.java)
+
+            // --- CÁLCULOS ---
             val bonusRacha = when {
                 u.rachaActual >= 7 -> 1.25
                 u.rachaActual >= 3 -> 1.10
@@ -43,7 +51,49 @@ class DataRepository {
             var nuevasMonedas = u.monedas + monedasFinal
             var nuevaHp = u.hp + hpFinalCambio
             var nuevosPuntos = u.puntosDisponibles
+            
+            // Contadores para estadísticas
+            var totalTareas = u.totalTareasCompletadas
+            var totalDailies = u.totalDailiesCompletadas
+            var totalHabitos = u.totalHabitosCompletados
 
+            when(tipoAccion) {
+                "TAREA" -> totalTareas++
+                "DAILY" -> totalDailies++
+                "HABITO" -> totalHabitos++
+            }
+
+            // ATAQUE AL JEFE AUTOMÁTICO
+            if (jefe != null && !jefe.derrotado && tipoAccion != null) {
+                val danioBase = when(tipoAccion) {
+                    "TAREA" -> 25
+                    "DAILY" -> 35
+                    "HABITO" -> 15
+                    else -> 0
+                }
+                val danioTotal = (danioBase * u.fuerza).toInt()
+                val nuevaHpJefe = (jefe.hpActual - danioTotal).coerceAtLeast(0)
+                
+                if (nuevaHpJefe <= 0) {
+                    transaction.update(jefeRef, mapOf(
+                        "hpActual" to 0,
+                        "derrotado" to true,
+                        "fechaMuerte" to System.currentTimeMillis()
+                    ))
+
+                    // Guardar en el historial de jefes derrotados
+                    val histJefeRef = userRef.collection("rpg_historial").document()
+                    transaction.set(histJefeRef, jefe.copy(hpActual = 0, derrotado = true, fechaMuerte = System.currentTimeMillis()))
+
+                    // Recompensas del jefe
+                    nuevoXp += jefe.recompensaXP
+                    nuevasMonedas += jefe.recompensaMonedas
+                } else {
+                    transaction.update(jefeRef, "hpActual", nuevaHpJefe)
+                }
+            }
+
+            // Subida de nivel (incluye posible XP del jefe)
             var xpParaSiguienteNivel = nuevoNivel * 100
             while (nuevoXp >= xpParaSiguienteNivel) {
                 nuevoXp -= xpParaSiguienteNivel
@@ -53,17 +103,55 @@ class DataRepository {
                 nuevosPuntos += 3
             }
 
+            // Lógica de muerte: si el HP llega a 0, se queda en 0 para disparar el diálogo
+            // y se aplica una penalización de monedas (20%)
+            if (nuevaHp <= 0) {
+                nuevaHp = 0
+                nuevasMonedas = (nuevasMonedas * 0.8).toInt()
+            }
+
             nuevaHp = nuevaHp.coerceIn(0, 50)
             nuevasMonedas = nuevasMonedas.coerceAtLeast(0)
             nuevoXp = nuevoXp.coerceAtLeast(0)
 
+            // --- ESCRITURAS (WRITES) ---
             transaction.update(userRef, mapOf(
                 "experiencia" to nuevoXp,
                 "nivel" to nuevoNivel,
                 "monedas" to nuevasMonedas,
                 "hp" to nuevaHp,
-                "puntosDisponibles" to nuevosPuntos
+                "puntosDisponibles" to nuevosPuntos,
+                "totalTareasCompletadas" to totalTareas,
+                "totalDailiesCompletadas" to totalDailies,
+                "totalHabitosCompletados" to totalHabitos
             ))
+
+            // VERIFICACIÓN DE LOGROS DENTRO DE LA TRANSACCIÓN
+            if (tipoAccion != null) {
+                // Tareas
+                if (u.totalTareasCompletadas < 1 && totalTareas >= 1) transaction.set(userRef.collection("logros").document("Primeros Pasos"), mapOf("nombre" to "Primeros Pasos", "fecha" to System.currentTimeMillis()))
+                if (u.totalTareasCompletadas < 10 && totalTareas >= 10) transaction.set(userRef.collection("logros").document("Cazador de Misiones"), mapOf("nombre" to "Cazador de Misiones", "fecha" to System.currentTimeMillis()))
+                if (u.totalTareasCompletadas < 50 && totalTareas >= 50) transaction.set(userRef.collection("logros").document("Héroe Legendario"), mapOf("nombre" to "Héroe Legendario", "fecha" to System.currentTimeMillis()))
+                
+                // Dailies
+                if (u.totalDailiesCompletadas < 5 && totalDailies >= 5) transaction.set(userRef.collection("logros").document("Rutina de Hierro"), mapOf("nombre" to "Rutina de Hierro", "fecha" to System.currentTimeMillis()))
+                if (u.totalDailiesCompletadas < 30 && totalDailies >= 30) transaction.set(userRef.collection("logros").document("Inquebrantable"), mapOf("nombre" to "Inquebrantable", "fecha" to System.currentTimeMillis()))
+                
+                // Hábitos
+                if (u.totalHabitosCompletados < 20 && totalHabitos >= 20) transaction.set(userRef.collection("logros").document("Maestro de Hábitos"), mapOf("nombre" to "Maestro de Hábitos", "fecha" to System.currentTimeMillis()))
+            }
+            
+            // Monedas y Nivel
+            if (u.monedas < 500 && nuevasMonedas >= 500) transaction.set(userRef.collection("logros").document("Ahorrador"), mapOf("nombre" to "Ahorrador", "fecha" to System.currentTimeMillis()))
+            if (u.monedas < 1000 && nuevasMonedas >= 1000) transaction.set(userRef.collection("logros").document("El Rey Midas"), mapOf("nombre" to "El Rey Midas", "fecha" to System.currentTimeMillis()))
+            if (u.nivel < 5 && nuevoNivel >= 5) transaction.set(userRef.collection("logros").document("Ascensión I"), mapOf("nombre" to "Ascensión I", "fecha" to System.currentTimeMillis()))
+
+            // Registrar en historial para los gráficos si se ganó XP
+            if (xpFinal > 0) {
+                val histRef = userRef.collection("historial_progreso").document()
+                val progreso = Progreso(id = histRef.id.hashCode(), correo_usuario = correo, fecha = hoy, xp = xpFinal)
+                transaction.set(histRef, progreso)
+            }
         }.await()
     }
 
@@ -86,11 +174,41 @@ class DataRepository {
         val userRef = db.collection("usuarios").document(correo)
         val jefeRef = userRef.collection("rpg").document("jefe_activo")
         val snap = jefeRef.get().await()
+        
         if (snap.exists()) {
             val jefe = snap.toObject(Jefe::class.java)
             if (jefe != null && !jefe.derrotado) return@withContext jefe
+            
+            // Si el jefe está derrotado, comprobamos si ha pasado el tiempo de respawn (21h)
+            val ultimaMuerte = jefe?.fechaMuerte ?: 0L
+            val tiempoRespawn = 21 * 60 * 60 * 1000L
+            if (System.currentTimeMillis() < (ultimaMuerte + tiempoRespawn)) {
+                return@withContext null // Aún no debe reaparecer
+            }
         }
-        null
+        
+        // Si llegamos aquí, o no hay jefe o ya debe reaparecer uno nuevo
+        val u = userRef.get().await().toObject(Usuario::class.java) ?: return@withContext null
+        val nuevoJefe = generarNuevoJefe(u.nivel)
+        jefeRef.set(nuevoJefe).await()
+        nuevoJefe
+    }
+
+    private fun generarNuevoJefe(nivelUsuario: Int): Jefe {
+        val hpBase = 100 + (nivelUsuario * 50)
+        
+        return Jefe(
+            id = System.currentTimeMillis().toInt(),
+            nombre = "Dragón Pereza (Nivel $nivelUsuario)",
+            descripcion = "Un desafío formidable de nivel $nivelUsuario.",
+            hpMax = hpBase,
+            hpActual = hpBase,
+            recompensaXP = 50 + (nivelUsuario * 10),
+            recompensaMonedas = 100 + (nivelUsuario * 20),
+            icono = "dragon_pereza",
+            derrotado = false,
+            nivel = nivelUsuario
+        )
     }
 
     suspend fun atacarJefe(danio: Int, correo: String): Boolean = withContext(Dispatchers.IO) {
@@ -105,6 +223,11 @@ class DataRepository {
             
             if (nuevaHp <= 0) {
                 transaction.update(jefeRef, "hpActual", 0, "derrotado", true, "fechaMuerte", System.currentTimeMillis())
+                
+                // Guardar en el historial de jefes derrotados
+                val histJefeRef = userRef.collection("rpg_historial").document()
+                transaction.set(histJefeRef, jefe.copy(hpActual = 0, derrotado = true, fechaMuerte = System.currentTimeMillis()))
+
                 transaction.update(userRef, "experiencia", u.experiencia + jefe.recompensaXP, "monedas", u.monedas + jefe.recompensaMonedas)
                 true
             } else {
@@ -160,6 +283,11 @@ class DataRepository {
         id.toLong()
     }
 
+    suspend fun actualizarTarea(tarea: Tarea) = withContext(Dispatchers.IO) {
+        val snap = db.collection("usuarios").document(tarea.correo_usuario).collection("tareas").whereEqualTo("id", tarea.id).get().await()
+        snap.documents.forEach { it.reference.set(tarea).await() }
+    }
+
     suspend fun eliminarTarea(id: Int, correo: String) = withContext(Dispatchers.IO) {
         val snap = db.collection("usuarios").document(correo).collection("tareas").whereEqualTo("id", id).get().await()
         snap.documents.forEach { it.reference.delete().await() }
@@ -188,8 +316,40 @@ class DataRepository {
     }
 
     suspend fun obtenerTiendaRPG(): List<Articulo> = withContext(Dispatchers.IO) {
-        val snap = db.collection("tienda_global").get().await()
-        snap.toObjects(Articulo::class.java)
+        listOf(
+            Articulo(
+                nombre = "Poción de Vida",
+                tipo = "CONSUMIBLE",
+                subtipo = "POCION",
+                precio = 100,
+                bonusHp = 50,
+                icono = "pocion_vida"
+            ),
+            Articulo(
+                nombre = "Gafas de Estudios",
+                tipo = "EQUIPO",
+                subtipo = "ACCESORIO",
+                precio = 250,
+                bonusInt = 2,
+                icono = "gafas_estudioso"
+            ),
+            Articulo(
+                nombre = "Espada de Madera",
+                tipo = "EQUIPO",
+                subtipo = "ARMA",
+                precio = 300,
+                bonusFza = 3,
+                icono = "espada_madera"
+            ),
+            Articulo(
+                nombre = "Escudo de Cartón",
+                tipo = "EQUIPO",
+                subtipo = "ARMADURA",
+                precio = 200,
+                bonusCon = 2,
+                icono = "escudo_carton"
+            )
+        )
     }
 
     suspend fun obtenerHistorialJefes(correo: String): List<Jefe> = withContext(Dispatchers.IO) {
@@ -245,8 +405,18 @@ class DataRepository {
             }
 
             danioTotal = 5 * dias
-            val nuevaHp = (u.hp - danioTotal).coerceAtLeast(0)
-            transaction.update(userRef, "hp", nuevaHp)
+            var nuevaHp = u.hp - danioTotal
+            var nuevasMonedas = u.monedas
+
+            if (nuevaHp <= 0) {
+                nuevaHp = 0
+                nuevasMonedas = (nuevasMonedas * 0.8).toInt()
+            }
+
+            transaction.update(userRef, mapOf(
+                "hp" to nuevaHp.coerceIn(0, 50),
+                "monedas" to nuevasMonedas.coerceAtLeast(0)
+            ))
         }.await()
         danioTotal
     }
@@ -273,6 +443,18 @@ class DataRepository {
         snap.documents.forEach { it.reference.update("vecesCompletado", habito.vecesCompletado + delta).await() }
     }
 
+    suspend fun insertarHabito(habito: Habito): Long = withContext(Dispatchers.IO) {
+        val ref = db.collection("usuarios").document(habito.correo_usuario).collection("habitos").document()
+        val id = ref.id.hashCode()
+        ref.set(habito.copy(id = id)).await()
+        id.toLong()
+    }
+
+    suspend fun eliminarHabito(id: Int, correo: String) = withContext(Dispatchers.IO) {
+        val snap = db.collection("usuarios").document(correo).collection("habitos").whereEqualTo("id", id).get().await()
+        snap.documents.forEach { it.reference.delete().await() }
+    }
+
     // --- LOGROS Y ESTADISTICAS ---
     suspend fun esLogroDesbloqueado(correo: String, nombre: String): Boolean = withContext(Dispatchers.IO) {
         val snap = db.collection("usuarios").document(correo).collection("logros").whereEqualTo("nombre", nombre).get().await()
@@ -281,6 +463,11 @@ class DataRepository {
 
     suspend fun desbloquearLogro(correo: String, nombre: String) = withContext(Dispatchers.IO) {
         db.collection("usuarios").document(correo).collection("logros").document(nombre).set(mapOf("nombre" to nombre, "fecha" to System.currentTimeMillis())).await()
+    }
+
+    suspend fun obtenerHistorialCompleto(correo: String): List<Progreso> = withContext(Dispatchers.IO) {
+        val snap = db.collection("usuarios").document(correo).collection("historial_progreso").get().await()
+        snap.toObjects(Progreso::class.java)
     }
 
     suspend fun obtenerTotalTareasCompletadas(correo: String): Int = withContext(Dispatchers.IO) {
@@ -311,8 +498,19 @@ class DataRepository {
         id.toLong()
     }
 
+    suspend fun actualizarNota(nota: Nota) = withContext(Dispatchers.IO) {
+        val colRef = db.collection("usuarios").document(nota.correo_usuario).collection("notas")
+        val snap = colRef.whereEqualTo("id", nota.id).get().await()
+        for (doc in snap.documents) {
+            doc.reference.set(nota).await()
+        }
+    }
+
     suspend fun eliminarNota(id: Int, correo: String) = withContext(Dispatchers.IO) {
-        val snap = db.collection("usuarios").document(correo).collection("notas").whereEqualTo("id", id).get().await()
-        snap.documents.forEach { it.reference.delete().await() }
+        val colRef = db.collection("usuarios").document(correo).collection("notas")
+        val snap = colRef.whereEqualTo("id", id).get().await()
+        for (doc in snap.documents) {
+            doc.reference.delete().await()
+        }
     }
 }

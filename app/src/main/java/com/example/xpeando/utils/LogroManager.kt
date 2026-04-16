@@ -14,11 +14,13 @@ import com.example.xpeando.model.Usuario
 object LogroManager {
 
     suspend fun obtenerLogrosDefinidos(repository: DataRepository, usuario: Usuario): List<Logro> {
-        val totalTareas = repository.obtenerTotalTareasCompletadas(usuario.correo)
-        val totalDailies = repository.obtenerTotalDailiesCompletadas(usuario.correo)
-        val totalHabitos = repository.obtenerTotalHabitosCompletados(usuario.correo)
-        val totalItems = repository.obtenerInventario(usuario.correo).size
+        val totalTareas = usuario.totalTareasCompletadas
+        val totalDailies = usuario.totalDailiesCompletadas
+        val totalHabitos = usuario.totalHabitosCompletados
         val monedas = usuario.monedas
+        
+        // El único que requiere consulta es el inventario (por ahora)
+        val totalItems = repository.obtenerInventario(usuario.correo).size
 
         val logros = listOf(
             // --- MISIONES ---

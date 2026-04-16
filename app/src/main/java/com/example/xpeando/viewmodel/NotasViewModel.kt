@@ -32,31 +32,11 @@ class NotasViewModel(private val repository: DataRepository) : ViewModel() {
         notasListener = db.collection("usuarios").document(correo)
             .collection("notas")
             .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    // Fallback a local si hay error de red
-                    viewModelScope.launch {
-                        _notas.value = withContext(Dispatchers.IO) { repository.obtenerTodasNotas(correo) }
-                    }
-                    return@addSnapshotListener
-                }
+                if (e != null) return@addSnapshotListener
 
                 if (snapshot != null) {
                     val lista = snapshot.toObjects(Nota::class.java)
-                    
-                    // Si Firebase está vacío, intentamos migrar desde local una sola vez
-                    if (lista.isEmpty()) {
-                        viewModelScope.launch {
-                            val locales = withContext(Dispatchers.IO) { repository.obtenerTodasNotas(correo) }
-                            if (locales.isNotEmpty()) {
-                                locales.forEach { nota ->
-                                    db.collection("usuarios").document(correo)
-                                        .collection("notas").document(nota.id.toString()).set(nota)
-                                }
-                            }
-                        }
-                    } else {
-                        _notas.value = lista
-                    }
+                    _notas.value = lista
                 }
             }
     }
@@ -69,18 +49,9 @@ class NotasViewModel(private val repository: DataRepository) : ViewModel() {
     fun insertarNota(nota: Nota) {
         viewModelScope.launch {
             try {
-                // 1. Insertar en local para obtener un ID único numérico
-                val idLocal = withContext(Dispatchers.IO) { repository.insertarNota(nota) }
-                val notaConId = nota.copy(id = idLocal.toInt())
-                
-                // 2. Subir a Firestore usando el mismo ID
-                db.collection("usuarios").document(nota.correo_usuario)
-                    .collection("notas").document(idLocal.toString())
-                    .set(notaConId).await()
-                
-                // No hace falta llamar a cargarNotas() porque el Listener lo hará por nosotros
+                repository.insertarNota(nota)
             } catch (e: Exception) {
-                // Error manejado por el listener
+                // El listener se encargará de reflejar el estado actual
             }
         }
     }
@@ -88,27 +59,16 @@ class NotasViewModel(private val repository: DataRepository) : ViewModel() {
     fun actualizarNota(nota: Nota) {
         viewModelScope.launch {
             try {
-                db.collection("usuarios").document(nota.correo_usuario)
-                    .collection("notas").document(nota.id.toString())
-                    .set(nota).await()
-                withContext(Dispatchers.IO) { repository.actualizarNota(nota) }
-                cargarNotas(nota.correo_usuario)
-            } catch (e: Exception) {
-                cargarNotas(nota.correo_usuario)
-            }
+                repository.actualizarNota(nota)
+            } catch (e: Exception) { }
         }
     }
 
     fun eliminarNota(id: Int, correo: String) {
         viewModelScope.launch {
             try {
-                db.collection("usuarios").document(correo)
-                    .collection("notas").document(id.toString()).delete().await()
-                withContext(Dispatchers.IO) { repository.eliminarNota(id) }
-                cargarNotas(correo)
-            } catch (e: Exception) {
-                cargarNotas(correo)
-            }
+                repository.eliminarNota(id, correo)
+            } catch (e: Exception) { }
         }
     }
 }

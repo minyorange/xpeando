@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pbHP: ProgressBar
     private lateinit var pbXP: ProgressBar
     private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navView: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         pbHP = findViewById(R.id.pb_header_hp)
         pbXP = findViewById(R.id.pb_header_xp)
         drawerLayout = findViewById(R.id.drawer_layout)
+        navView = findViewById(R.id.nav_view)
 
         observarUsuario()
 
@@ -65,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.navegacion_inferior)
         bottomNav.setupWithNavController(navController)
 
-        val navView = findViewById<NavigationView>(R.id.nav_view)
         navView.setupWithNavController(navController)
 
         findViewById<ImageButton>(R.id.btn_menu).setOnClickListener {
@@ -216,20 +217,33 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         val usuario = viewModel.usuario.value ?: return
+        
+        // Buscar poción en el inventario
+        val inventario = viewModel.inventario.value
+        val pocion = inventario.find { it.subtipo == "POCION" }
 
         val dialogView = layoutInflater.inflate(R.layout.dialogo_muerte, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
 
-        dialogView.findViewById<Button>(R.id.btn_resucitar_pocion).setOnClickListener {
-            viewModel.actualizarProgreso(correo, 0, 0, 50)
-            dialog.dismiss()
-            isDeathDialogShowing = false
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val btnPocion = dialogView.findViewById<Button>(R.id.btn_resucitar_pocion)
+        btnPocion.isEnabled = pocion != null
+        btnPocion.text = if (pocion != null) "Usar Poción (Cura 50 HP)" else "Sin pociones"
+        btnPocion.setOnClickListener {
+            pocion?.let { p ->
+                viewModel.usarPocion(correo, p.id, 50)
+                dialog.dismiss()
+                isDeathDialogShowing = false
+            }
         }
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_monedas).apply {
-            isEnabled = usuario.monedas >= 50
+            val costo = 50
+            isEnabled = usuario.monedas >= costo
+            text = "Pagar $costo (Cura 25 HP)"
             setOnClickListener {
-                viewModel.actualizarProgreso(correo, 0, -50, 25)
+                viewModel.actualizarProgreso(correo, 0, -costo, 25)
                 dialog.dismiss()
                 isDeathDialogShowing = false
             }
@@ -264,10 +278,18 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         
+        // Obtener referencias al header del Drawer
+        val headerView = navView.getHeaderView(0)
+        val tvNavNombre = headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)
+        val tvNavNivel = headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)
+        val pbNavHP = headerView.findViewById<ProgressBar>(R.id.pb_nav_hp)
+        val pbNavXP = headerView.findViewById<ProgressBar>(R.id.pb_nav_xp)
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.usuario.collect { usuario ->
                     usuario?.let {
+                        // Actualizar UI Principal
                         tvNombre.text = it.nombre
                         tvNivel.text = "Nvl ${it.nivel}"
                         tvMonedas.text = "${it.monedas}"
@@ -277,6 +299,13 @@ class MainActivity : AppCompatActivity() {
                         pbHP.progress = it.hp
                         pbXP.max = it.nivel * 100
                         pbXP.progress = it.experiencia
+
+                        // Actualizar UI del Drawer (Menú lateral)
+                        tvNavNombre.text = it.nombre
+                        tvNavNivel.text = "Nivel ${it.nivel}"
+                        pbNavHP.progress = it.hp
+                        pbNavXP.max = it.nivel * 100
+                        pbNavXP.progress = it.experiencia
                         
                         if (it.hp <= 0 && !isDeathDialogShowing) {
                             mostrarDialogoMuerte()
