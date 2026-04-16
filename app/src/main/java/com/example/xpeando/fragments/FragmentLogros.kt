@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.adapters.LogrosAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.viewmodel.LogrosViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
@@ -21,7 +20,7 @@ import kotlinx.coroutines.launch
 class FragmentLogros : Fragment() {
 
     private val logrosViewModel: LogrosViewModel by viewModels {
-        ViewModelFactory(DataRepository(DBHelper(requireContext())))
+        ViewModelFactory(DataRepository())
     }
     private lateinit var rvLogros: RecyclerView
 

@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.xpeando.R
 import com.example.xpeando.adapters.NotasAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Nota
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.utils.XpeandoToast
@@ -28,7 +27,7 @@ import kotlinx.coroutines.launch
 
 class FragmentNotas : Fragment() {
 
-    private val viewModel: NotasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val viewModel: NotasViewModel by viewModels { ViewModelFactory(DataRepository()) }
     private lateinit var rvNotas: RecyclerView
     private lateinit var fabAnadir: FloatingActionButton
     private lateinit var adapter: NotasAdapter

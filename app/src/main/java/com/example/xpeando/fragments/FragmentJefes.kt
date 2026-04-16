@@ -17,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.adapters.HistorialJefesAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Jefe
 import com.example.xpeando.utils.NotificationHelper
 import com.example.xpeando.repository.DataRepository
@@ -27,9 +26,8 @@ import kotlinx.coroutines.launch
 
 class FragmentJefes : Fragment() {
 
-    private lateinit var dbHelper: DBHelper
     private val rpgViewModel: RpgViewModel by viewModels {
-        ViewModelFactory(DataRepository(DBHelper(requireContext())))
+        ViewModelFactory(DataRepository())
     }
     private var jefeActual: Jefe? = null
 
@@ -51,7 +49,6 @@ class FragmentJefes : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_jefes, container, false)
-        dbHelper = DBHelper(requireContext())
 
         tvNombreJefe = view.findViewById(R.id.tvNombreJefe)
         tvDescripcionJefe = view.findViewById(R.id.tvDescripcionJefe)
@@ -239,6 +236,8 @@ class FragmentJefes : Fragment() {
         lifecycleScope.launch {
             val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
             val correo = prefs.getString("correo_usuario", "") ?: ""
+            
+            // Llamada segura a la función suspend del ViewModel
             val ultimaMuerte = rpgViewModel.obtenerUltimoJefeDerrotadoTime(correo)
             
             if (ultimaMuerte == 0L) {
@@ -267,7 +266,6 @@ class FragmentJefes : Fragment() {
                     }
                 }.start()
             } else {
-                // Ya debería haber reaparecido
                 rpgViewModel.cargarJefeActivo(correo)
             }
         }

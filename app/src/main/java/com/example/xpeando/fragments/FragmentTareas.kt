@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.TareasAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Tarea
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.utils.LogroManager
@@ -33,8 +32,8 @@ import kotlinx.coroutines.launch
 class FragmentTareas : Fragment() {
 
     private lateinit var repository: DataRepository
-    private val viewModel: TareasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
-    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val viewModel: TareasViewModel by viewModels { ViewModelFactory(DataRepository()) }
+    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository()) }
     private lateinit var adaptador: TareasAdapter
     private lateinit var rvTareas: RecyclerView
     private lateinit var chipGroupFiltros: ChipGroup
@@ -49,7 +48,7 @@ class FragmentTareas : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        repository = DataRepository(DBHelper(requireContext()))
+        repository = DataRepository()
         
         rvTareas = view.findViewById(R.id.rv_tareas)
         chipGroupFiltros = view.findViewById(R.id.chip_group_filtros)
@@ -74,7 +73,6 @@ class FragmentTareas : Fragment() {
                 if (!tarea.completada && completada) {
                     viewModel.completarTarea(requireContext(), tarea, correo) { nuevoNivel ->
                         mostrarDialogoSubidaNivel(nuevoNivel)
-                        usuarioViewModel.refrescarUsuario(correo)
                     }
                     mostrarToastPersonalizado("¡Misión Completada!")
                 } else {
@@ -99,9 +97,7 @@ class FragmentTareas : Fragment() {
                 }
                 launch {
                     viewModel.usuario.collect { usuario ->
-                        usuario?.let {
-                            (activity as? MainActivity)?.actualizarHeader()
-                        }
+                        // La UI se actualiza sola mediante el flujo de datos
                     }
                 }
             }

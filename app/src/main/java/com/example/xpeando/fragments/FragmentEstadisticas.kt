@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.adapters.LogrosAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.viewmodel.EstadisticasViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
@@ -31,7 +30,7 @@ import java.util.*
 
 class FragmentEstadisticas : Fragment() {
 
-    private val viewModel: EstadisticasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val viewModel: EstadisticasViewModel by viewModels { ViewModelFactory(DataRepository()) }
     private lateinit var rvLogros: RecyclerView
     private lateinit var tvTareas: TextView
     private lateinit var tvDailies: TextView

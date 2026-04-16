@@ -16,7 +16,7 @@ object LogroManager {
     suspend fun obtenerLogrosDefinidos(repository: DataRepository, usuario: Usuario): List<Logro> {
         val totalTareas = repository.obtenerTotalTareasCompletadas(usuario.correo)
         val totalDailies = repository.obtenerTotalDailiesCompletadas(usuario.correo)
-        val totalHabitos = repository.obtenerTodosHabitos(usuario.correo).size
+        val totalHabitos = repository.obtenerTotalHabitosCompletados(usuario.correo)
         val totalItems = repository.obtenerInventario(usuario.correo).size
         val monedas = usuario.monedas
 

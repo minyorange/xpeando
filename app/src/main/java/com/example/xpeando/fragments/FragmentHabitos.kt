@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.HabitosAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Habito
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.utils.LogroManager
@@ -34,8 +33,8 @@ import kotlinx.coroutines.launch
 class FragmentHabitos : Fragment() {
 
     private lateinit var repository: DataRepository
-    private val viewModel: HabitosViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
-    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val viewModel: HabitosViewModel by viewModels { ViewModelFactory(DataRepository()) }
+    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository()) }
     private lateinit var adaptador: HabitosAdapter
     private lateinit var rvHabitos: RecyclerView
 
@@ -49,7 +48,7 @@ class FragmentHabitos : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        repository = DataRepository(DBHelper(requireContext()))
+        repository = DataRepository()
         
         rvHabitos = view.findViewById(R.id.rv_habitos)
         val fabAnadirHabito = view.findViewById<FloatingActionButton>(R.id.fab_anadir_habito)
@@ -71,9 +70,7 @@ class FragmentHabitos : Fragment() {
             onAccionHabito = { habito, delta ->
                 viewModel.procesarAccion(requireContext(), habito, delta, correo) { nuevoNivel ->
                     mostrarDialogoSubidaNivel(nuevoNivel)
-                    usuarioViewModel.refrescarUsuario(correo)
                 }
-                usuarioViewModel.refrescarUsuario(correo)
             },
             onLongClick = { habito ->
                 mostrarDialogoEliminar(habito)
@@ -93,9 +90,7 @@ class FragmentHabitos : Fragment() {
                 }
                 launch {
                     viewModel.usuario.collect { usuario ->
-                        usuario?.let {
-                            (activity as? MainActivity)?.actualizarHeader()
-                        }
+                        // UI se actualiza automáticamente mediante Flow
                     }
                 }
             }

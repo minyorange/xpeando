@@ -14,13 +14,12 @@ import androidx.activity.viewModels
 import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.example.xpeando.repository.DataRepository
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.utils.XpeandoToast
 import com.google.android.material.card.MaterialCardView
 
 class LoginActivity : AppCompatActivity() {
 
-    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(this))) }
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

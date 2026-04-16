@@ -6,26 +6,22 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.xpeando.R
 import androidx.activity.viewModels
 import com.example.xpeando.viewmodel.UsuarioViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import com.example.xpeando.repository.DataRepository
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.utils.XpeandoToast
 import com.example.xpeando.model.Usuario
 
 class RegistroActivity : AppCompatActivity() {
 
-    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(this))) }
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registro)
-
-        // db = DBHelper(this)
 
         val imgDragon = findViewById<ImageView>(R.id.img_dragon_anim)
         val animation = AnimationUtils.loadAnimation(this, R.anim.float_animation)
@@ -49,8 +45,8 @@ class RegistroActivity : AppCompatActivity() {
                     val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
                     viewModel.registrarUsuarioFirebase(nuevoUsuario) { exito, error ->
                         if (exito) {
-                            XpeandoToast.success(this@RegistroActivity, "¡Registro con éxito en Firebase!")
-                            finish() // Vuelve al Login
+                            XpeandoToast.success(this@RegistroActivity, "¡Cuenta creada en la nube!")
+                            finish()
                         } else {
                             XpeandoToast.error(this@RegistroActivity, "Error: ${error ?: "Error desconocido"}")
                         }

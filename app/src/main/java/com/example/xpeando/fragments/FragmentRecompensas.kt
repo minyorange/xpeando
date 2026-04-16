@@ -22,7 +22,6 @@ import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.InventarioAdapter
 import com.example.xpeando.adapters.RecompensasAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Recompensa
 import com.example.xpeando.repository.DataRepository
@@ -35,7 +34,7 @@ import kotlinx.coroutines.launch
 
 class FragmentRecompensas : Fragment() {
 
-    private val viewModel: RecompensasViewModel by viewModels { ViewModelFactory(DataRepository(DBHelper(requireContext()))) }
+    private val viewModel: RecompensasViewModel by viewModels { ViewModelFactory(DataRepository()) }
     private lateinit var rvRecompensas: RecyclerView
     private lateinit var tvSaldo: TextView
     private lateinit var tabLayout: TabLayout
@@ -110,7 +109,6 @@ class FragmentRecompensas : Fragment() {
                 viewModel.canjearRecompensaPersonal(requireContext(), correoUsuario, recompensa) { exito, mensaje ->
                     if (exito) {
                         XpeandoToast.success(requireContext(), mensaje)
-                        (activity as? MainActivity)?.actualizarHeader()
                     } else {
                         XpeandoToast.error(requireContext(), mensaje)
                     }
@@ -128,7 +126,6 @@ class FragmentRecompensas : Fragment() {
             viewModel.comprarArticuloArmeria(requireContext(), correoUsuario, articulo) { exito, mensaje ->
                 if (exito) {
                     XpeandoToast.success(requireContext(), mensaje)
-                    (activity as? MainActivity)?.actualizarHeader()
                 } else {
                     XpeandoToast.error(requireContext(), mensaje)
                 }

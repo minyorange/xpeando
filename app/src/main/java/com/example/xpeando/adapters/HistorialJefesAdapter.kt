@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.model.Jefe
 
-class HistorialJefesAdapter(private val jefes: List<Jefe>) :
+class HistorialJefesAdapter(private var jefes: List<Jefe>) :
     RecyclerView.Adapter<HistorialJefesAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -41,4 +41,9 @@ class HistorialJefesAdapter(private val jefes: List<Jefe>) :
     }
 
     override fun getItemCount() = jefes.size
+
+    fun actualizarLista(nuevaLista: List<Jefe>) {
+        jefes = nuevaLista
+        notifyDataSetChanged()
+    }
 }

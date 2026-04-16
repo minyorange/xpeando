@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.model.Logro
 
-class LogrosAdapter(private val logros: List<Logro>) :
+class LogrosAdapter(private var logros: List<Logro>) :
     RecyclerView.Adapter<LogrosAdapter.LogroViewHolder>() {
 
     class LogroViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -30,13 +30,13 @@ class LogrosAdapter(private val logros: List<Logro>) :
         val logro = logros[position]
         holder.tvNombre.text = logro.nombre
         
-        // Corregir para que el progreso no supere el requisito visualmente
         val progresoVisual = if (logro.progresoActual > logro.requisito) logro.requisito else logro.progresoActual
         holder.tvProgreso.text = "$progresoVisual/${logro.requisito}"
         
         holder.pbLogro.max = logro.requisito
         holder.pbLogro.progress = progresoVisual
         
+        // Carga segura de iconos (mejor si migramos a String pronto)
         holder.ivIcono.setImageResource(logro.iconoResId)
 
         if (logro.completado) {
@@ -48,4 +48,9 @@ class LogrosAdapter(private val logros: List<Logro>) :
     }
 
     override fun getItemCount() = logros.size
+
+    fun actualizarLista(nuevaLista: List<Logro>) {
+        logros = nuevaLista
+        notifyDataSetChanged()
+    }
 }

@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.activities.MainActivity
 import com.example.xpeando.adapters.InventarioAdapter
-import com.example.xpeando.database.DBHelper
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Usuario
@@ -34,7 +33,7 @@ import java.util.Locale
 class FragmentPersonaje : Fragment() {
 
     private val usuarioViewModel: UsuarioViewModel by activityViewModels {
-        ViewModelFactory(DataRepository(DBHelper(requireContext())))
+        ViewModelFactory(DataRepository())
     }
     private var correoUsuario: String = ""
 
@@ -305,7 +304,6 @@ class FragmentPersonaje : Fragment() {
 
         usuarioViewModel.usarPocion(correoUsuario, id, curacion)
         XpeandoToast.success(requireContext(), "¡Poción usada! +$curacion HP")
-        (activity as? MainActivity)?.actualizarHeader()
     }
 
     private fun subirAtributo(tipo: String) {

@@ -23,5 +23,7 @@ data class Usuario(
     val totalDailiesCompletadas: Int = 0,
     val totalHabitosCompletados: Int = 0,
     val preferenciaNotificacion: String = "08:00",
-    val ultimaSincronizacion: Long = System.currentTimeMillis()
+    val ultimaSincronizacion: Long = System.currentTimeMillis(),
+    val ultimaFechaConexion: String = "", // Nueva fecha para penalizaciones Cloud
+    val ultimaFechaRecompensa: String = "" // Nueva fecha para recompensa diaria Cloud
 )
