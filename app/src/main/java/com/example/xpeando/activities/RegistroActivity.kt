@@ -47,12 +47,12 @@ class RegistroActivity : AppCompatActivity() {
             if (nombre.isNotEmpty() && correo.isNotEmpty() && contrasena.isNotEmpty() && confirmarContrasena.isNotEmpty()) {
                 if (contrasena == confirmarContrasena) {
                     val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
-                    viewModel.registrarUsuario(nuevoUsuario) { id ->
-                        if (id != -1L) {
-                            XpeandoToast.success(this@RegistroActivity, "¡Registro con éxito!")
+                    viewModel.registrarUsuarioFirebase(nuevoUsuario) { exito, error ->
+                        if (exito) {
+                            XpeandoToast.success(this@RegistroActivity, "¡Registro con éxito en Firebase!")
                             finish() // Vuelve al Login
                         } else {
-                            XpeandoToast.error(this@RegistroActivity, "Error: El correo ya existe")
+                            XpeandoToast.error(this@RegistroActivity, "Error: ${error ?: "Error desconocido"}")
                         }
                     }
                 } else {

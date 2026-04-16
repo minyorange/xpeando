@@ -185,7 +185,7 @@ class UsuarioDao(private val dbHelper: DBHelper) {
         }
     }
 
-    fun registrarHistorial(correo: String, xp: Int, monedas: Int, tipo: String) {
+    fun registrarHistorial(correo: String, xp: Int, monedas: Int, tipo: String): Long {
         val db = dbHelper.database
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val valores = ContentValues().apply {
@@ -195,7 +195,27 @@ class UsuarioDao(private val dbHelper: DBHelper) {
             put("monedas", monedas)
             put("tipo", tipo)
         }
-        db.insert("historial_progreso", null, valores)
+        return db.insert("historial_progreso", null, valores)
+    }
+
+    fun obtenerHistorialCompleto(correo: String): List<Progreso> {
+        val lista = mutableListOf<Progreso>()
+        val db = dbHelper.database
+        val cursor = db.rawQuery("SELECT * FROM historial_progreso WHERE correo_usuario = ?", arrayOf(correo))
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(Progreso(
+                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("correo_usuario")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("fecha")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("xp")),
+                    cursor.getInt(cursor.getColumnIndexOrThrow("monedas")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("tipo"))
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
     }
 
     fun obtenerXPSemanal(correo: String): Map<String, Int> {
@@ -246,13 +266,40 @@ class UsuarioDao(private val dbHelper: DBHelper) {
     fun actualizarAtributos(correo: String, fza: Double = 0.0, int: Double = 0.0, con: Double = 0.0, per: Double = 0.0, puntosUsados: Int = 0) {
         val usuario = obtenerUsuarioLogueado(correo) ?: return
         val db = dbHelper.database
+        val nuevosPuntos = (usuario.puntosDisponibles - puntosUsados).coerceAtLeast(0)
         val valores = ContentValues().apply {
             put("fuerza", usuario.fuerza + fza)
             put("inteligencia", usuario.inteligencia + int)
             put("constitucion", usuario.constitucion + con)
             put("percepcion", usuario.percepcion + per)
-            put("puntosDisponibles", usuario.puntosDisponibles - puntosUsados)
+            put("puntosDisponibles", nuevosPuntos)
         }
         db.update("usuarios", valores, "correo = ?", arrayOf(correo))
+    }
+
+    fun upsertUsuario(usuario: Usuario) {
+        val db = dbHelper.writableDatabase
+        val valores = ContentValues().apply {
+            put("nombre", usuario.nombre)
+            put("correo", usuario.correo)
+            put("contrasena", usuario.contrasena)
+            put("nivel", usuario.nivel)
+            put("experiencia", usuario.experiencia)
+            put("monedas", usuario.monedas)
+            put("hp", usuario.hp)
+            put("fuerza", usuario.fuerza)
+            put("inteligencia", usuario.inteligencia)
+            put("constitucion", usuario.constitucion)
+            put("percepcion", usuario.percepcion)
+            put("puntosDisponibles", usuario.puntosDisponibles)
+            put("totalHabitos", usuario.totalHabitos)
+            put("rachaActual", usuario.rachaActual)
+            put("rachaMaxima", usuario.rachaMaxima)
+            put("ultimaFechaActividad", usuario.ultimaFechaActividad)
+        }
+        val rows = db.update("usuarios", valores, "correo = ?", arrayOf(usuario.correo))
+        if (rows == 0) {
+            db.insert("usuarios", null, valores)
+        }
     }
 }

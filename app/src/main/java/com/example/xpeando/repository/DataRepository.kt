@@ -40,8 +40,16 @@ class DataRepository(private val dbHelper: DBHelper) {
         usuarioDao.actualizarAtributos(correo, fza, int, con, per, puntos)
     }
 
+    suspend fun upsertUsuario(usuario: Usuario) = withContext(Dispatchers.IO) {
+        usuarioDao.upsertUsuario(usuario)
+    }
+
     suspend fun obtenerXPSemanal(correo: String) = withContext(Dispatchers.IO) {
         usuarioDao.obtenerXPSemanal(correo)
+    }
+
+    suspend fun obtenerHistorialCompleto(correo: String): List<Progreso> = withContext(Dispatchers.IO) {
+        usuarioDao.obtenerHistorialCompleto(correo)
     }
 
     // --- RPG ---

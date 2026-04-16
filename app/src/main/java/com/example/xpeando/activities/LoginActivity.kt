@@ -61,8 +61,8 @@ class LoginActivity : AppCompatActivity() {
             val contrasena = etContrasena.text.toString()
 
             if (correo.isNotEmpty() && contrasena.isNotEmpty()) {
-                viewModel.validarUsuario(correo, contrasena) { existe ->
-                    if (existe) {
+                viewModel.loginUsuarioFirebase(correo, contrasena) { exito, error ->
+                    if (exito) {
                         // --- GUARDAR SESIÓN DEL USUARIO ---
                         val editor = prefs.edit()
                         editor.putString("correo_usuario", correo)
@@ -74,7 +74,7 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(intent)
                         finish()
                     } else {
-                        XpeandoToast.error(this@LoginActivity, "Correo o contraseña incorrectos")
+                        XpeandoToast.error(this@LoginActivity, "Error: ${error ?: "Credenciales incorrectas"}")
                     }
                 }
             } else {

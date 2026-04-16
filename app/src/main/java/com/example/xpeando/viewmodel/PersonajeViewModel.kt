@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.xpeando.repository.DataRepository
 import com.example.xpeando.model.Articulo
 import com.example.xpeando.model.Usuario
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PersonajeViewModel(private val repository: DataRepository) : ViewModel() {
+    private val db = FirebaseFirestore.getInstance()
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario.asStateFlow()
 
@@ -20,16 +23,56 @@ class PersonajeViewModel(private val repository: DataRepository) : ViewModel() {
     val inventario: StateFlow<List<Articulo>> = _inventario.asStateFlow()
 
     private var correoActual: String? = null
+    private var usuarioListener: ListenerRegistration? = null
+    private var inventarioListener: ListenerRegistration? = null
 
     fun cargarDatos(correo: String) {
         if (correo.isEmpty()) return
         correoActual = correo
-        viewModelScope.launch {
-            val u = withContext(Dispatchers.IO) { repository.obtenerUsuarioLogueado(correo) }
-            val inv = withContext(Dispatchers.IO) { repository.obtenerInventario(correo) }
-            _usuario.emit(u)
-            _inventario.emit(inv)
-        }
+
+        // Escuchar Usuario en tiempo real
+        usuarioListener?.remove()
+        usuarioListener = db.collection("usuarios").document(correo)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                if (snapshot != null && snapshot.exists()) {
+                    val user = snapshot.toObject(Usuario::class.java)
+                    _usuario.value = user
+                    
+                    // Sincronizar hacia local si viene de la nube
+                    viewModelScope.launch {
+                        user?.let { repository.upsertUsuario(it) }
+                    }
+                }
+            }
+
+        // Escuchar Inventario en tiempo real
+        inventarioListener?.remove()
+        inventarioListener = db.collection("usuarios").document(correo)
+            .collection("inventario")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                if (snapshot != null) {
+                    val lista = snapshot.toObjects(Articulo::class.java)
+                    if (lista.isEmpty()) {
+                        viewModelScope.launch {
+                            val invLocales = withContext(Dispatchers.IO) { repository.obtenerInventario(correo) }
+                            invLocales.forEach { art ->
+                                db.collection("usuarios").document(correo)
+                                    .collection("inventario").document(art.id.toString()).set(art)
+                            }
+                        }
+                    } else {
+                        _inventario.value = lista
+                    }
+                }
+            }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        usuarioListener?.remove()
+        inventarioListener?.remove()
     }
 
     fun refrescarSiEsNecesario() {

@@ -2,10 +2,10 @@ package com.example.xpeando.model
 
 data class Articulo(
     val id: Int = 0,
-    val nombre: String,
-    val tipo: String, // "EQUIPO", "CONSUMIBLE"
-    val subtipo: String, // "ARMA", "ARMADURA", "POCION"
-    val precio: Int,
+    val nombre: String = "",
+    val tipo: String = "CONSUMIBLE", // "EQUIPO", "CONSUMIBLE"
+    val subtipo: String = "POCION", // "ARMA", "ARMADURA", "POCION"
+    val precio: Int = 0,
     val bonusFza: Int = 0,
     val bonusInt: Int = 0,
     val bonusCon: Int = 0,
