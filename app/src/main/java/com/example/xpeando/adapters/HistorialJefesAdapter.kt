@@ -16,7 +16,8 @@ class HistorialJefesAdapter(private var jefes: List<Jefe>) :
         val ivIcono: ImageView = view.findViewById(R.id.ivHistorialIcono)
         val tvNombre: TextView = view.findViewById(R.id.tvHistorialNombre)
         val tvNivel: TextView = view.findViewById(R.id.tvHistorialNivel)
-        val tvRecompensas: TextView = view.findViewById(R.id.tvHistorialRecompensas)
+        val tvMonedas: TextView = view.findViewById(R.id.tvHistorialMonedas)
+        val tvXP: TextView = view.findViewById(R.id.tvHistorialXP)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,7 +30,8 @@ class HistorialJefesAdapter(private var jefes: List<Jefe>) :
         val jefe = jefes[position]
         holder.tvNombre.text = jefe.nombre
         holder.tvNivel.text = "Nivel ${jefe.nivel}"
-        holder.tvRecompensas.text = "+${jefe.recompensaMonedas} | +${jefe.recompensaXP} XP"
+        holder.tvMonedas.text = "+${jefe.recompensaMonedas}"
+        holder.tvXP.text = " | +${jefe.recompensaXP} XP"
         
         val context = holder.itemView.context
         val resId = context.resources.getIdentifier(jefe.icono, "drawable", context.packageName)

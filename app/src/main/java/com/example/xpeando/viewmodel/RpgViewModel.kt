@@ -15,6 +15,10 @@ class RpgViewModel(private val repository: DataRepository) : ViewModel() {
     private val _jefeActivo = MutableStateFlow<Jefe?>(null)
     val jefeActivo: StateFlow<Jefe?> = _jefeActivo.asStateFlow()
 
+    // Guardamos el HP anterior para animar al entrar al fragmento
+    var hpAntesDeCambio: Int = -1
+    private var primerCarga = true
+
     private val _historialJefes = MutableStateFlow<List<Jefe>>(emptyList())
     val historialJefes: StateFlow<List<Jefe>> = _historialJefes.asStateFlow()
 
@@ -39,20 +43,20 @@ class RpgViewModel(private val repository: DataRepository) : ViewModel() {
             
             if (snapshot != null && snapshot.exists()) {
                 val jefe = snapshot.toObject(Jefe::class.java)
-                if (jefe != null && !jefe.derrotado) {
-                    _jefeActivo.value = jefe
-                } else {
-                    // Si el jefe está derrotado, comprobamos si ha pasado el tiempo de respawn
-                    val ultimaMuerte = jefe?.fechaMuerte ?: 0L
+                if (jefe != null) {
+                    val ultimaMuerte = jefe.fechaMuerte
                     val tiempoRespawn = 21 * 60 * 60 * 1000L
-                    if (System.currentTimeMillis() >= (ultimaMuerte + tiempoRespawn)) {
-                        // Forzar regeneración a través del repositorio
+                    val tiempoTranscurrido = System.currentTimeMillis() - ultimaMuerte
+                    
+                    if (jefe.derrotado && tiempoTranscurrido >= tiempoRespawn) {
+                        // Si está derrotado pero ya pasó el tiempo, pedir uno nuevo
                         viewModelScope.launch {
                             val nuevoJefe = repository.obtenerJefeActivo(correo)
                             _jefeActivo.value = nuevoJefe
                         }
                     } else {
-                        _jefeActivo.value = null
+                        // Emitimos el jefe tal cual (vivo o derrotado en cooldown)
+                        _jefeActivo.value = jefe
                     }
                 }
             } else {

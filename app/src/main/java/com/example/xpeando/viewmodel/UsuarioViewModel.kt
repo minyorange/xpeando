@@ -40,9 +40,14 @@ class UsuarioViewModel(private val repository: DataRepository) : ViewModel() {
                 }
             }
 
-        viewModelScope.launch {
-            _inventario.value = repository.obtenerInventario(correo)
-        }
+        // También escuchar el inventario en tiempo real para que los botones se actualicen
+        db.collection("usuarios").document(correo).collection("inventario")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                if (snapshot != null) {
+                    _inventario.value = snapshot.toObjects(Articulo::class.java)
+                }
+            }
     }
 
     override fun onCleared() {

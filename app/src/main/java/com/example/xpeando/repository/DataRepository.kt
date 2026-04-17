@@ -27,24 +27,36 @@ class DataRepository {
         val userRef = db.collection("usuarios").document(correo)
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         
+        // Cargar bonos de equipo antes de la transacción
+        val equippedSnap = userRef.collection("inventario").whereEqualTo("equipado", true).get().await()
+        val itemsEquipados = equippedSnap.toObjects(Articulo::class.java)
+        val bonusFza = itemsEquipados.sumOf { it.bonusFza }
+        val bonusInt = itemsEquipados.sumOf { it.bonusInt }
+        val bonusCon = itemsEquipados.sumOf { it.bonusCon }
+        val bonusPer = itemsEquipados.sumOf { it.bonusPer }
+
         db.runTransaction { transaction ->
-            // --- LECTURAS (READS) ---
             val u = transaction.get(userRef).toObject(Usuario::class.java) ?: return@runTransaction
             
             val jefeRef = userRef.collection("rpg").document("jefe_activo")
             val jefeSnap = if (tipoAccion != null) transaction.get(jefeRef) else null
             val jefe = jefeSnap?.toObject(Jefe::class.java)
 
-            // --- CÁLCULOS ---
             val bonusRacha = when {
                 u.rachaActual >= 7 -> 1.25
                 u.rachaActual >= 3 -> 1.10
                 else -> 1.0
             }
 
-            val xpFinal = if (xpBase > 0) (xpBase * u.inteligencia * bonusRacha).toInt() else xpBase
-            val monedasFinal = if (monedasBase > 0) (monedasBase * u.percepcion * bonusRacha).toInt() else monedasBase
-            val hpFinalCambio = if (hpCambioBase < 0) (hpCambioBase / u.constitucion).toInt() else hpCambioBase
+            // Aplicar multiplicadores base + bonos de equipo (10 bonus = +1.0 al multiplicador)
+            val multFza = u.fuerza + (bonusFza / 10.0)
+            val multInt = u.inteligencia + (bonusInt / 10.0)
+            val multCon = u.constitucion + (bonusCon / 10.0)
+            val multPer = u.percepcion + (bonusPer / 10.0)
+
+            val xpFinal = if (xpBase > 0) (xpBase * multInt * bonusRacha).toInt() else xpBase
+            val monedasFinal = if (monedasBase > 0) (monedasBase * multPer * bonusRacha).toInt() else monedasBase
+            val hpFinalCambio = if (hpCambioBase < 0) (hpCambioBase / multCon).toInt() else hpCambioBase
 
             var nuevoXp = u.experiencia + xpFinal
             var nuevoNivel = u.nivel
@@ -52,7 +64,6 @@ class DataRepository {
             var nuevaHp = u.hp + hpFinalCambio
             var nuevosPuntos = u.puntosDisponibles
             
-            // Contadores para estadísticas
             var totalTareas = u.totalTareasCompletadas
             var totalDailies = u.totalDailiesCompletadas
             var totalHabitos = u.totalHabitosCompletados
@@ -63,7 +74,6 @@ class DataRepository {
                 "HABITO" -> totalHabitos++
             }
 
-            // ATAQUE AL JEFE AUTOMÁTICO
             if (jefe != null && !jefe.derrotado && tipoAccion != null) {
                 val danioBase = when(tipoAccion) {
                     "TAREA" -> 25
@@ -71,25 +81,22 @@ class DataRepository {
                     "HABITO" -> 15
                     else -> 0
                 }
-                val danioTotal = (danioBase * u.fuerza).toInt()
+                val danioTotal = (danioBase * multFza).toInt()
                 val nuevaHpJefe = (jefe.hpActual - danioTotal).coerceAtLeast(0)
+                
+                transaction.update(jefeRef, "hpActual", nuevaHpJefe)
                 
                 if (nuevaHpJefe <= 0) {
                     transaction.update(jefeRef, mapOf(
-                        "hpActual" to 0,
                         "derrotado" to true,
                         "fechaMuerte" to System.currentTimeMillis()
                     ))
 
-                    // Guardar en el historial de jefes derrotados
                     val histJefeRef = userRef.collection("rpg_historial").document()
                     transaction.set(histJefeRef, jefe.copy(hpActual = 0, derrotado = true, fechaMuerte = System.currentTimeMillis()))
 
-                    // Recompensas del jefe
                     nuevoXp += jefe.recompensaXP
                     nuevasMonedas += jefe.recompensaMonedas
-                } else {
-                    transaction.update(jefeRef, "hpActual", nuevaHpJefe)
                 }
             }
 
@@ -215,10 +222,13 @@ class DataRepository {
         val userRef = db.collection("usuarios").document(correo)
         val jefeRef = userRef.collection("rpg").document("jefe_activo")
         
+        val equippedSnap = userRef.collection("inventario").whereEqualTo("equipado", true).get().await()
+        val bonusFza = equippedSnap.toObjects(Articulo::class.java).sumOf { it.bonusFza }
+
         db.runTransaction { transaction ->
             val u = transaction.get(userRef).toObject(Usuario::class.java) ?: return@runTransaction false
             val jefe = transaction.get(jefeRef).toObject(Jefe::class.java) ?: return@runTransaction false
-            val danioTotal = (danio * u.fuerza).toInt()
+            val danioTotal = (danio * (u.fuerza + (bonusFza / 10.0))).toInt()
             val nuevaHp = jefe.hpActual - danioTotal
             
             if (nuevaHp <= 0) {
@@ -245,15 +255,44 @@ class DataRepository {
 
     suspend fun comprarArticulo(correo: String, articulo: Articulo): Boolean = withContext(Dispatchers.IO) {
         val userRef = db.collection("usuarios").document(correo)
-        db.runTransaction { transaction ->
-            val u = transaction.get(userRef).toObject(Usuario::class.java) ?: return@runTransaction false
-            if (u.monedas >= articulo.precio) {
-                transaction.update(userRef, "monedas", u.monedas - articulo.precio)
-                val invRef = userRef.collection("inventario").document()
-                transaction.set(invRef, articulo.copy(id = invRef.id.hashCode()))
-                true
-            } else false
-        }.await()
+        val docId = articulo.nombre.replace(" ", "_").lowercase()
+        val itemRef = userRef.collection("inventario").document(docId)
+        
+        try {
+            db.runTransaction { transaction ->
+                val userSnapshot = transaction.get(userRef)
+                // Usamos toObject para asegurar consistencia con el modelo y evitar problemas de tipos Long/Int
+                val u = userSnapshot.toObject(Usuario::class.java) ?: return@runTransaction false
+                
+                if (u.monedas >= articulo.precio) {
+                    val itemSnapshot = transaction.get(itemRef)
+                    
+                    if (itemSnapshot.exists()) {
+                        if (articulo.tipo == "EQUIPO") {
+                            return@runTransaction false // Ya tiene este equipo
+                        }
+                        val cantActual = itemSnapshot.getLong("cantidad")?.toInt() ?: 1
+                        transaction.update(itemRef, "cantidad", cantActual + 1)
+                    } else {
+                        val articuloPropio = articulo.copy(
+                            id = docId.hashCode(),
+                            esPropio = true,
+                            cantidad = 1,
+                            equipado = false
+                        )
+                        transaction.set(itemRef, articuloPropio)
+                    }
+
+                    transaction.update(userRef, "monedas", u.monedas - articulo.precio)
+                    true
+                } else {
+                    false // Monedas insuficientes
+                }
+            }.await()
+        } catch (e: Exception) {
+            android.util.Log.e("DataRepository", "Error en compra: ${e.message}")
+            false
+        }
     }
 
     suspend fun equiparDesequipar(correo: String, idArticulo: Int) = withContext(Dispatchers.IO) {
@@ -266,8 +305,19 @@ class DataRepository {
     }
 
     suspend fun eliminarDelInventario(id: Int, correo: String) = withContext(Dispatchers.IO) {
-        val snap = db.collection("usuarios").document(correo).collection("inventario").whereEqualTo("id", id).get().await()
-        snap.documents.forEach { it.reference.delete().await() }
+        val invRef = db.collection("usuarios").document(correo).collection("inventario")
+        val snap = invRef.whereEqualTo("id", id).get().await()
+        if (snap.isEmpty) return@withContext
+        
+        db.runTransaction { transaction ->
+            val docSnap = transaction.get(snap.documents[0].reference)
+            val cantActual = docSnap.getLong("cantidad") ?: 1L
+            if (cantActual > 1) {
+                transaction.update(docSnap.reference, "cantidad", cantActual - 1)
+            } else {
+                transaction.delete(docSnap.reference)
+            }
+        }.await()
     }
 
     // --- TAREAS, DAILIES, HABITOS ---

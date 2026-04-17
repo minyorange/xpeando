@@ -114,25 +114,16 @@ class RecompensasViewModel(private val repository: DataRepository) : ViewModel()
 
     fun comprarArticuloArmeria(context: Context, correo: String, articulo: Articulo, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
-            val usuario = withContext(Dispatchers.IO) { repository.obtenerUsuarioLogueado(correo) }
-            if (usuario != null && usuario.monedas >= articulo.precio) {
-                if (withContext(Dispatchers.IO) { repository.comprarArticulo(correo, articulo) }) {
-                    withContext(Dispatchers.IO) {
-                        repository.actualizarProgresoUsuario(correo, 0, -articulo.precio)
-                        val uActualizado = repository.obtenerUsuarioLogueado(correo)
-                        if (uActualizado != null) db.collection("usuarios").document(correo).set(uActualizado)
-                        val inv = repository.obtenerInventario(correo)
-                        inv.forEach { 
-                            db.collection("usuarios").document(correo)
-                                .collection("inventario").document(it.id.toString()).set(it)
-                        }
-                    }
+            try {
+                // El repositorio ya maneja la transacción de resta de monedas y adición al inventario
+                val exito = withContext(Dispatchers.IO) { repository.comprarArticulo(correo, articulo) }
+                if (exito) {
                     onResult(true, "¡Has comprado ${articulo.nombre}!")
                 } else {
-                    onResult(false, "Error al procesar la compra")
+                    onResult(false, "No tienes suficientes monedas o ya posees este equipo")
                 }
-            } else {
-                onResult(false, "No tienes suficientes monedas")
+            } catch (e: Exception) {
+                onResult(false, "Error al procesar la compra: ${e.message}")
             }
         }
     }

@@ -12,8 +12,12 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import androidx.recyclerview.widget.RecyclerView
 import com.example.xpeando.R
 import com.example.xpeando.adapters.HistorialJefesAdapter
@@ -26,11 +30,12 @@ import kotlinx.coroutines.launch
 
 class FragmentJefes : Fragment() {
 
-    private val rpgViewModel: RpgViewModel by viewModels {
+    private val rpgViewModel: RpgViewModel by activityViewModels {
         ViewModelFactory(DataRepository())
     }
     private var jefeActual: Jefe? = null
 
+    private lateinit var cvJefe: androidx.cardview.widget.CardView
     private lateinit var tvNombreJefe: TextView
     private lateinit var tvDescripcionJefe: TextView
     private lateinit var tvHpJefe: TextView
@@ -38,7 +43,9 @@ class FragmentJefes : Fragment() {
     private lateinit var ivJefe: ImageView
     private lateinit var tvRecompensas: TextView
     private lateinit var tvRecompensasXP: TextView
+    private lateinit var containerJefePrincipal: View
     private lateinit var tvContadorReaparicion: TextView
+    private lateinit var tvDanioFlotante: TextView
     private lateinit var rvHistorial: RecyclerView
     private lateinit var ivInfo: ImageView
 
@@ -55,9 +62,12 @@ class FragmentJefes : Fragment() {
         tvHpJefe = view.findViewById(R.id.tvHpJefe)
         pbHpJefe = view.findViewById(R.id.pbHpJefe)
         ivJefe = view.findViewById(R.id.ivJefe)
+        cvJefe = view.findViewById(R.id.cvJefe)
         tvRecompensas = view.findViewById(R.id.tvRecompensasJefe)
         tvRecompensasXP = view.findViewById(R.id.tvRecompensasXPJefe)
+        containerJefePrincipal = view.findViewById(R.id.containerJefePrincipal)
         tvContadorReaparicion = view.findViewById(R.id.tvContadorReaparicion)
+        tvDanioFlotante = view.findViewById(R.id.tvDanioFlotante)
         rvHistorial = view.findViewById(R.id.rvHistorialJefes)
         ivInfo = view.findViewById(R.id.iv_info_jefes)
 
@@ -130,28 +140,55 @@ class FragmentJefes : Fragment() {
         dialog.show()
     }
 
-    private fun ejecutarAnimacionDano() {
-        // 1. Efecto de "Flash Rojo"
-        ivJefe.setColorFilter(android.graphics.Color.parseColor("#80FF0000")) 
+    private fun ejecutarAnimacionDano(danio: Int = 0) {
+        // 1. Efecto de "Flash Rojo" Intenso
+        ivJefe.setColorFilter(android.graphics.Color.parseColor("#FFFF0000")) 
         
-        // 2. Efecto de Vibración y Escala
-        ivJefe.animate()
-            .translationXBy(15f)
-            .scaleX(0.85f)
-            .scaleY(0.85f)
-            .setDuration(50)
+        // 2. Mostrar Daño Flotante más grande
+        if (danio > 0) {
+            tvDanioFlotante.text = "-$danio HP"
+            tvDanioFlotante.visibility = View.VISIBLE
+            tvDanioFlotante.translationY = 0f
+            tvDanioFlotante.alpha = 1f
+            tvDanioFlotante.scaleX = 1.4f
+            tvDanioFlotante.scaleY = 1.4f
+            
+            tvDanioFlotante.animate()
+                .translationY(-250f)
+                .alpha(0f)
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(1200)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .withEndAction {
+                    tvDanioFlotante.visibility = View.INVISIBLE
+                }
+        }
+
+        // 3. Vibración "Explosiva" (Sacudida triple)
+        val shakeDist = 45f
+        cvJefe.animate()
+            .translationX(shakeDist)
+            .scaleX(0.8f)
+            .scaleY(0.8f)
+            .setDuration(60)
             .withEndAction {
-                ivJefe.animate()
-                    .translationXBy(-30f)
-                    .setDuration(50)
+                cvJefe.animate()
+                    .translationX(-shakeDist)
+                    .setDuration(60)
                     .withEndAction {
-                        ivJefe.animate()
-                            .translationX(0f)
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .setDuration(50)
+                        cvJefe.animate()
+                            .translationX(shakeDist / 2)
+                            .setDuration(60)
                             .withEndAction {
-                                ivJefe.clearColorFilter()
+                                cvJefe.animate()
+                                    .translationX(0f)
+                                    .scaleX(1.0f)
+                                    .scaleY(1.0f)
+                                    .setDuration(60)
+                                    .withEndAction {
+                                        ivJefe.clearColorFilter()
+                                    }
                             }
                     }
             }
@@ -171,18 +208,42 @@ class FragmentJefes : Fragment() {
     }
 
     private fun observarViewModel() {
-        lifecycleScope.launch {
-            rpgViewModel.jefeActivo.collect { jefe ->
-                if (jefeActual != null && jefe != null && jefe.hpActual < jefeActual!!.hpActual) {
-                    // Si el HP ha bajado desde la última vez, animamos
-                    ejecutarAnimacionDano()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                rpgViewModel.jefeActivo.collect { jefe ->
+                    if (jefe == null) return@collect
+
+                    // Detectar daño (tanto en tiempo real como al volver de otra pestaña)
+                    if (rpgViewModel.hpAntesDeCambio != -1 && !jefe.derrotado) {
+                        val diferencia = rpgViewModel.hpAntesDeCambio - jefe.hpActual
+                        if (diferencia > 0) {
+                            // Si acabamos de entrar (jefeActual es null), esperamos a que se vea la UI
+                            if (jefeActual == null) {
+                                delay(600) 
+                            }
+                            ejecutarAnimacionDano(diferencia)
+                        }
+                    }
+
+                    // Actualizar el HP recordado en el ViewModel para el siguiente cambio
+                    if (!jefe.derrotado) {
+                        rpgViewModel.hpAntesDeCambio = jefe.hpActual
+                    }
+
+                    // Animación de muerte
+                    if (jefeActual != null && !jefeActual!!.derrotado && jefe.derrotado) {
+                        ejecutarAnimacionDano(jefeActual!!.hpActual)
+                    }
+                    
+                    actualizarUIJefe(jefe)
+                    jefeActual = jefe
                 }
-                actualizarUIJefe(jefe)
             }
         }
         lifecycleScope.launch {
             rpgViewModel.historialJefes.collect { historial ->
-                rvHistorial.adapter = HistorialJefesAdapter(historial)
+                val adapter = HistorialJefesAdapter(historial)
+                rvHistorial.adapter = adapter
             }
         }
     }
@@ -210,33 +271,56 @@ class FragmentJefes : Fragment() {
 
     private fun actualizarUIJefe(jefe: Jefe?) {
         countDownTimer?.cancel()
-        jefeActual = jefe
-        jefe?.let {
-            tvNombreJefe.text = it.nombre
-            tvDescripcionJefe.text = it.descripcion
+        
+        if (jefe != null && !jefe.derrotado) {
+            containerJefePrincipal.visibility = View.VISIBLE
+            tvNombreJefe.text = jefe.nombre
+            tvDescripcionJefe.text = jefe.descripcion
             tvDescripcionJefe.visibility = View.VISIBLE
-            tvHpJefe.text = "HP: ${it.hpActual} / ${it.hpMax}"
-            pbHpJefe.max = it.hpMax
-            pbHpJefe.progress = it.hpActual
+            tvHpJefe.text = "HP: ${jefe.hpActual} / ${jefe.hpMax}"
             
-            tvRecompensas.text = "Recompensas: ${it.recompensaMonedas}"
-            tvRecompensasXP.text = "| ${it.recompensaXP} XP"
+            pbHpJefe.max = jefe.hpMax
+            
+            // Si venimos de un HP mayor (daño pendiente de animar), empezamos la barra desde ahí
+            val startHp = if (rpgViewModel.hpAntesDeCambio != -1 && rpgViewModel.hpAntesDeCambio > jefe.hpActual) {
+                rpgViewModel.hpAntesDeCambio
+            } else {
+                jefe.hpActual
+            }
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                pbHpJefe.setProgress(jefe.hpActual, true)
+            } else {
+                pbHpJefe.progress = jefe.hpActual
+            }
+            
+            // Forzar actualización del HP recordado si es la primera vez
+            if (rpgViewModel.hpAntesDeCambio == -1) rpgViewModel.hpAntesDeCambio = jefe.hpActual
+            
+            tvRecompensas.text = "Recompensas: ${jefe.recompensaMonedas}"
+            tvRecompensasXP.text = "| ${jefe.recompensaXP} XP"
+            cvJefe.visibility = View.VISIBLE
             ivJefe.visibility = View.VISIBLE
             tvRecompensas.visibility = View.VISIBLE
             tvRecompensasXP.visibility = View.VISIBLE
             tvContadorReaparicion.visibility = View.GONE
 
             // Mapeo de iconos locales
-            val resId = resources.getIdentifier(it.icono, "drawable", requireContext().packageName)
+            val resId = resources.getIdentifier(jefe.icono, "drawable", requireContext().packageName)
             if (resId != 0) {
                 ivJefe.setImageResource(resId)
             } else {
                 ivJefe.setImageResource(R.drawable.ic_boss_dragon) // Fallback
             }
-        } ?: run {
+            jefeActual = jefe
+        } else {
+            // JEFE DERROTADO O EN COOLDOWN
+            jefeActual = jefe // Guardamos el estado actual (que tiene derrotado = true)
+            containerJefePrincipal.visibility = View.GONE
             tvNombreJefe.text = "¡Jefe Derrotado!"
             tvHpJefe.text = "Esperando reaparición..."
             pbHpJefe.progress = 0
+            cvJefe.visibility = View.GONE
             ivJefe.visibility = View.GONE
             tvRecompensas.visibility = View.GONE
             tvRecompensasXP.visibility = View.GONE

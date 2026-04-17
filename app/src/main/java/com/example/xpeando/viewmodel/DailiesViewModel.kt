@@ -23,7 +23,8 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
         if (correo.isEmpty()) return
         viewModelScope.launch {
             val todas = repository.obtenerTodasDailies(correo)
-            _dailies.value = todas
+            // Solo mostramos las que NO han sido completadas hoy
+            _dailies.value = todas.filter { !it.completadaHoy }
             
             val u = repository.obtenerUsuarioLogueado(correo)
             _usuario.value = u

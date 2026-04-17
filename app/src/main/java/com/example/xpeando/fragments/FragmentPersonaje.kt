@@ -268,15 +268,15 @@ class FragmentPersonaje : Fragment() {
             } else {
                 usuarioViewModel.equiparDesequipar(correoUsuario, articulo.id)
             }
-            // El StateFlow se encargará de actualizar el adaptador mediante el recolector en mostrarMochila si lo hiciéramos reactivo.
-            // Para simplificar ahora que el diálogo es síncrono, forzamos refresco del adaptador:
-            lifecycleScope.launch {
-                usuarioViewModel.inventario.collect {
-                    (rv.adapter as? InventarioAdapter)?.actualizarLista(obtenerListaFiltrada(tabLayout.selectedTabPosition))
-                }
-            }
         }
         rv.adapter = adapter
+
+        // Suscribirse a los cambios del inventario de forma reactiva mientras el diálogo esté abierto
+        val job = lifecycleScope.launch {
+            usuarioViewModel.inventario.collect {
+                (rv.adapter as? InventarioAdapter)?.actualizarLista(obtenerListaFiltrada(tabLayout.selectedTabPosition))
+            }
+        }
 
         tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
@@ -290,7 +290,11 @@ class FragmentPersonaje : Fragment() {
             .setView(vista)
             .create()
             
-        btnCerrar.setOnClickListener { dialog.dismiss() }
+        btnCerrar.setOnClickListener { 
+            job.cancel()
+            dialog.dismiss() 
+        }
+        dialog.setOnDismissListener { job.cancel() }
         dialog.show()
     }
 
