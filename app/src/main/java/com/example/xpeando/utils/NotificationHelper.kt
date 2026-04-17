@@ -21,7 +21,7 @@ object NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nameLogros = "Logros Desbloqueados"
             val descLogros = "Notificaciones cuando consigues un nuevo logro"
-            val importanceLogros = NotificationManager.IMPORTANCE_DEFAULT
+            val importanceLogros = NotificationManager.IMPORTANCE_HIGH
             val channelLogros = NotificationChannel(CHANNEL_ID_LOGROS, nameLogros, importanceLogros).apply {
                 description = descLogros
             }
@@ -53,7 +53,7 @@ object NotificationHelper {
             .setSmallIcon(R.mipmap.ic_lan)
             .setContentTitle(titulo)
             .setContentText(mensaje)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 

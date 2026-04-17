@@ -101,6 +101,16 @@ class MainActivity : AppCompatActivity() {
         NotificationHelper.programarRecordatorioDiario(this)
         pedirPermisoNotificaciones()
 
+        // --- OBTENER TOKEN DE FIREBASE PARA PRUEBAS ---
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                android.util.Log.w("FCM", "Error obteniendo token", task.exception)
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            android.util.Log.d("FCM", "TOKEN ACTUAL: $token")
+        }
+
         // --- COMPROBAR EVENTOS DE BIENVENIDA ---
         val prefsXpeando = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefsXpeando.getString("correo_usuario", "") ?: ""
@@ -173,9 +183,26 @@ class MainActivity : AppCompatActivity() {
             card2.isEnabled = false
             card3.isEnabled = false
 
-            tvMensaje.text = premio.second
-            tvMensaje.visibility = View.VISIBLE
-            btnAceptar.visibility = View.VISIBLE
+            // Icono según el premio
+            val iconoRes = when (premio.first) {
+                "COINS" -> R.drawable.coins
+                "BONUS_XP" -> R.drawable.experiencia
+                "POCION" -> R.drawable.pocion_vida
+                "ATRIBUTO" -> R.drawable.fuerza
+                else -> R.drawable.premios
+            }
+
+            // Animación de "dar la vuelta" (Rotación en Y)
+            card.animate().rotationY(90f).setDuration(300).withEndAction {
+                // Al llegar a la mitad (90 grados), cambiamos la imagen
+                imageView.setImageResource(iconoRes)
+                card.rotationY = -90f
+                card.animate().rotationY(0f).setDuration(300).start()
+                
+                tvMensaje.text = premio.second
+                tvMensaje.visibility = View.VISIBLE
+                btnAceptar.visibility = View.VISIBLE
+            }.start()
 
             when (premio.first) {
                 "BONUS_XP" -> viewModel.actualizarProgreso(correo, 50, 0)
@@ -183,10 +210,6 @@ class MainActivity : AppCompatActivity() {
                 "POCION" -> viewModel.comprarArticulo(correo, com.example.xpeando.model.Articulo(nombre = "Poción de Vida", tipo = "CONSUMIBLE", subtipo = "POCION", bonusHp = 25, icono = "pocion_vida"))
                 "ATRIBUTO" -> viewModel.subirAtributo(correo, "fza")
             }
-
-            card.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300).withEndAction {
-                card.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start()
-            }.start()
         }
 
         card1.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_1)) }
