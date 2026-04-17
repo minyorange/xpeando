@@ -112,7 +112,6 @@ class FragmentDailies : Fragment() {
                     viewModel.completarDaily(requireContext(), daily, correoUsuario) { nuevoNivel ->
                         mostrarDialogoSubidaNivel(nuevoNivel)
                     }
-                    mostrarToastPersonalizado("¡Tarea Diaria Realizada!")
                 }
             },
             onLongClick = { daily ->
@@ -189,21 +188,5 @@ class FragmentDailies : Fragment() {
             }
             .setNegativeButton("Cancelar", null)
             .show()
-    }
-
-    private fun mostrarToastPersonalizado(mensaje: String) {
-        val snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
-        val snackbarLayout = snackbar.view as ViewGroup
-        snackbarLayout.removeAllViews()
-        snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        snackbarLayout.setPadding(0, 0, 0, 150)
-        val layoutInflater = LayoutInflater.from(requireContext())
-        val customView = layoutInflater.inflate(R.layout.layout_toast_daily_completada, snackbarLayout, false)
-        customView.findViewById<TextView>(R.id.tv_mensaje_toast).text = mensaje
-        val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
-        params.gravity = Gravity.CENTER_HORIZONTAL
-        customView.layoutParams = params
-        snackbarLayout.addView(customView)
-        snackbar.show()
     }
 }

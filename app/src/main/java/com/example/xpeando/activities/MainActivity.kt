@@ -104,18 +104,30 @@ class MainActivity : AppCompatActivity() {
         // --- COMPROBAR EVENTOS DE BIENVENIDA ---
         val prefsXpeando = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefsXpeando.getString("correo_usuario", "") ?: ""
-        
+
         if (correo.isNotEmpty()) {
-            val prefsTutorial = getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE)
-            val tutorialVisto = prefsTutorial.getBoolean("tutorial_v2_visto_$correo", false)
-            
-            if (!tutorialVisto) {
-                mostrarTutorialBienvenida(correo)
-            } else {
-                verificarRecompensaDiaria(correo)
+            // CARGAR USUARIO EXPLÍCITAMENTE
+            viewModel.cargarUsuario(correo)
+
+            // Observamos el usuario para ver si ya vio el tutorial en la nube
+            lifecycleScope.launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.usuario.collect { usuario ->
+                        if (usuario != null && !isTutorialShowing && !isRewardDialogShowing) {
+                            if (!usuario.tutorialVisto) {
+                                mostrarTutorialBienvenida(correo)
+                            } else {
+                                verificarRecompensaDiaria(correo)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
+    private var isTutorialShowing = false
+    private var isRewardDialogShowing = false
 
     private fun verificarRecompensaDiaria(correo: String) {
         val hoy = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
@@ -127,6 +139,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoRecompensaDiaria(correo: String, hoy: String) {
+        if (isRewardDialogShowing) return
+        isRewardDialogShowing = true
+
         val vista = layoutInflater.inflate(R.layout.dialogo_recompensa_diaria, null)
         val dialog = AlertDialog.Builder(this)
             .setView(vista)
@@ -178,11 +193,18 @@ class MainActivity : AppCompatActivity() {
         card2.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_2)) }
         card3.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_3)) }
 
-        btnAceptar.setOnClickListener { dialog.dismiss() }
+        btnAceptar.setOnClickListener { 
+            dialog.dismiss() 
+            // NO reseteamos isRewardDialogShowing a false aquí, 
+            // para que no vuelva a saltar en esta misma sesión tras actualizar XP/Monedas
+        }
         dialog.show()
     }
 
     private fun mostrarTutorialBienvenida(correo: String) {
+        if (isTutorialShowing) return
+        isTutorialShowing = true
+        
         val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_bienvenida, null)
         val flipper = vista.findViewById<android.widget.ViewFlipper>(R.id.view_flipper_bienvenida)
         val btnAtras = vista.findViewById<Button>(R.id.btn_bienvenida_anterior)
@@ -200,8 +222,9 @@ class MainActivity : AppCompatActivity() {
                 flipper.showNext()
                 btnAtras.visibility = View.VISIBLE
             } else {
-                getSharedPreferences("TutorialPrefs", Context.MODE_PRIVATE).edit().putBoolean("tutorial_v2_visto_$correo", true).apply()
+                viewModel.marcarTutorialVisto(correo)
                 dialog.dismiss()
+                isTutorialShowing = false
                 verificarRecompensaDiaria(correo)
             }
         }

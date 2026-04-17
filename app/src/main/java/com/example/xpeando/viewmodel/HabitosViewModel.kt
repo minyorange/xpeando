@@ -16,55 +16,69 @@ import kotlinx.coroutines.withContext
 
 class HabitosViewModel(private val repository: DataRepository) : ViewModel() {
 
+    private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
     private val _habitos = MutableStateFlow<List<Habito>>(emptyList())
     val habitos: StateFlow<List<Habito>> = _habitos.asStateFlow()
 
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario.asStateFlow()
 
+    private var habitosListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var usuarioListener: com.google.firebase.firestore.ListenerRegistration? = null
+
     fun cargarHabitos(correo: String) {
         if (correo.isEmpty()) return
-        viewModelScope.launch {
-            val lista = repository.obtenerTodosHabitos(correo)
-            _habitos.value = lista
-            
-            val u = repository.obtenerUsuarioLogueado(correo)
-            _usuario.value = u
-        }
+        
+        // Listener para Hábitos
+        habitosListener?.remove()
+        habitosListener = db.collection("usuarios").document(correo).collection("habitos")
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    _habitos.value = snapshot.toObjects(Habito::class.java)
+                }
+            }
+
+        // Listener para Usuario
+        usuarioListener?.remove()
+        usuarioListener = db.collection("usuarios").document(correo)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && snapshot.exists()) {
+                    _usuario.value = snapshot.toObject(Usuario::class.java)
+                }
+            }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        habitosListener?.remove()
+        usuarioListener?.remove()
     }
 
     fun procesarAccion(context: Context, habito: Habito, delta: Int, correo: String, onNivelSubido: (Int) -> Unit) {
         viewModelScope.launch {
-            val usuarioAntes = repository.obtenerUsuarioLogueado(correo)
-            val nivelAntes = usuarioAntes?.nivel ?: 1
-            val habitosAntes = repository.obtenerTotalHabitosCompletados(correo)
-            val monedasAntes = usuarioAntes?.monedas ?: 0
-
-            // Toda la lógica de negocio ahora está centralizada en el DataRepository (Cloud)
-            if (delta > 0) {
-                repository.actualizarEstadoHabito(habito, delta)
-            }
+            // Ya no necesitamos pedir el usuario manualmente antes de empezar
+            val uActual = _usuario.value
+            val nivelAntes = uActual?.nivel ?: 1
             
             val xpCambio = habito.experiencia * delta
             val monedasCambio = if (delta > 0) habito.monedas else 0
             val hpCambio = if (delta < 0) -5 else 0
             
-            repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio, tipoAccion = if (delta > 0) "HABITO" else null)
-
-            val usuarioDespues = repository.obtenerUsuarioLogueado(correo) ?: return@launch
-            val nivelDespues = usuarioDespues.nivel
-            val habitosDespues = repository.obtenerTotalHabitosCompletados(correo)
-            val monedasDespues = usuarioDespues.monedas
-
-            if (nivelDespues > nivelAntes) {
-                onNivelSubido(nivelDespues)
-                LogroManager.verificarNuevosLogros(context, repository, usuarioDespues, nivelAntes, nivelDespues, "NIVEL")
+            // Lanzamos las actualizaciones a la nube
+            // No usamos "await" aquí para que el Toast salga instantáneo (Optimismo UI)
+            launch(Dispatchers.IO) {
+                if (delta > 0) repository.actualizarEstadoHabito(habito, delta)
+                repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio, tipoAccion = if (delta > 0) "HABITO" else null)
             }
-            
-            LogroManager.verificarNuevosLogros(context, repository, usuarioDespues, habitosAntes, habitosDespues, "HABITO")
-            LogroManager.verificarNuevosLogros(context, repository, usuarioDespues, monedasAntes, monedasDespues, "MONEDAS")
 
-            cargarHabitos(correo)
+            // El Toast sale inmediatamente, sin esperar a internet
+            if (delta > 0) {
+                com.example.xpeando.utils.XpeandoToast.mostrarProgreso(context, xpCambio, monedasCambio)
+            } else {
+                com.example.xpeando.utils.XpeandoToast.mostrarPenalizacion(context, hpCambio, xpCambio)
+            }
+
+            // La verificación de nivel se hará cuando el Listener de usuario detecte el cambio
         }
     }
 

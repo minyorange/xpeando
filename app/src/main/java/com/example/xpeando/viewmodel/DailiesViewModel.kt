@@ -13,45 +13,59 @@ import kotlinx.coroutines.launch
 
 class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
 
+    private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
     private val _dailies = MutableStateFlow<List<Daily>>(emptyList())
     val dailies: StateFlow<List<Daily>> = _dailies.asStateFlow()
 
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario.asStateFlow()
 
+    private var dailiesListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var usuarioListener: com.google.firebase.firestore.ListenerRegistration? = null
+
     fun cargarDailies(correo: String) {
         if (correo.isEmpty()) return
-        viewModelScope.launch {
-            val todas = repository.obtenerTodasDailies(correo)
-            // Solo mostramos las que NO han sido completadas hoy
-            _dailies.value = todas.filter { !it.completadaHoy }
-            
-            val u = repository.obtenerUsuarioLogueado(correo)
-            _usuario.value = u
-        }
+        
+        // Listener en tiempo real para Dailies
+        dailiesListener?.remove()
+        dailiesListener = db.collection("usuarios").document(correo).collection("dailies")
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    val hoy = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+                    val todas = snapshot.toObjects(Daily::class.java).map { 
+                        it.copy(completadaHoy = it.ultimaVezCompletada == hoy)
+                    }
+                    _dailies.value = todas.filter { !it.completadaHoy }
+                }
+            }
+
+        // Listener en tiempo real para Usuario
+        usuarioListener?.remove()
+        usuarioListener = db.collection("usuarios").document(correo)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && snapshot.exists()) {
+                    _usuario.value = snapshot.toObject(Usuario::class.java)
+                }
+            }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        dailiesListener?.remove()
+        usuarioListener?.remove()
     }
 
     fun completarDaily(context: Context, daily: Daily, correo: String, onNivelSubido: (Int) -> Unit) {
         viewModelScope.launch {
-            val usuarioAntes = repository.obtenerUsuarioLogueado(correo)
-            val nivelAntes = usuarioAntes?.nivel ?: 1
-
-            // 1. Marcar como completada en la nube
-            repository.actualizarEstadoDaily(daily, true)
-            // 2. Aplicar lógica de RPG (XP, Monedas, Level Up, Atributos)
-            repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
-            // 3. Actualizar racha
-            repository.actualizarRacha(correo)
-            
-            val uFinal = repository.obtenerUsuarioLogueado(correo)
-            _usuario.value = uFinal
-            
-            val nivelDespues = uFinal?.nivel ?: 1
-            if (nivelDespues > nivelAntes) {
-                onNivelSubido(nivelDespues)
+            // Optimismo de UI: Lanzamos todo a la vez sin esperar
+            launch(kotlinx.coroutines.Dispatchers.IO) {
+                repository.actualizarEstadoDaily(daily, true)
+                repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
+                repository.actualizarRacha(correo)
             }
             
-            cargarDailies(correo)
+            // Mostramos feedback visual inmediatamente (SOLO UNO COMBINADO)
+            com.example.xpeando.utils.XpeandoToast.mostrarProgreso(context, daily.experiencia, daily.monedas, esDaily = true)
         }
     }
 

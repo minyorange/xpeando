@@ -17,18 +17,49 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/daily"
-             />
+            android:src="@drawable/daily" />
 
         <TextView
             android:id="@+id/tv_mensaje_toast"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="¡Tarea Diaria Realizada!"
+            android:text="¡Tarea Realizada!"
             android:textColor="@color/white"
             android:textStyle="bold"
             android:textSize="14sp" />
+
+        <View
+            android:id="@+id/divider_daily"
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="#40FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_xp_daily"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+20 XP"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_monedas_daily"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="+10"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/iv_coins_daily"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/coins" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

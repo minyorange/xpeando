@@ -133,6 +133,12 @@ class UsuarioViewModel(private val repository: DataRepository) : ViewModel() {
             _inventario.value = repository.obtenerInventario(correo)
         }
     }
+
+    fun marcarTutorialVisto(correo: String) {
+        viewModelScope.launch {
+            repository.marcarTutorialComoVisto(correo)
+        }
+    }
     
     fun cerrarSesion() {
         auth.signOut()

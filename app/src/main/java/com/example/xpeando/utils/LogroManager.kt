@@ -89,23 +89,13 @@ object LogroManager {
             // Solo mostrar si no estaba desbloqueado previamente en la DB
             if (!repository.esLogroDesbloqueado(usuario.correo, nombreLogro)) {
                 repository.desbloquearLogro(usuario.correo, nombreLogro)
-                mostrarToastPersonalizado(context, nombreLogro)
+                com.example.xpeando.utils.XpeandoToast.mostrarLogro(context, nombreLogro)
                 NotificationHelper.enviarNotificacionLogro(context, "¡Nuevo Logro Desbloqueado!", "Has conseguido: $nombreLogro")
             }
         }
     }
 
     private fun mostrarToastPersonalizado(context: Context, nombre: String) {
-        val inflater = LayoutInflater.from(context)
-        val layout: View = inflater.inflate(R.layout.layout_toast_logro, null)
-
-        val text: TextView = layout.findViewById(R.id.tv_logro_toast_nombre)
-        text.text = nombre
-
-        with(Toast(context)) {
-            duration = Toast.LENGTH_LONG
-            view = layout
-            show()
-        }
+        com.example.xpeando.utils.XpeandoToast.mostrarLogro(context, nombre)
     }
 }

@@ -130,18 +130,30 @@ class RecompensasViewModel(private val repository: DataRepository) : ViewModel()
 
     fun insertarRecompensa(recompensa: Recompensa) {
         viewModelScope.launch {
-            val idLocal = withContext(Dispatchers.IO) { repository.insertarRecompensa(recompensa) }
-            val rConId = recompensa.copy(id = idLocal.toInt())
-            db.collection("usuarios").document(recompensa.correo_usuario)
-                .collection("recompensas").document(idLocal.toString()).set(rConId).await()
+            try {
+                // Dejamos que el repositorio maneje la inserción única
+                withContext(Dispatchers.IO) { 
+                    repository.insertarRecompensa(recompensa) 
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecompensasVM", "Error al insertar: ${e.message}")
+            }
         }
     }
 
     fun eliminarRecompensa(id: Int, correo: String) {
         viewModelScope.launch {
-            db.collection("usuarios").document(correo)
-                .collection("recompensas").document(id.toString()).delete().await()
-            repository.eliminarRecompensa(id, correo)
+            try {
+                withContext(Dispatchers.IO) {
+                    repository.eliminarRecompensa(id, correo)
+                }
+                // También borrar de Firestore explícitamente si el ID coincide con el nombre del documento
+                db.collection("usuarios").document(correo)
+                    .collection("recompensas").whereEqualTo("id", id).get().await()
+                    .documents.forEach { it.reference.delete().await() }
+            } catch (e: Exception) {
+                android.util.Log.e("RecompensasVM", "Error al eliminar: ${e.message}")
+            }
         }
     }
 }

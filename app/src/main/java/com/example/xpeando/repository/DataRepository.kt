@@ -348,6 +348,10 @@ class DataRepository {
         db.collection("usuarios").document(correo).update("ultimaFechaRecompensa", fecha).await()
     }
 
+    suspend fun marcarTutorialComoVisto(correo: String) = withContext(Dispatchers.IO) {
+        db.collection("usuarios").document(correo).update("tutorialVisto", true).await()
+    }
+
     suspend fun obtenerTodasRecompensas(correo: String): List<Recompensa> = withContext(Dispatchers.IO) {
         val snap = db.collection("usuarios").document(correo).collection("recompensas").get().await()
         snap.toObjects(Recompensa::class.java)
