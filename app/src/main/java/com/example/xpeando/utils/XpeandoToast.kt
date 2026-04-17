@@ -113,27 +113,50 @@ object XpeandoToast {
     }
 
     // --- LOGROS ---
-    fun mostrarLogro(context: Context, nombre: String) {
+    fun mostrarLogro(context: Context, nombre: String, iconResId: Int = R.drawable.scroll) {
         val activity = context as? android.app.Activity
-        val rootView = activity?.findViewById<View>(android.R.id.content) ?: return
+        if (activity == null) {
+            Toast.makeText(context, "¡Logro desbloqueado: $nombre!", Toast.LENGTH_LONG).show()
+            return
+        }
 
-        currentSnackbar?.dismiss()
-        val snackbar = Snackbar.make(rootView, "", Snackbar.LENGTH_LONG)
-        val snackbarLayout = snackbar.view as ViewGroup
-        snackbarLayout.removeAllViews()
-        snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        activity.runOnUiThread {
+            try {
+                val rootView = activity.window.decorView.findViewById<View>(android.R.id.content)
+                if (rootView == null) {
+                    Toast.makeText(context, "¡Logro: $nombre!", Toast.LENGTH_LONG).show()
+                    return@runOnUiThread
+                }
 
-        val customView = LayoutInflater.from(context).inflate(R.layout.layout_toast_logro, null)
-        customView.findViewById<TextView>(R.id.tv_logro_toast_nombre)?.text = nombre
+                currentSnackbar?.dismiss()
+                val snackbar = Snackbar.make(rootView, "", Snackbar.LENGTH_LONG)
+                snackbar.duration = 4500
+                
+                val snackbarView = snackbar.view
+                val snackbarLayout = snackbarView as ViewGroup
+                snackbarLayout.removeAllViews()
+                snackbarLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                snackbarLayout.setPadding(0, 0, 0, 0)
 
-        val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
-        params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-        params.topMargin = 100
-        customView.layoutParams = params
+                val customView = LayoutInflater.from(context).inflate(R.layout.layout_toast_logro, null)
+                customView.findViewById<TextView>(R.id.tv_logro_toast_nombre)?.text = nombre
+                customView.findViewById<ImageView>(R.id.iv_logro_toast_icono)?.setImageResource(iconResId)
 
-        snackbarLayout.addView(customView)
-        currentSnackbar = snackbar
-        snackbar.show()
+                val params = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT, 
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                params.topMargin = 120
+                customView.layoutParams = params
+
+                snackbarLayout.addView(customView)
+                currentSnackbar = snackbar
+                snackbar.show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "¡Logro: $nombre!", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     fun success(context: Context, message: String) = show(context, message)

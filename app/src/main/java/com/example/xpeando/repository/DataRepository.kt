@@ -23,7 +23,7 @@ class DataRepository {
         1L
     }
 
-    suspend fun actualizarProgresoUsuario(correo: String, xpBase: Int, monedasBase: Int, hpCambioBase: Int = 0, tipoAccion: String? = null) = withContext(Dispatchers.IO) {
+    suspend fun actualizarProgresoUsuario(correo: String, xpBase: Int, monedasBase: Int, hpCambioBase: Int = 0, tipoAccion: String? = null, atributoAIncrementar: String? = null) = withContext(Dispatchers.IO) {
         val userRef = db.collection("usuarios").document(correo)
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         
@@ -48,7 +48,7 @@ class DataRepository {
                 else -> 1.0
             }
 
-            // Aplicar multiplicadores base + bonos de equipo (10 bonus = +1.0 al multiplicador)
+            // Aplicar multiplicadores base + bonos de equipo
             val multFza = u.fuerza + (bonusFza / 10.0)
             val multInt = u.inteligencia + (bonusInt / 10.0)
             val multCon = u.constitucion + (bonusCon / 10.0)
@@ -64,6 +64,23 @@ class DataRepository {
             var nuevaHp = u.hp + hpFinalCambio
             var nuevosPuntos = u.puntosDisponibles
             
+            // Atributos base
+            var nuevaFza = u.fuerza
+            var nuevaInt = u.inteligencia
+            var nuevaCon = u.constitucion
+            var nuevaPer = u.percepcion
+
+            // Incrementar atributo si es un hábito (ej: +0.01 por vez)
+            if (tipoAccion == "HABITO" && atributoAIncrementar != null) {
+                val incremento = 0.05 // Puedes ajustar este valor
+                when (atributoAIncrementar.lowercase()) {
+                    "fuerza" -> nuevaFza += incremento
+                    "inteligencia" -> nuevaInt += incremento
+                    "constitución", "constitucion" -> nuevaCon += incremento
+                    "percepción", "percepcion" -> nuevaPer += incremento
+                }
+            }
+
             var totalTareas = u.totalTareasCompletadas
             var totalDailies = u.totalDailiesCompletadas
             var totalHabitos = u.totalHabitosCompletados
@@ -75,12 +92,22 @@ class DataRepository {
             }
 
             if (jefe != null && !jefe.derrotado && tipoAccion != null) {
-                val danioBase = when(tipoAccion) {
+                var danioBase = when(tipoAccion) {
                     "TAREA" -> 25
                     "DAILY" -> 35
-                    "HABITO" -> 15
+                    "HABITO" -> 0 // Por defecto 0 para hábitos, se calcula abajo
                     else -> 0
                 }
+
+                // Lógica de daño específica para hábitos según su atributo
+                if (tipoAccion == "HABITO") {
+                    danioBase = if (atributoAIncrementar?.lowercase() == "fuerza") {
+                        20 // Los hábitos de FUERZA son los que realmente pegan
+                    } else {
+                        2 // Otros hábitos (Int, Con, Per) hacen un daño mínimo
+                    }
+                }
+
                 val danioTotal = (danioBase * multFza).toInt()
                 val nuevaHpJefe = (jefe.hpActual - danioTotal).coerceAtLeast(0)
                 
@@ -91,16 +118,13 @@ class DataRepository {
                         "derrotado" to true,
                         "fechaMuerte" to System.currentTimeMillis()
                     ))
-
                     val histJefeRef = userRef.collection("rpg_historial").document()
                     transaction.set(histJefeRef, jefe.copy(hpActual = 0, derrotado = true, fechaMuerte = System.currentTimeMillis()))
-
                     nuevoXp += jefe.recompensaXP
                     nuevasMonedas += jefe.recompensaMonedas
                 }
             }
 
-            // Subida de nivel (incluye posible XP del jefe)
             var xpParaSiguienteNivel = nuevoNivel * 100
             while (nuevoXp >= xpParaSiguienteNivel) {
                 nuevoXp -= xpParaSiguienteNivel
@@ -110,8 +134,6 @@ class DataRepository {
                 nuevosPuntos += 3
             }
 
-            // Lógica de muerte: si el HP llega a 0, se queda en 0 para disparar el diálogo
-            // y se aplica una penalización de monedas (20%)
             if (nuevaHp <= 0) {
                 nuevaHp = 0
                 nuevasMonedas = (nuevasMonedas * 0.8).toInt()
@@ -121,13 +143,17 @@ class DataRepository {
             nuevasMonedas = nuevasMonedas.coerceAtLeast(0)
             nuevoXp = nuevoXp.coerceAtLeast(0)
 
-            // --- ESCRITURAS (WRITES) ---
+            // --- ESCRITURAS ---
             transaction.update(userRef, mapOf(
                 "experiencia" to nuevoXp,
                 "nivel" to nuevoNivel,
                 "monedas" to nuevasMonedas,
                 "hp" to nuevaHp,
                 "puntosDisponibles" to nuevosPuntos,
+                "fuerza" to nuevaFza,
+                "inteligencia" to nuevaInt,
+                "constitucion" to nuevaCon,
+                "percepcion" to nuevaPer,
                 "totalTareasCompletadas" to totalTareas,
                 "totalDailiesCompletadas" to totalDailies,
                 "totalHabitosCompletados" to totalHabitos
@@ -338,6 +364,30 @@ class DataRepository {
         snap.documents.forEach { it.reference.set(tarea).await() }
     }
 
+    suspend fun actualizarEstadoTarea(id: Int, correo: String, completada: Boolean) = withContext(Dispatchers.IO) {
+        val snap = db.collection("usuarios").document(correo).collection("tareas")
+            .whereEqualTo("id", id).get().await()
+        
+        for (doc in snap.documents) {
+            doc.reference.update("completada", completada).await()
+            
+            if (completada) {
+                // Autolimpieza: Si hay más de 10 completadas, borramos la más antigua
+                val completadas = db.collection("usuarios").document(correo).collection("tareas")
+                    .whereEqualTo("completada", true)
+                    .get().await()
+                
+                if (completadas.size() > 10) {
+                    val listaOrdenada = completadas.documents.sortedBy { it.getLong("id") ?: 0L }
+                    val cantidadABorrar = completadas.size() - 10
+                    for (i in 0 until cantidadABorrar) {
+                        listaOrdenada[i].reference.delete().await()
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun eliminarTarea(id: Int, correo: String) = withContext(Dispatchers.IO) {
         val snap = db.collection("usuarios").document(correo).collection("tareas").whereEqualTo("id", id).get().await()
         snap.documents.forEach { it.reference.delete().await() }
@@ -419,9 +469,25 @@ class DataRepository {
     }
 
     suspend fun actualizarEstadoDaily(daily: Daily, completada: Boolean) = withContext(Dispatchers.IO) {
-        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val snap = db.collection("usuarios").document(daily.correo_usuario).collection("dailies").whereEqualTo("id", daily.id).get().await()
-        snap.documents.forEach { it.reference.update("ultimaVezCompletada", if (completada) hoy else "").await() }
+        try {
+            // Buscamos el documento por nombre y correo
+            val snap = db.collection("usuarios").document(daily.correo_usuario)
+                .collection("dailies")
+                .whereEqualTo("nombre", daily.nombre)
+                .get().await()
+
+            for (doc in snap.documents) {
+                if (completada) {
+                    // SI SE COMPLETA: Se borra físicamente de Firestore
+                    doc.reference.delete().await()
+                } else {
+                    // Si por algún motivo se desmarca, se limpia la fecha (aunque esto es raro en Dailies)
+                    doc.reference.update("ultimaVezCompletada", "").await()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     suspend fun actualizarRacha(correo: String) = withContext(Dispatchers.IO) {

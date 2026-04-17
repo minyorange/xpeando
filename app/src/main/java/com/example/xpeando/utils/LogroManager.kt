@@ -1,15 +1,13 @@
 package com.example.xpeando.utils
 
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
 import com.example.xpeando.R
-import com.example.xpeando.repository.DataRepository
-import com.example.xpeando.model.Logro
 import com.example.xpeando.model.Usuario
+import com.example.xpeando.model.Logro
+import com.example.xpeando.repository.DataRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 object LogroManager {
 
@@ -18,84 +16,81 @@ object LogroManager {
         val totalDailies = usuario.totalDailiesCompletadas
         val totalHabitos = usuario.totalHabitosCompletados
         val monedas = usuario.monedas
-        
-        // El único que requiere consulta es el inventario (por ahora)
         val totalItems = repository.obtenerInventario(usuario.correo).size
 
-        val logros = listOf(
-            // --- MISIONES ---
+        return listOf(
             Logro("Primeros Pasos", "Completa 1 misión", 1, totalTareas, totalTareas >= 1, R.drawable.pasos),
             Logro("Cazador de Misiones", "Completa 10 misiones", 10, totalTareas, totalTareas >= 10, R.drawable.misiones),
             Logro("Héroe Legendario", "Completa 50 misiones", 50, totalTareas, totalTareas >= 50, R.drawable.lengendario),
-            // --- DAILIES ---
+            Logro("Maestro de Hábitos", "Realiza 20 acciones de hábitos", 20, totalHabitos, totalHabitos >= 20, R.drawable.mhabitos),
             Logro("Rutina de Hierro", "Completa 5 dailies", 5, totalDailies, totalDailies >= 5, R.drawable.hierro),
             Logro("Inquebrantable", "Completa 30 dailies", 30, totalDailies, totalDailies >= 30, R.drawable.inquebrantable),
-            // --- HÁBITOS ---
-            Logro("Maestro de Hábitos", "Realiza 20 acciones de hábitos", 20, totalHabitos, totalHabitos >= 20, R.drawable.mhabitos),
-            // --- NIVEL / PERSONAJE ---
             Logro("Ascensión I", "Llega a nivel 5", 5, usuario.nivel, usuario.nivel >= 5, R.drawable.ascension),
-            // --- ECONOMÍA ---
-            Logro("Ahorrador", "Consigue 500 monedas", 500, monedas, monedas >= 500, R.drawable.colecionista),
-            // --- COLECCIÓN ---
-            Logro("Coleccionista", "Ten 3 objetos en tu inventario", 3, totalItems, totalItems >= 3, R.drawable.rey),
-            // --- LOGRO SECRETO ---
-            Logro(
-                if (monedas >= 1000) "El Rey Midas" else "???",
-                if (monedas >= 1000) "Consigue 1000 monedas" else "Logro oculto: Sigue explorando...",
-                1000, monedas, monedas >= 1000,
-                R.drawable.almondi
-            )
+            Logro("Ahorrador", "Consigue 500 monedas", 500, monedas, monedas >= 500, R.drawable.ahorrador),
+            Logro("El Rey Midas", "Consigue 1000 monedas", 1000, monedas, monedas >= 1000, R.drawable.rey),
+            Logro("Coleccionista", "Ten 3 objetos en tu inventario", 3, totalItems, totalItems >= 3, R.drawable.colecionista)
         )
-
-        // Sincronizar con la base de datos para asegurar que los completados estén registrados
-        for (logro in logros) {
-            if (logro.completado && !repository.esLogroDesbloqueado(usuario.correo, logro.nombre)) {
-                repository.desbloquearLogro(usuario.correo, logro.nombre)
-            }
-        }
-
-        return logros
     }
 
-    suspend fun verificarNuevosLogros(context: Context, repository: DataRepository, usuario: Usuario, estadisticaAnterior: Int, estadisticaNueva: Int, tipo: String) {
-        var nombreLogro = ""
+    suspend fun verificarNuevosLogros(
+        context: Context, 
+        repository: DataRepository, 
+        usuario: Usuario,
+        tipo: String
+    ) {
+        val correo = usuario.correo
+        val logrosCruzados = mutableListOf<String>()
 
-        when (tipo) {
-            "TAREA" -> {
-                if (estadisticaAnterior < 1 && estadisticaNueva >= 1) nombreLogro = "Primeros Pasos"
-                if (estadisticaAnterior < 10 && estadisticaNueva >= 10) nombreLogro = "Cazador de Misiones"
-                if (estadisticaAnterior < 50 && estadisticaNueva >= 50) nombreLogro = "Héroe Legendario"
-            }
-            "DAILY" -> {
-                if (estadisticaAnterior < 5 && estadisticaNueva >= 5) nombreLogro = "Rutina de Hierro"
-                if (estadisticaAnterior < 30 && estadisticaNueva >= 30) nombreLogro = "Inquebrantable"
-            }
-            "HABITO" -> {
-                if (estadisticaAnterior < 20 && estadisticaNueva >= 20) nombreLogro = "Maestro de Hábitos"
-            }
-            "MONEDAS" -> {
-                if (estadisticaAnterior < 500 && estadisticaNueva >= 500) nombreLogro = "Ahorrador"
-                if (estadisticaAnterior < 1000 && estadisticaNueva >= 1000) nombreLogro = "El Rey Midas"
-            }
-            "NIVEL" -> {
-                if (estadisticaAnterior < 5 && estadisticaNueva >= 5) nombreLogro = "Ascensión I"
-            }
-            "COLECCION" -> {
-                if (estadisticaAnterior < 3 && estadisticaNueva >= 3) nombreLogro = "Coleccionista"
+        // 1. Tareas
+        if (tipo == "TAREA") {
+            val nuevoTotal = usuario.totalTareasCompletadas + 1
+            if (nuevoTotal == 1) logrosCruzados.add("Primeros Pasos")
+            if (nuevoTotal == 10) logrosCruzados.add("Cazador de Misiones")
+            if (nuevoTotal == 50) logrosCruzados.add("Héroe Legendario")
+        }
+
+        // 2. Dailies
+        if (tipo == "DAILY") {
+            val nuevoTotal = usuario.totalDailiesCompletadas + 1
+            if (nuevoTotal == 5) logrosCruzados.add("Rutina de Hierro")
+            if (nuevoTotal == 30) logrosCruzados.add("Inquebrantable")
+        }
+
+        // 3. Hábitos
+        if (tipo == "HABITO") {
+            val nuevoTotal = usuario.totalHabitosCompletados + 1
+            if (nuevoTotal == 20) logrosCruzados.add("Maestro de Hábitos")
+        }
+
+        // 4. Otros (Nivel, Monedas, Colección)
+        // Usamos una comprobación de umbral estricta: si ANTES no llegaba y AHORA sí (aproximado)
+        if (usuario.nivel < 5) {
+             // Esta parte es delicada porque no sabemos el nivel exacto "nuevo" aquí
+             // Pero podemos apoyarnos en que si está a punto de subir, lo lanzamos
+        }
+
+        // Coleccionista (Especial)
+        if (tipo == "RPG") {
+            val itemsCount = repository.obtenerInventario(correo).size
+            // Si tiene 2 y va a comprar el 3º (o ya tiene 3 y no se ha marcado)
+            if (itemsCount >= 3 && !repository.esLogroDesbloqueado(correo, "Coleccionista")) {
+                logrosCruzados.add("Coleccionista")
             }
         }
 
-        if (nombreLogro.isNotEmpty()) {
-            // Solo mostrar si no estaba desbloqueado previamente en la DB
-            if (!repository.esLogroDesbloqueado(usuario.correo, nombreLogro)) {
-                repository.desbloquearLogro(usuario.correo, nombreLogro)
-                com.example.xpeando.utils.XpeandoToast.mostrarLogro(context, nombreLogro)
-                NotificationHelper.enviarNotificacionLogro(context, "¡Nuevo Logro Desbloqueado!", "Has conseguido: $nombreLogro")
+        // MOSTRAR TOASTS
+        if (logrosCruzados.isNotEmpty()) {
+            val listaDefinida = obtenerLogrosDefinidos(repository, usuario)
+            withContext(Dispatchers.Main) {
+                for (nombre in logrosCruzados) {
+                    // Marcamos en DB (por si acaso no se marcó en la transacción)
+                    repository.desbloquearLogro(correo, nombre)
+
+                    val icono = listaDefinida.find { it.nombre == nombre }?.iconoResId ?: R.drawable.scroll
+                    XpeandoToast.mostrarLogro(context, nombre, icono)
+                    delay(4000)
+                }
             }
         }
-    }
-
-    private fun mostrarToastPersonalizado(context: Context, nombre: String) {
-        com.example.xpeando.utils.XpeandoToast.mostrarLogro(context, nombre)
     }
 }

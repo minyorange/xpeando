@@ -87,6 +87,8 @@ class FragmentTareas : Fragment() {
         actualizarLista()
     }
 
+    private var nivelActual: Int = -1
+
     private fun observarViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -97,7 +99,12 @@ class FragmentTareas : Fragment() {
                 }
                 launch {
                     viewModel.usuario.collect { usuario ->
-                        // La UI se actualiza sola mediante el flujo de datos
+                        usuario?.let {
+                            if (nivelActual != -1 && it.nivel > nivelActual) {
+                                mostrarDialogoSubidaNivel(it.nivel)
+                            }
+                            nivelActual = it.nivel
+                        }
                     }
                 }
             }

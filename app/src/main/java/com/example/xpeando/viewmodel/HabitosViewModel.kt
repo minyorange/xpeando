@@ -67,8 +67,29 @@ class HabitosViewModel(private val repository: DataRepository) : ViewModel() {
             // Lanzamos las actualizaciones a la nube
             // No usamos "await" aquí para que el Toast salga instantáneo (Optimismo UI)
             launch(Dispatchers.IO) {
-                if (delta > 0) repository.actualizarEstadoHabito(habito, delta)
-                repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio, tipoAccion = if (delta > 0) "HABITO" else null)
+                if (delta > 0) {
+                    repository.actualizarEstadoHabito(habito, delta)
+                    repository.actualizarProgresoUsuario(
+                        correo, 
+                        xpCambio, 
+                        monedasCambio, 
+                        hpCambio, 
+                        tipoAccion = "HABITO", 
+                        atributoAIncrementar = habito.atributo
+                    )
+                    
+                    // --- VERIFICAR LOGROS ---
+                    uActual?.let { usuario ->
+                        LogroManager.verificarNuevosLogros(
+                            context,
+                            repository,
+                            usuario,
+                            "HABITO"
+                        )
+                    }
+                } else {
+                    repository.actualizarProgresoUsuario(correo, xpCambio, monedasCambio, hpCambio, tipoAccion = null)
+                }
             }
 
             // El Toast sale inmediatamente, sin esperar a internet

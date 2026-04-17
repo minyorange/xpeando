@@ -65,10 +65,21 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
 
             // OPERACIONES DE FONDO (Sin bloquear la UI)
             launch(kotlinx.coroutines.Dispatchers.IO) {
+                val uActual = _usuario.value
                 val tareaCompletada = tarea.copy(completada = true)
                 repository.actualizarTarea(tareaCompletada)
                 repository.actualizarProgresoUsuario(correo, tarea.experiencia, tarea.monedas, tipoAccion = "TAREA")
                 
+                // --- VERIFICAR LOGROS ---
+                uActual?.let { usuario ->
+                    com.example.xpeando.utils.LogroManager.verificarNuevosLogros(
+                        context,
+                        repository,
+                        usuario,
+                        "TAREA"
+                    )
+                }
+
                 // Autolimpieza asíncrona (solo las 10 últimas completadas)
                 val todas = repository.obtenerTodasLasTareas(correo)
                 val completadas = todas.filter { it.completada }.sortedBy { it.id }

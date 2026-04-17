@@ -80,6 +80,8 @@ class FragmentHabitos : Fragment() {
         viewModel.cargarHabitos(correo)
     }
 
+    private var nivelActual: Int = -1
+
     private fun observarViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -90,7 +92,12 @@ class FragmentHabitos : Fragment() {
                 }
                 launch {
                     viewModel.usuario.collect { usuario ->
-                        // UI se actualiza automáticamente mediante Flow
+                        usuario?.let {
+                            if (nivelActual != -1 && it.nivel > nivelActual) {
+                                mostrarDialogoSubidaNivel(it.nivel)
+                            }
+                            nivelActual = it.nivel
+                        }
                     }
                 }
             }

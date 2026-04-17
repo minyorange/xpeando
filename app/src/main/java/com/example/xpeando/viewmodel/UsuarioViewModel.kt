@@ -55,15 +55,16 @@ class UsuarioViewModel(private val repository: DataRepository) : ViewModel() {
         usuarioListener?.remove()
     }
 
-    fun registrarUsuarioFirebase(usuario: Usuario, callback: (Boolean, String?) -> Unit) {
+    fun registrarUsuarioFirebase(usuario: Usuario, contrasena: String, callback: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val result = auth.createUserWithEmailAndPassword(usuario.correo, usuario.contrasena).await()
+                val result = auth.createUserWithEmailAndPassword(usuario.correo, contrasena).await()
                 if (result.user != null) {
                     val usuarioInicial = usuario.copy(
                         totalTareasCompletadas = 0,
                         totalDailiesCompletadas = 0,
-                        totalHabitosCompletados = 0
+                        totalHabitosCompletados = 0,
+                        tutorialVisto = false // NOS ASEGURAMOS DE QUE SEA FALSE
                     )
                     repository.registrarUsuario(usuarioInicial)
                     callback(true, null)

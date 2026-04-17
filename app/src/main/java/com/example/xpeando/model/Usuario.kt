@@ -4,7 +4,6 @@ data class Usuario(
     val id: Int = 0, // En Firestore usaremos el correo o el UID como ID principal, pero mantenemos esto por compatibilidad
     val nombre: String = "",
     val correo: String = "",
-    val contrasena: String = "",
     val nivel: Int = 1,
     val experiencia: Int = 0,
     val monedas: Int = 0,

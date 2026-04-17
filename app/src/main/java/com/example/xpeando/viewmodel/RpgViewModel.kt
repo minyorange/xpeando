@@ -114,11 +114,16 @@ class RpgViewModel(private val repository: DataRepository) : ViewModel() {
         }
     }
 
-    fun comprarArticulo(correo: String, articulo: Articulo, onExito: (Boolean) -> Unit) {
+    fun comprarArticulo(context: android.content.Context, correo: String, articulo: Articulo, onExito: (Boolean) -> Unit) {
         viewModelScope.launch {
+            val uOld = repository.obtenerUsuarioLogueado(correo)
             val exito = repository.comprarArticulo(correo, articulo)
             if (exito) {
                 cargarInventario(correo)
+                // --- VERIFICAR LOGROS (Coleccionista, etc) ---
+                uOld?.let {
+                    com.example.xpeando.utils.LogroManager.verificarNuevosLogros(context, repository, it, "RPG")
+                }
             }
             onExito(exito)
         }

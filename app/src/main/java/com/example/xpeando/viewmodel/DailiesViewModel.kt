@@ -57,11 +57,22 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
 
     fun completarDaily(context: Context, daily: Daily, correo: String, onNivelSubido: (Int) -> Unit) {
         viewModelScope.launch {
+            val uActual = _usuario.value
             // Optimismo de UI: Lanzamos todo a la vez sin esperar
             launch(kotlinx.coroutines.Dispatchers.IO) {
                 repository.actualizarEstadoDaily(daily, true)
                 repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
                 repository.actualizarRacha(correo)
+
+                // --- VERIFICAR LOGROS ---
+                uActual?.let { usuario ->
+                    com.example.xpeando.utils.LogroManager.verificarNuevosLogros(
+                        context,
+                        repository,
+                        usuario,
+                        "DAILY"
+                    )
+                }
             }
             
             // Mostramos feedback visual inmediatamente (SOLO UNO COMBINADO)

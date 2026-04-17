@@ -42,8 +42,8 @@ class RegistroActivity : AppCompatActivity() {
 
             if (nombre.isNotEmpty() && correo.isNotEmpty() && contrasena.isNotEmpty() && confirmarContrasena.isNotEmpty()) {
                 if (contrasena == confirmarContrasena) {
-                    val nuevoUsuario = Usuario(nombre = nombre, correo = correo, contrasena = contrasena)
-                    viewModel.registrarUsuarioFirebase(nuevoUsuario) { exito, error ->
+                    val nuevoUsuario = Usuario(nombre = nombre, correo = correo)
+                    viewModel.registrarUsuarioFirebase(nuevoUsuario, contrasena) { exito, error ->
                         if (exito) {
                             XpeandoToast.success(this@RegistroActivity, "¡Cuenta creada en la nube!")
                             finish()
