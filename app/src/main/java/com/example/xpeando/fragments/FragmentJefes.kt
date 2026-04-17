@@ -199,7 +199,7 @@ class FragmentJefes : Fragment() {
         val correo = prefs.getString("correo_usuario", "") ?: ""
         if (correo.isNotEmpty()) {
             // El daño base al hacer click es pequeño, el fuerte viene de las tareas
-            rpgViewModel.atacarJefe(5, correo) { derrotado ->
+            rpgViewModel.atacarJefe(requireContext(), 5, correo) { derrotado ->
                 if (derrotado) {
                     NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Victoria!", "Has derrotado al jefe y ganado sus recompensas.")
                 }

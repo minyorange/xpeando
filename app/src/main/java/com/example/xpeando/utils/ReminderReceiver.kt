@@ -16,23 +16,32 @@ class ReminderReceiver : BroadcastReceiver() {
         val repository = DataRepository()
         val prefs = context.getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
+        val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         if (correo.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
-                val dailies = repository.obtenerTodasDailies(correo)
-                val pendientes = dailies.count { !it.completadaHoy }
+                try {
+                    val dailies = repository.obtenerTodasDailies(correo)
+                    // Comprobamos la fecha real de Firestore para cada daily
+                    val pendientes = dailies.count { it.ultimaVezCompletada != hoy }
 
-                if (pendientes > 0) {
-                    NotificationHelper.enviarNotificacionRecordatorio(
-                        context,
-                        "¡No olvides tus Dailies!",
-                        "Tienes $pendientes tareas diarias pendientes por completar hoy."
-                    )
+                    if (pendientes > 0) {
+                        NotificationHelper.enviarNotificacionRecordatorio(
+                            context,
+                            "¡Atención Héroe!",
+                            "Tienes $pendientes misiones diarias pendientes. ¡No dejes que el Dragón de la Pereza gane hoy!"
+                        )
+                    } else if (pendientes == 0 && dailies.isNotEmpty()) {
+                        // Opcional: Notificación de felicitación si ya hizo todo
+                        // NotificationHelper.enviarNotificacionLogro(context, "¡Todo listo!", "Has cumplido con tus deberes de hoy.")
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
         
-        // Re-programar para el día siguiente si es necesario (aunque el Helper lo hace al iniciar la app)
+        // Reprogramar la alarma para mañana a la misma hora
         NotificationHelper.programarRecordatorioDiario(context)
     }
 }

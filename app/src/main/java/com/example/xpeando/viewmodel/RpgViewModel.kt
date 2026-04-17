@@ -88,11 +88,16 @@ class RpgViewModel(private val repository: DataRepository) : ViewModel() {
         return historial.maxByOrNull { it.fechaMuerte }?.fechaMuerte ?: 0L
     }
 
-    fun atacarJefe(danioBase: Int, correo: String, onResult: (Boolean) -> Unit) {
+    fun atacarJefe(context: android.content.Context, danioBase: Int, correo: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
+            val uOld = repository.obtenerUsuarioLogueado(correo)
             val derrotado = repository.atacarJefe(danioBase, correo)
             if (derrotado) {
                 cargarHistorial(correo)
+                // --- VERIFICAR LOGROS TRAS DERROTAR JEFE (Por si sube nivel o monedas) ---
+                uOld?.let {
+                    com.example.xpeando.utils.LogroManager.verificarNuevosLogros(context, repository, it, "RPG")
+                }
             }
             cargarJefeActivo(correo)
             onResult(derrotado)

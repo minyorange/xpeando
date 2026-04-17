@@ -87,7 +87,17 @@ object LogroManager {
                     repository.desbloquearLogro(correo, nombre)
 
                     val icono = listaDefinida.find { it.nombre == nombre }?.iconoResId ?: R.drawable.scroll
+                    
+                    // FEEDBACK VISUAL (Toast)
                     XpeandoToast.mostrarLogro(context, nombre, icono)
+                    
+                    // NOTIFICACIÓN DE SISTEMA (Barra superior)
+                    NotificationHelper.enviarNotificacionLogro(
+                        context, 
+                        "¡Nuevo Logro Desbloqueado!", 
+                        "Has conseguido: $nombre"
+                    )
+
                     delay(4000)
                 }
             }
