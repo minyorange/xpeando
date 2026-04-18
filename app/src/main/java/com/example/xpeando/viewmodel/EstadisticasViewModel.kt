@@ -30,24 +30,35 @@ class EstadisticasViewModel(
         statsListener?.remove()
         statsListener = db.collection("usuarios").document(correo)
             .addSnapshotListener { snapshot, e ->
-                if (e != null) return@addSnapshotListener
+                if (e != null) {
+                    android.util.Log.e("EstadisticasVM", "Error en listener de usuario", e)
+                    return@addSnapshotListener
+                }
 
-                if (snapshot != null && snapshot.exists()) {
-                    val usuario = snapshot.toObject(Usuario::class.java)
-                    
-                    viewModelScope.launch {
-                        val logros = usuario?.let {
-                            LogroManager.obtenerLogrosDefinidos(rpgRepository, it)
-                        } ?: emptyList()
+                try {
+                    if (snapshot != null && snapshot.exists()) {
+                        val usuario = snapshot.toObject(Usuario::class.java)
+                        
+                        viewModelScope.launch {
+                            try {
+                                val logros = usuario?.let {
+                                    LogroManager.obtenerLogrosDefinidos(rpgRepository, it)
+                                } ?: emptyList()
 
-                        _state.value = _state.value.copy(
-                            usuario = usuario,
-                            totalTareas = usuario?.totalTareasCompletadas ?: 0,
-                            totalDailies = usuario?.totalDailiesCompletadas ?: 0,
-                            totalHabitos = usuario?.totalHabitosCompletados ?: 0,
-                            logros = logros
-                        )
+                                _state.value = _state.value.copy(
+                                    usuario = usuario,
+                                    totalTareas = usuario?.totalTareasCompletadas ?: 0,
+                                    totalDailies = usuario?.totalDailiesCompletadas ?: 0,
+                                    totalHabitos = usuario?.totalHabitosCompletados ?: 0,
+                                    logros = logros
+                                )
+                            } catch (ex: Exception) {
+                                android.util.Log.e("EstadisticasVM", "Error al procesar logros", ex)
+                            }
+                        }
                     }
+                } catch (ex: Exception) {
+                    android.util.Log.e("EstadisticasVM", "Error al convertir usuario", ex)
                 }
             }
 
@@ -56,20 +67,27 @@ class EstadisticasViewModel(
         historialListener = db.collection("usuarios").document(correo)
             .collection("historial_progreso")
             .addSnapshotListener { snapshot, e ->
-                if (e != null) return@addSnapshotListener
+                if (e != null) {
+                    android.util.Log.e("EstadisticasVM", "Error en listener de historial", e)
+                    return@addSnapshotListener
+                }
 
-                if (snapshot != null) {
-                    val historial = snapshot.toObjects(com.example.xpeando.model.Progreso::class.java)
-                    
-                    // Procesar XP semanal desde Firestore
-                    val mapaXP = historial.groupBy { it.fecha }
-                        .mapValues { entry -> entry.value.sumOf { it.xp } }
-                        .toList()
-                        .sortedByDescending { it.first }
-                        .take(7)
-                        .toMap()
-                    
-                    _state.value = _state.value.copy(xpSemanal = mapaXP)
+                try {
+                    if (snapshot != null) {
+                        val historial = snapshot.toObjects(com.example.xpeando.model.Progreso::class.java)
+                        
+                        // Procesar XP semanal desde Firestore
+                        val mapaXP = historial.groupBy { it.fecha }
+                            .mapValues { entry -> entry.value.sumOf { it.xp } }
+                            .toList()
+                            .sortedByDescending { it.first }
+                            .take(7)
+                            .toMap()
+                        
+                        _state.value = _state.value.copy(xpSemanal = mapaXP)
+                    }
+                } catch (ex: Exception) {
+                    android.util.Log.e("EstadisticasVM", "Error al procesar historial", ex)
                 }
             }
     }
