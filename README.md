@@ -1,97 +1,77 @@
-# 🛡️ Xpeando: Guía de Sistema y Mecánicas (v0.1)
+# 🛡️ Xpeando: Guía de Sistema y Mecánicas (v0.1.5)
 
-**Xpeando** es un ecosistema RPG de productividad diseñado para transformar la disciplina diaria en una aventura heroica. Esta versión 0.1.2.13042026 consolida el sistema multiusuario, la economía interna y la progresión de combate.
-
----
-
-## 👥 1. Arquitectura Multiusuario y Sesión
-Xpeando garantiza la privacidad y el progreso individual mediante una arquitectura de aislamiento total.
-*   **Identificación Única:** Todos los datos (tareas, inventario, progreso) se vinculan al `correo_usuario`.
-*   **Gestión de Sesión:** Implementada en `LoginActivity.kt` y `MainActivity.kt`. La sesión persiste entre reinicios, pero permite el cierre seguro sin pérdida de configuraciones diarias.
-*   **Base de Datos:** SQLite (v33) con limpieza automática de redundancias y soporte para apilado de objetos.
+**Xpeando** es un ecosistema RPG de productividad diseñado para transformar la disciplina diaria en una aventura heroica. Esta versión 0.1.5.18042026 consolida la migración total a la nube (Firestore), el desacoplamiento de repositorios y un sistema de combate totalmente integrado con la productividad.
 
 ---
 
-## 📊 2. Sistema de Atributos RPG (Impacto Real)
-Los atributos no son solo números; afectan directamente a cada recompensa y penalización mediante multiplicadores.
+## ☁️ 1. Arquitectura Cloud (Firestore)
+Xpeando ha evolucionado a una arquitectura distribuida y escalable mediante **Firebase Firestore**.
+*   **Identificación Única:** Todos los datos (tareas, inventario, progreso) se vinculan al `correo_usuario` como clave primaria de documento.
+*   **Sincronización en Tiempo Real:** Uso de `SnapshotListeners` para que los cambios en la vida del jefe o recompensas se reflejen instantáneamente en todos los dispositivos.
+*   **Persistencia Total:** Se ha eliminado la dependencia de SQLite local, garantizando que el progreso del héroe nunca se pierda.
+
+---
+
+## 🏗️ 2. Patrón de Repositorio (Desacoplamiento)
+Para mejorar la mantenibilidad, el antiguo "God Repository" se ha dividido en cuatro motores especializados:
+*   **`DataRepository`**: Núcleo del usuario (Perfil, XP, HP, Atributos y Racha). Usa transacciones atómicas para cálculos críticos.
+*   **`RpgRepository`**: Gestión de combate contra jefes, tienda RPG, inventario y equipo.
+*   **`TaskRepository`**: Administra el ciclo de vida de Tareas, Dailies y Hábitos.
+*   **`NotesRepository`**: Gestión de notas rápidas y recordatorios personales.
+
+---
+
+## 📊 3. Sistema de Atributos RPG (Impacto Real)
+Los atributos escalan las recompensas y mitigan las penalizaciones mediante multiplicadores dinámicos.
 
 | Atributo | Impacto en Gameplay | Cálculo de Bonificación |
 | :--- | :--- | :--- |
-| **FZA (Fuerza)** | Daño a Jefes | `Daño = Daño_Base * (Fuerza_Usuario + Bonus_Equipo/10)` |
+| **FZA (Fuerza)** | Daño a Jefes | `Daño = XP_Base * (Fuerza_Usuario + Bonus_Equipo/10)` |
 | **INT (Inteligencia)** | Ganancia de XP | `XP_Final = XP_Base * (Int_Usuario + Bonus_Equipo/10)` |
 | **PER (Percepción)** | Ganancia de Oro | `Oro_Final = Oro_Base * (Per_Usuario + Bonus_Equipo/10)` |
 | **CON (Constitución)** | Resistencia al Daño | `Daño_Recibido = Daño_Base / (Con_Usuario + Bonus_Equipo/10)` |
 
 ---
 
-## 🎁 3. Recompensa Diaria (Mini-juego RPG)
-Un sistema de retención que premia la lealtad diaria con un mini-juego de azar probabilístico.
-*   **Control de Fecha:** Sincronizado mediante `yyyy-MM-dd` para evitar duplicados.
-*   **Probabilidades de Botín:**
-    *   **Monedas (40%):** +100 Oro.
-    *   **Bonus XP (35%):** +50 Experiencia.
-    *   **Poción de Salud (20%):** Curación inmediata o almacenamiento en mochila.
-    *   **Atributo (5%):** +1 Punto de Atributo gratuito.
-*   **Persistencia:** El registro se guarda en el momento de la elección para prevenir abusos mediante reinicios de app.
+## ⚔️ 4. Ciclo de Tareas y Jefes (Productividad = Combate)
+El sistema de combate está ahora 100% vinculado a tus acciones en la vida real:
+*   **Hábitos (+/-):** Afectan HP y XP inmediatamente. Los positivos (+) infligen daño automático al jefe.
+*   **Dailies:** Si no se completan, el jugador recibe daño (mitigado por **Constitución**). Al completarlas, el jefe recibe un ataque potente.
+*   **Tareas:** Objetivos únicos que otorgan grandes recompensas e infligen daño crítico al **Jefe Activo**.
+
+### Mecánica de Jefes (Boss Respawn)
+*   **Instancia Personal:** Cada usuario tiene su propio jefe en Firestore.
+*   **Escalado de Dificultad:** Al derrotar a un jefe, este reaparece tras **21 horas** con estadísticas escaladas a tu nuevo nivel.
 
 ---
 
-## ⚡ 4. Sistema de Rachas (Streaks)
-La constancia es premiada con bonificadores multiplicativos que se acumulan con los atributos del usuario.
-*   **Mecánica:** Al completar tareas o hábitos positivos, se actualiza la racha diaria.
-*   **Bonificadores:**
-    *   **Racha de 3+ días:** +10% de oro y experiencia ganada.
-    *   **Racha de 7+ días:** +25% de oro y experiencia ganada.
+## 🎒 5. Inventario y Consumibles
+*   **Gestión de Duplicados:** IDs únicos basados en el `hashCode` del nombre del ítem para evitar objetos repetidos.
+*   **Mecánica de Pociones:** Uso permitido incluso con 0 HP para resucitar. Al usarlas, se consumen físicamente de la mochila en la nube.
+*   **Bonus de Equipo:** Equipar un objeto aplica inmediatamente su bonus a los multiplicadores de combate y progreso.
 
 ---
 
-## 💀 5. Sistema de Muerte y Resurrección
-Centralizado en `MainActivity.kt`. Al caer en combate (0 HP), el héroe puede elegir:
-1.  **Uso de Poción:** Consume un objeto del inventario para recuperar HP.
-2.  **Sacrificio de Oro:** Paga una multa en monedas para resucitar con HP parcial.
-3.  **Resurrección Gratuita:** Recomienza con HP mínimo (10 HP) sin coste.
-
----
-
-## ⚔️ 6. Ciclo de Tareas y Jefes
-El juego divide la productividad en tres pilares:
-*   **Hábitos:** Acciones repetitivas (+/-). Afectan HP y XP inmediatamente.
-*   **Dailies:** Rutinas diarias. Si no se completan, el jugador recibe daño (mitigado por **Constitución**).
-*   **Tareas:** Objetivos únicos. Al completarlas, se inflige daño al **Jefe Activo** basado en la **Fuerza**.
-
-### Mecánica de Jefes (Per-User Boss)
-*   **Instancia Personal:** Cada usuario tiene su propio jefe.
-*   **Escalado de Dificultad:** Al derrotar a un jefe, este resucita tras 21 horas con **Nivel+, HP+ y Armadura+**.
-
----
-
-## 🎒 7. Inventario y Equipo
-*   **Stacking (Apilado):** Los objetos consumibles (Pociones) se apilan automáticamente.
-*   **Bonus de Equipo:** Cada punto de bonus equivale a un **+0.1** al multiplicador del atributo.
-*   **Equipamiento Inteligente:** Solo un objeto por subtipo (Arma, Armadura) puede estar equipado.
-
----
-
-## 📂 8. Estructura del Proyecto (Tree)
+## 📂 6. Estructura del Proyecto (v2)
 ```text
 Xpeando/
 ├── app/src/main/java/com/example/xpeando/
-│   ├── activities/      # Gestión de sesiones y diálogos globales
-│   ├── adapters/        # Enlace de datos para Listas RPG
-│   ├── database/        # Gestión de SQLite (DBHelper v33)
-│   ├── fragments/       # UI Modular (Personaje, Tienda, Jefes)
-│   ├── model/           # Entidades (Usuario, Jefe, Articulo)
-│   └── utils/           # Lógica de Logros y Managers
+│   ├── activities/      # Login, Registro y Main (Contenedores globales)
+│   ├── repository/      # Los 4 pilares de datos (Data, Rpg, Task, Notes)
+│   ├── viewmodel/       # Lógica de negocio reactiva y ViewModelFactory
+│   ├── model/           # Entidades (Usuario, Jefe, Articulo, Tarea)
+│   ├── fragments/       # UI Modular (Personaje, Tienda, Jefes, Estadísticas)
+│   └── utils/           # LogroManager, NotificationHelper, Toasts
 └── README.md            # Documentación del sistema
 ```
 
 ---
 
-## 🛠️ 9. Ficha Técnica
-*   **Persistencia:** SQLite vía `DBHelper`.
-*   **Versión de DB Actual:** 33.
-*   **Arquitectura:** Single Activity con Navigation Component.
-*   **Branding Visual:** Iconografía RPG personalizada (`dragon_pereza`, `pocion_vida`, `premios`).
+## 🛠️ 7. Ficha Técnica
+*   **Backend:** Firebase Firestore + Auth.
+*   **Arquitectura:** MVVM + Repository Pattern.
+*   **Manejo de Errores:** Bloques `try-catch` y `Log.e` en flujos de datos asíncronos.
+*   **Gráficos:** MPAndroidChart para estadísticas de progreso semanal.
 
 ---
-*Actualizado el: 13/04/2026*
+*Actualizado el: 18/04/2026*

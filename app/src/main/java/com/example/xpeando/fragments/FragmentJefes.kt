@@ -72,7 +72,7 @@ class FragmentJefes : Fragment() {
         ivInfo = view.findViewById(R.id.iv_info_jefes)
 
         ivInfo.setOnClickListener { mostrarTutorialJefes() }
-        ivJefe.setOnClickListener { atacarAlJefe() }
+        // ivJefe.setOnClickListener { atacarAlJefe() } // Desactivado ataque por clic
 
         observarViewModel()
         
