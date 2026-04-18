@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.ViewFlipper
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -232,7 +233,33 @@ class FragmentPersonaje : Fragment() {
         val vista = layoutInflater.inflate(R.layout.dialogo_tutorial_atributos, null)
         val dialog = AlertDialog.Builder(requireContext()).setView(vista).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        vista.findViewById<Button>(R.id.btn_tutorial_siguiente).setOnClickListener { dialog.dismiss() }
+
+        val flipper = vista.findViewById<ViewFlipper>(R.id.view_flipper_tutorial)
+        val btnSiguiente = vista.findViewById<Button>(R.id.btn_tutorial_siguiente)
+        val btnAnterior = vista.findViewById<Button>(R.id.btn_tutorial_anterior)
+
+        btnSiguiente.setOnClickListener {
+            if (flipper.displayedChild < flipper.childCount - 1) {
+                flipper.showNext()
+                btnAnterior.visibility = View.VISIBLE
+                if (flipper.displayedChild == flipper.childCount - 1) {
+                    btnSiguiente.text = "Finalizar"
+                }
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        btnAnterior.setOnClickListener {
+            if (flipper.displayedChild > 0) {
+                flipper.showPrevious()
+                btnSiguiente.text = "Siguiente"
+                if (flipper.displayedChild == 0) {
+                    btnAnterior.visibility = View.INVISIBLE
+                }
+            }
+        }
+
         dialog.show()
     }
 

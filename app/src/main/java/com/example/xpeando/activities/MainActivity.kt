@@ -256,11 +256,9 @@ class MainActivity : AppCompatActivity() {
         btnPocion.text = if (pocion != null) "Usar Poción (Cura 50 HP)" else "Sin pociones"
         btnPocion.setOnClickListener {
             pocion?.let { p ->
-                // NOTA: Como quitar el objeto del inventario es parte del RPG, 
-                // esto debería ser una función en RpgViewModel.
                 lifecycleScope.launch {
-                    RepositoryProvider.rpgRepository.eliminarDelInventario(p.id, correo)
-                    userViewModel.actualizarProgreso(correo, 0, 0, 50)
+                    // Usar la función del ViewModel para asegurar que se elimina y se recarga el inventario
+                    rpgViewModel.usarPocion(correo, p.id, 50)
                     dialog.dismiss()
                     isDeathDialogShowing = false
                 }
@@ -269,8 +267,15 @@ class MainActivity : AppCompatActivity() {
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_monedas).apply {
             val costo = 50
-            isEnabled = usuario.monedas >= costo
+            val tieneMonedas = (userViewModel.usuario.value?.monedas ?: 0) >= costo
+            isEnabled = tieneMonedas
             text = "Pagar $costo (Cura 25 HP)"
+            
+            // Estética opcional: si no tiene monedas, poner el texto en rojo o algo indicativo
+            if (!tieneMonedas) {
+                alpha = 0.5f
+            }
+
             setOnClickListener {
                 userViewModel.actualizarProgreso(correo, 0, -costo, 25)
                 dialog.dismiss()
