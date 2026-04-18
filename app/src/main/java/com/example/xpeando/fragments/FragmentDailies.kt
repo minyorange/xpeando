@@ -35,9 +35,8 @@ import java.util.Locale
 
 class FragmentDailies : Fragment() {
 
-    private lateinit var repository: DataRepository
-    private val viewModel: DailiesViewModel by viewModels { ViewModelFactory(DataRepository()) }
-    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory(DataRepository()) }
+    private val viewModel: DailiesViewModel by viewModels { ViewModelFactory() }
+    private val usuarioViewModel: UsuarioViewModel by activityViewModels { ViewModelFactory() }
     private lateinit var adaptador: DailiesAdapter
     private lateinit var rvDailies: RecyclerView
     private var correoUsuario: String = ""
@@ -52,7 +51,6 @@ class FragmentDailies : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        repository = DataRepository()
         val prefs = requireActivity().getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         correoUsuario = prefs.getString("correo_usuario", "") ?: ""
 
@@ -89,12 +87,7 @@ class FragmentDailies : Fragment() {
                     val diasDiferencia = (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
 
                     if (diasDiferencia > 0) {
-                        viewModel.procesarDailiesFallidas(correoUsuario, diasDiferencia) { danio ->
-                            if (isAdded && danio > 0) {
-                                XpeandoToast.error(requireContext(), "¡Has vuelto! Recibes $danio de daño por $diasDiferencia días de ausencia.")
-                                NotificationHelper.enviarNotificacionLogro(requireContext(), "¡Penalización por Ausencia!", "Has recibido $danio de daño por no completar tus dailies.")
-                            }
-                        }
+                        viewModel.procesarDailiesFallidas(requireContext(), correoUsuario, diasDiferencia)
                         prefs.edit().putString("ultima_penalizacion_dailies", hoy).apply()
                     }
                 }

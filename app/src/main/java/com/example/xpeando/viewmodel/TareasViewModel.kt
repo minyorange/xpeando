@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.xpeando.model.Tarea
 import com.example.xpeando.model.Usuario
 import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.repository.TaskRepository
 import com.example.xpeando.utils.LogroManager
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class TareasViewModel(private val repository: DataRepository) : ViewModel() {
+class TareasViewModel(
+    private val taskRepository: TaskRepository,
+    private val userRepository: DataRepository,
+    private val rpgRepository: com.example.xpeando.repository.RpgRepository
+) : ViewModel() {
 
     private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
     private val _tareas = MutableStateFlow<List<Tarea>>(emptyList())
@@ -27,7 +32,6 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
     fun cargarTareas(correo: String, mostrarCompletadas: Boolean) {
         if (correo.isEmpty()) return
 
-        // Listener en tiempo real para Tareas
         tareasListener?.remove()
         tareasListener = db.collection("usuarios").document(correo).collection("tareas")
             .addSnapshotListener { snapshot, _ ->
@@ -42,7 +46,6 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
                 }
             }
 
-        // Listener en tiempo real para Usuario
         usuarioListener?.remove()
         usuarioListener = db.collection("usuarios").document(correo)
             .addSnapshotListener { snapshot, _ ->
@@ -60,32 +63,33 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
 
     fun completarTarea(context: Context, tarea: Tarea, correo: String, onNivelSubido: (Int) -> Unit) {
         viewModelScope.launch {
-            // FEEDBACK INSTANTÁNEO
             com.example.xpeando.utils.XpeandoToast.mostrarProgreso(context, tarea.experiencia, tarea.monedas)
 
-            // OPERACIONES DE FONDO (Sin bloquear la UI)
             launch(kotlinx.coroutines.Dispatchers.IO) {
                 val uActual = _usuario.value
                 val tareaCompletada = tarea.copy(completada = true)
-                repository.actualizarTarea(tareaCompletada)
-                repository.actualizarProgresoUsuario(correo, tarea.experiencia, tarea.monedas, tipoAccion = "TAREA")
+                taskRepository.actualizarTarea(tareaCompletada)
+                userRepository.actualizarProgresoUsuario(correo, tarea.experiencia, tarea.monedas, tipoAccion = "TAREA")
                 
-                // --- VERIFICAR LOGROS ---
+                // DAÑO AL JEFE: Cuando se completa una tarea (misión)
+                rpgRepository.atacarJefe(tarea.experiencia, correo)
+
                 uActual?.let { usuario ->
                     com.example.xpeando.utils.LogroManager.verificarNuevosLogros(
                         context,
-                        repository,
+                        userRepository,
+                        rpgRepository,
                         usuario,
                         "TAREA"
                     )
                 }
 
-                // Autolimpieza asíncrona (solo las 10 últimas completadas)
-                val todas = repository.obtenerTodasLasTareas(correo)
+                // Autolimpieza (solo las 10 últimas completadas)
+                val todas = taskRepository.obtenerTodasLasTareas(correo)
                 val completadas = todas.filter { it.completada }.sortedBy { it.id }
                 if (completadas.size > 10) {
                     completadas.take(completadas.size - 10).forEach { 
-                        repository.eliminarTarea(it.id, correo)
+                        taskRepository.eliminarTarea(it.id, correo)
                     }
                 }
             }
@@ -94,14 +98,14 @@ class TareasViewModel(private val repository: DataRepository) : ViewModel() {
 
     fun insertarTarea(tarea: Tarea) {
         viewModelScope.launch {
-            repository.insertarTarea(tarea)
+            taskRepository.insertarTarea(tarea)
             cargarTareas(tarea.correo_usuario, false)
         }
     }
 
     fun eliminarTarea(id: Int, correo: String, mostrarCompletadas: Boolean) {
         viewModelScope.launch {
-            repository.eliminarTarea(id, correo)
+            taskRepository.eliminarTarea(id, correo)
             cargarTareas(correo, mostrarCompletadas)
         }
     }

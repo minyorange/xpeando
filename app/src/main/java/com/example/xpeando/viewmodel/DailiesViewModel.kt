@@ -5,13 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.example.xpeando.model.Daily
 import com.example.xpeando.model.Usuario
 import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.repository.TaskRepository
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
+class DailiesViewModel(
+    private val taskRepository: TaskRepository,
+    private val userRepository: DataRepository,
+    private val rpgRepository: com.example.xpeando.repository.RpgRepository
+) : ViewModel() {
 
     private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
     private val _dailies = MutableStateFlow<List<Daily>>(emptyList())
@@ -26,7 +31,6 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
     fun cargarDailies(correo: String) {
         if (correo.isEmpty()) return
         
-        // Listener en tiempo real para Dailies
         dailiesListener?.remove()
         dailiesListener = db.collection("usuarios").document(correo).collection("dailies")
             .addSnapshotListener { snapshot, _ ->
@@ -39,7 +43,6 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
                 }
             }
 
-        // Listener en tiempo real para Usuario
         usuarioListener?.remove()
         usuarioListener = db.collection("usuarios").document(correo)
             .addSnapshotListener { snapshot, _ ->
@@ -58,33 +61,37 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
     fun completarDaily(context: Context, daily: Daily, correo: String, onNivelSubido: (Int) -> Unit) {
         viewModelScope.launch {
             val uActual = _usuario.value
-            // Optimismo de UI: Lanzamos todo a la vez sin esperar
             launch(kotlinx.coroutines.Dispatchers.IO) {
-                repository.actualizarEstadoDaily(daily, true)
-                repository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
-                repository.actualizarRacha(correo)
+                taskRepository.actualizarEstadoDaily(daily, true)
+                userRepository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
+                userRepository.actualizarRacha(correo)
+                
+                // DAÑO AL JEFE: Cuando se completa una daily
+                rpgRepository.atacarJefe(daily.experiencia, correo)
 
-                // --- VERIFICAR LOGROS ---
                 uActual?.let { usuario ->
                     com.example.xpeando.utils.LogroManager.verificarNuevosLogros(
                         context,
-                        repository,
+                        userRepository,
+                        rpgRepository,
                         usuario,
                         "DAILY"
                     )
                 }
             }
             
-            // Mostramos feedback visual inmediatamente (SOLO UNO COMBINADO)
             com.example.xpeando.utils.XpeandoToast.mostrarProgreso(context, daily.experiencia, daily.monedas, esDaily = true)
         }
     }
 
-    fun procesarDailiesFallidas(correo: String, dias: Int, onResultado: (Int) -> Unit) {
+    fun procesarDailiesFallidas(context: android.content.Context, correo: String, dias: Int) {
         viewModelScope.launch {
-            val danio = repository.procesarDailiesFallidas(correo, dias)
+            val (danio, murio) = userRepository.procesarDailiesFallidas(correo, dias)
+            if (murio) {
+                com.example.xpeando.utils.NotificationHelper.enviarNotificacionMuerte(context)
+            }
             if (danio > 0) {
-                onResultado(danio)
+                com.example.xpeando.utils.XpeandoToast.mostrarPenalizacion(context, -danio, 0)
             }
             cargarDailies(correo)
         }
@@ -92,14 +99,14 @@ class DailiesViewModel(private val repository: DataRepository) : ViewModel() {
 
     fun insertarDaily(daily: Daily) {
         viewModelScope.launch {
-            repository.insertarDaily(daily)
+            taskRepository.insertarDaily(daily)
             cargarDailies(daily.correo_usuario)
         }
     }
 
     fun eliminarDaily(id: Int, correo: String) {
         viewModelScope.launch {
-            repository.eliminarDaily(id, correo)
+            taskRepository.eliminarDaily(id, correo)
             cargarDailies(correo)
         }
     }

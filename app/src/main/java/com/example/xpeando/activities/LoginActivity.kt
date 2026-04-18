@@ -19,7 +19,7 @@ import com.google.android.material.card.MaterialCardView
 
 class LoginActivity : AppCompatActivity() {
 
-    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(DataRepository()) }
+    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

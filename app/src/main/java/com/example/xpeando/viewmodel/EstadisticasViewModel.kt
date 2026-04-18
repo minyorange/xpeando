@@ -14,7 +14,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class EstadisticasViewModel(private val repository: DataRepository) : ViewModel() {
+class EstadisticasViewModel(
+    private val repository: DataRepository,
+    private val rpgRepository: com.example.xpeando.repository.RpgRepository
+) : ViewModel() {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _state = MutableStateFlow(EstadisticasState())
     val state: StateFlow<EstadisticasState> = _state.asStateFlow()
@@ -34,7 +37,7 @@ class EstadisticasViewModel(private val repository: DataRepository) : ViewModel(
                     
                     viewModelScope.launch {
                         val logros = usuario?.let {
-                            LogroManager.obtenerLogrosDefinidos(repository, it)
+                            LogroManager.obtenerLogrosDefinidos(rpgRepository, it)
                         } ?: emptyList()
 
                         _state.value = _state.value.copy(
@@ -57,26 +60,16 @@ class EstadisticasViewModel(private val repository: DataRepository) : ViewModel(
 
                 if (snapshot != null) {
                     val historial = snapshot.toObjects(com.example.xpeando.model.Progreso::class.java)
-                    if (historial.isEmpty()) {
-                        // Migración: Subir historial local a Firestore
-                        viewModelScope.launch {
-                            val localHistorial: List<com.example.xpeando.model.Progreso> = withContext(Dispatchers.IO) { repository.obtenerHistorialCompleto(correo) }
-                            localHistorial.forEach { progreso ->
-                                db.collection("usuarios").document(correo)
-                                    .collection("historial_progreso").document(progreso.id.toString()).set(progreso)
-                            }
-                        }
-                    } else {
-                        // Procesar XP semanal desde Firestore
-                        val mapaXP = historial.groupBy { it.fecha }
-                            .mapValues { entry -> entry.value.sumOf { it.xp } }
-                            .toList()
-                            .sortedByDescending { it.first }
-                            .take(7)
-                            .toMap()
-                        
-                        _state.value = _state.value.copy(xpSemanal = mapaXP)
-                    }
+                    
+                    // Procesar XP semanal desde Firestore
+                    val mapaXP = historial.groupBy { it.fecha }
+                        .mapValues { entry -> entry.value.sumOf { it.xp } }
+                        .toList()
+                        .sortedByDescending { it.first }
+                        .take(7)
+                        .toMap()
+                    
+                    _state.value = _state.value.copy(xpSemanal = mapaXP)
                 }
             }
     }

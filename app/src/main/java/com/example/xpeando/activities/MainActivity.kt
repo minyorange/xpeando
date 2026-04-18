@@ -16,7 +16,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.example.xpeando.R
-import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.repository.RepositoryProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 
@@ -29,13 +29,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.xpeando.utils.NotificationHelper
 import com.example.xpeando.viewmodel.UsuarioViewModel
+import com.example.xpeando.viewmodel.RpgViewModel
 import com.example.xpeando.viewmodel.ViewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private val repository = DataRepository()
-    private val viewModel: UsuarioViewModel by viewModels { ViewModelFactory(repository) }
+    private val userViewModel: UsuarioViewModel by viewModels { ViewModelFactory() }
+    private val rpgViewModel: RpgViewModel by viewModels { ViewModelFactory() }
+    
     private lateinit var tvNombre: TextView
     private lateinit var tvNivel: TextView
     private lateinit var cvRacha: View
@@ -96,33 +98,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // --- INICIALIZAR NOTIFICACIONES ---
         NotificationHelper.createNotificationChannels(this)
         NotificationHelper.programarRecordatorioDiario(this)
         pedirPermisoNotificaciones()
 
-        // --- OBTENER TOKEN DE FIREBASE PARA PRUEBAS ---
-        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                android.util.Log.w("FCM", "Error obteniendo token", task.exception)
-                return@addOnCompleteListener
-            }
-            val token = task.result
-            android.util.Log.d("FCM", "TOKEN ACTUAL: $token")
-        }
-
-        // --- COMPROBAR EVENTOS DE BIENVENIDA ---
         val prefsXpeando = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefsXpeando.getString("correo_usuario", "") ?: ""
 
         if (correo.isNotEmpty()) {
-            // CARGAR USUARIO EXPLÍCITAMENTE
-            viewModel.cargarUsuario(correo)
+            userViewModel.cargarUsuario(correo)
+            rpgViewModel.cargarInventario(correo)
 
-            // Observamos el usuario para ver si ya vio el tutorial en la nube
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.usuario.collect { usuario ->
+                    userViewModel.usuario.collect { usuario ->
                         if (usuario != null && !isTutorialShowing && !isRewardDialogShowing) {
                             if (!usuario.tutorialVisto) {
                                 mostrarTutorialBienvenida(correo)
@@ -141,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun verificarRecompensaDiaria(correo: String) {
         val hoy = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
-        val usuario = viewModel.usuario.value
+        val usuario = userViewModel.usuario.value
         
         if (usuario != null && usuario.ultimaFechaRecompensa != hoy) {
             mostrarDialogoRecompensaDiaria(correo, hoy)
@@ -176,14 +165,13 @@ class MainActivity : AppCompatActivity() {
 
         fun elegirCarta(card: View, imageView: android.widget.ImageView) {
             lifecycleScope.launch {
-                repository.actualizarRecompensaDiaria(correo, hoy)
+                RepositoryProvider.dataRepository.actualizarRecompensaDiaria(correo, hoy)
             }
 
             card1.isEnabled = false
             card2.isEnabled = false
             card3.isEnabled = false
 
-            // Icono según el premio
             val iconoRes = when (premio.first) {
                 "COINS" -> R.drawable.coins
                 "BONUS_XP" -> R.drawable.experiencia
@@ -192,9 +180,7 @@ class MainActivity : AppCompatActivity() {
                 else -> R.drawable.premios
             }
 
-            // Animación de "dar la vuelta" (Rotación en Y)
             card.animate().rotationY(90f).setDuration(300).withEndAction {
-                // Al llegar a la mitad (90 grados), cambiamos la imagen
                 imageView.setImageResource(iconoRes)
                 card.rotationY = -90f
                 card.animate().rotationY(0f).setDuration(300).start()
@@ -205,10 +191,10 @@ class MainActivity : AppCompatActivity() {
             }.start()
 
             when (premio.first) {
-                "BONUS_XP" -> viewModel.actualizarProgreso(correo, 50, 0)
-                "COINS" -> viewModel.actualizarProgreso(correo, 0, 100)
-                "POCION" -> viewModel.comprarArticulo(correo, com.example.xpeando.model.Articulo(nombre = "Poción de Vida", tipo = "CONSUMIBLE", subtipo = "POCION", bonusHp = 25, icono = "pocion_vida"))
-                "ATRIBUTO" -> viewModel.subirAtributo(correo, "fza")
+                "BONUS_XP" -> userViewModel.actualizarProgreso(correo, 50, 0)
+                "COINS" -> userViewModel.actualizarProgreso(correo, 0, 100)
+                "POCION" -> rpgViewModel.comprarArticulo(this, correo, com.example.xpeando.model.Articulo(nombre = "Poción de Vida", tipo = "CONSUMIBLE", subtipo = "POCION", bonusHp = 25, icono = "pocion_vida")) { }
+                "ATRIBUTO" -> userViewModel.subirAtributo(correo, "fza")
             }
         }
 
@@ -216,11 +202,7 @@ class MainActivity : AppCompatActivity() {
         card2.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_2)) }
         card3.setOnClickListener { elegirCarta(it, vista.findViewById(R.id.iv_card_3)) }
 
-        btnAceptar.setOnClickListener { 
-            dialog.dismiss() 
-            // NO reseteamos isRewardDialogShowing a false aquí, 
-            // para que no vuelva a saltar en esta misma sesión tras actualizar XP/Monedas
-        }
+        btnAceptar.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
@@ -245,7 +227,7 @@ class MainActivity : AppCompatActivity() {
                 flipper.showNext()
                 btnAtras.visibility = View.VISIBLE
             } else {
-                viewModel.marcarTutorialVisto(correo)
+                userViewModel.marcarTutorialVisto(correo)
                 dialog.dismiss()
                 isTutorialShowing = false
                 verificarRecompensaDiaria(correo)
@@ -260,17 +242,13 @@ class MainActivity : AppCompatActivity() {
         if (isDeathDialogShowing) return
         isDeathDialogShowing = true
 
-        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
-        val usuario = viewModel.usuario.value ?: return
-        
-        // Buscar poción en el inventario
-        val inventario = viewModel.inventario.value
+        val correo = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE).getString("correo_usuario", "") ?: ""
+        val usuario = userViewModel.usuario.value ?: return
+        val inventario = rpgViewModel.inventario.value
         val pocion = inventario.find { it.subtipo == "POCION" }
 
         val dialogView = layoutInflater.inflate(R.layout.dialogo_muerte, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
-
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val btnPocion = dialogView.findViewById<Button>(R.id.btn_resucitar_pocion)
@@ -278,9 +256,14 @@ class MainActivity : AppCompatActivity() {
         btnPocion.text = if (pocion != null) "Usar Poción (Cura 50 HP)" else "Sin pociones"
         btnPocion.setOnClickListener {
             pocion?.let { p ->
-                viewModel.usarPocion(correo, p.id, 50)
-                dialog.dismiss()
-                isDeathDialogShowing = false
+                // NOTA: Como quitar el objeto del inventario es parte del RPG, 
+                // esto debería ser una función en RpgViewModel.
+                lifecycleScope.launch {
+                    RepositoryProvider.rpgRepository.eliminarDelInventario(p.id, correo)
+                    userViewModel.actualizarProgreso(correo, 0, 0, 50)
+                    dialog.dismiss()
+                    isDeathDialogShowing = false
+                }
             }
         }
 
@@ -289,14 +272,14 @@ class MainActivity : AppCompatActivity() {
             isEnabled = usuario.monedas >= costo
             text = "Pagar $costo (Cura 25 HP)"
             setOnClickListener {
-                viewModel.actualizarProgreso(correo, 0, -costo, 25)
+                userViewModel.actualizarProgreso(correo, 0, -costo, 25)
                 dialog.dismiss()
                 isDeathDialogShowing = false
             }
         }
 
         dialogView.findViewById<Button>(R.id.btn_resucitar_gratis).setOnClickListener {
-            viewModel.actualizarProgreso(correo, 0, 0, 10)
+            userViewModel.actualizarProgreso(correo, 0, 0, 10)
             dialog.dismiss()
             isDeathDialogShowing = false
         }
@@ -309,8 +292,7 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Cerrar Sesión")
             .setMessage("¿Estás seguro?")
             .setPositiveButton("Sí") { _, _ -> 
-                val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-                prefs.edit().putBoolean("sesion_activa", false).apply()
+                getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE).edit().putBoolean("sesion_activa", false).apply()
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
@@ -321,10 +303,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observarUsuario() {
-        val prefs = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
-        val correo = prefs.getString("correo_usuario", "") ?: ""
-        
-        // Obtener referencias al header del Drawer
+        val correo = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE).getString("correo_usuario", "") ?: ""
         val headerView = navView.getHeaderView(0)
         val tvNavNombre = headerView.findViewById<TextView>(R.id.tv_nav_header_nombre)
         val tvNavNivel = headerView.findViewById<TextView>(R.id.tv_nav_header_nivel)
@@ -333,20 +312,16 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.usuario.collect { usuario ->
+                userViewModel.usuario.collect { usuario ->
                     usuario?.let {
-                        // Actualizar UI Principal
                         tvNombre.text = it.nombre
                         tvNivel.text = "Nvl ${it.nivel}"
                         tvMonedas.text = "${it.monedas}"
                         tvRacha.text = "🔥 ${it.rachaActual}"
                         cvRacha.visibility = if (it.rachaActual > 0) View.VISIBLE else View.GONE
-
                         pbHP.progress = it.hp
                         pbXP.max = it.nivel * 100
                         pbXP.progress = it.experiencia
-
-                        // Actualizar UI del Drawer (Menú lateral)
                         tvNavNombre.text = it.nombre
                         tvNavNivel.text = "Nivel ${it.nivel}"
                         pbNavHP.progress = it.hp
@@ -360,7 +335,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        viewModel.cargarUsuario(correo)
+        userViewModel.cargarUsuario(correo)
     }
 
     private fun pedirPermisoNotificaciones() {
@@ -374,6 +349,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val correo = getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE).getString("correo_usuario", "") ?: ""
-        if (correo.isNotEmpty()) viewModel.cargarUsuario(correo)
+        if (correo.isNotEmpty()) {
+            userViewModel.cargarUsuario(correo)
+            rpgViewModel.cargarInventario(correo)
+        }
     }
 }

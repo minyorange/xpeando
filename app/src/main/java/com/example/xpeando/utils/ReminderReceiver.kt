@@ -3,7 +3,7 @@ package com.example.xpeando.utils
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.example.xpeando.repository.DataRepository
+import com.example.xpeando.repository.RepositoryProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,7 +13,7 @@ import java.util.Locale
 
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val repository = DataRepository()
+        val repository = RepositoryProvider.taskRepository
         val prefs = context.getSharedPreferences("XpeandoPrefs", Context.MODE_PRIVATE)
         val correo = prefs.getString("correo_usuario", "") ?: ""
         val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())

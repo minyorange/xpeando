@@ -53,7 +53,8 @@ object NotificationHelper {
             .setSmallIcon(R.mipmap.ic_lan)
             .setContentTitle(titulo)
             .setContentText(mensaje)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX) // Prioridad Máxima
+            .setDefaults(NotificationCompat.DEFAULT_ALL)  // Sonido y vibración (Activa el flotante)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -88,6 +89,35 @@ object NotificationHelper {
         try {
             with(NotificationManagerCompat.from(context)) {
                 notify(1001, builder.build())
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun enviarNotificacionMuerte(context: Context) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            context, 2, intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID_RECORDATORIOS)
+            .setSmallIcon(R.mipmap.ic_lan)
+            .setContentTitle("💀 ¡HAS SIDO DERROTADO! 💀")
+            .setContentText("El Dragón Pereza te ha vencido. Has perdido el 20% de tu oro.")
+            .setStyle(NotificationCompat.BigTextStyle().bigText("El Dragón Pereza (o tu falta de constancia) ha drenado tu energía. Tu HP ha llegado a 0 y has perdido parte de tu tesoro acumulado. ¡Levántate y sigue luchando!"))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setColor(context.getColor(android.R.color.holo_red_dark))
+
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(666, builder.build())
             }
         } catch (e: SecurityException) {
             e.printStackTrace()
