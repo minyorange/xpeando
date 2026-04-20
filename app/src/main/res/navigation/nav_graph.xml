@@ -60,6 +60,12 @@
         tools:layout="@layout/fragment_faq" />
 
     <fragment
+        android:id="@+id/fragmentoAjustes"
+        android:name="com.example.xpeando.fragments.FragmentAjustes"
+        android:label="Ajustes"
+        tools:layout="@layout/fragment_ajustes" />
+
+    <fragment
         android:id="@+id/fragmentoNotas"
         android:name="com.example.xpeando.fragments.FragmentNotas"
         android:label="Notas Rápidas"

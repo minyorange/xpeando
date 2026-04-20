@@ -62,7 +62,8 @@ class DailiesViewModel(
         viewModelScope.launch {
             val uActual = _usuario.value
             launch(kotlinx.coroutines.Dispatchers.IO) {
-                taskRepository.actualizarEstadoDaily(daily, true)
+                // Cambiamos actualizarEstadoDaily por eliminarDaily para que no reaparezca nunca
+                taskRepository.eliminarDaily(daily.id, correo)
                 userRepository.actualizarProgresoUsuario(correo, daily.experiencia, daily.monedas, tipoAccion = "DAILY")
                 userRepository.actualizarRacha(correo)
                 

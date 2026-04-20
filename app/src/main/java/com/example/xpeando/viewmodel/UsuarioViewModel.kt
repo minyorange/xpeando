@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 class UsuarioViewModel(private val userRepository: DataRepository) : ViewModel() {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -106,5 +108,39 @@ class UsuarioViewModel(private val userRepository: DataRepository) : ViewModel()
     fun cerrarSesion() {
         auth.signOut()
         _usuario.value = null
+    }
+
+    fun borrarCuenta(correo: String, onCompletado: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val userRef = db.collection("usuarios").document(correo)
+                
+                // 1. Borrar subcolecciones (Firestore no las borra solas)
+                val subcolecciones = listOf(
+                    "dailies", "habitos", "tareas", "rpg", "rpg_historial", 
+                    "inventario", "logros", "notas", "recompensas", "historial_progreso"
+                )
+                for (sub in subcolecciones) {
+                    val snapshot = userRef.collection(sub).get().await()
+                    for (doc in snapshot.documents) {
+                        doc.reference.delete().await()
+                    }
+                }
+
+                // 2. Borrar documento del usuario
+                userRef.delete().await()
+                
+                // 3. Borrar de Firebase Auth
+                auth.currentUser?.delete()?.await()
+                
+                withContext(Dispatchers.Main) {
+                    onCompletado(true)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onCompletado(false)
+                }
+            }
+        }
     }
 }

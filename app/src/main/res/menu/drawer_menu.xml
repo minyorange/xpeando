@@ -30,6 +30,10 @@
                 android:icon="@drawable/help"
                 android:title="FAQ" />
             <item
+                android:id="@+id/fragmentoAjustes"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="Ajustes" />
+            <item
                 android:id="@+id/item_salir"
                 android:icon="@android:drawable/ic_lock_power_off"
                 android:title="Cerrar Sesión" />

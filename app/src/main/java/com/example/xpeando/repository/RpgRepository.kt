@@ -57,6 +57,10 @@ class RpgRepository {
         db.runTransaction { transaction ->
             val u = transaction.get(userRef).toObject(Usuario::class.java) ?: return@runTransaction false
             val jefe = transaction.get(jefeRef).toObject(Jefe::class.java) ?: return@runTransaction false
+            
+            // Si el jefe ya está derrotado, no hacemos nada
+            if (jefe.derrotado) return@runTransaction false
+
             val danioTotal = (danio * (u.fuerza + (bonusFza / 10.0))).toInt()
             val nuevaHp = jefe.hpActual - danioTotal
             
@@ -142,7 +146,15 @@ class RpgRepository {
     }
 
     suspend fun obtenerHistorialJefes(correo: String): List<Jefe> = withContext(Dispatchers.IO) {
-        val snap = db.collection("usuarios").document(correo).collection("rpg_historial").get().await()
-        snap.toObjects(Jefe::class.java)
+        try {
+            val snap = db.collection("usuarios").document(correo).collection("rpg_historial")
+                .orderBy("fechaMuerte", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get().await()
+            snap.toObjects(Jefe::class.java)
+        } catch (e: Exception) {
+            // Si falla el orden por falta de índice, devolvemos sin ordenar para no romper la app
+            val snap = db.collection("usuarios").document(correo).collection("rpg_historial").get().await()
+            snap.toObjects(Jefe::class.java).sortedByDescending { it.fechaMuerte }
+        }
     }
 }
