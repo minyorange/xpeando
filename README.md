@@ -74,4 +74,4 @@ Xpeando/
 *   **Gráficos:** MPAndroidChart para estadísticas de progreso semanal.
 
 ---
-*Actualizado el: 18/04/2026*
+*Actualizado el: 20/04/2026*
